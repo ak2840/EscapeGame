@@ -1,6 +1,63 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// 圖片載入
+const playerImages = {
+  // 移動動畫圖片
+  up1: new Image(),
+  up2: new Image(),
+  down1: new Image(),
+  down2: new Image(),
+  left1: new Image(),
+  left2: new Image(),
+  right1: new Image(),
+  right2: new Image(),
+  // 攻擊動畫圖片
+  attackUp1: new Image(),
+  attackUp2: new Image(),
+  attackDown1: new Image(),
+  attackDown2: new Image(),
+  attackLeft1: new Image(),
+  attackLeft2: new Image(),
+  attackRight1: new Image(),
+  attackRight2: new Image(),
+  // 動作動畫圖片
+  actionUp1: new Image(),
+  actionUp2: new Image(),
+  actionDown1: new Image(),
+  actionDown2: new Image(),
+  actionLeft1: new Image(),
+  actionLeft2: new Image(),
+  actionRight1: new Image(),
+  actionRight2: new Image()
+};
+
+// 載入圖片
+playerImages.up1.src = 'assets/player-up-1.png';
+playerImages.up2.src = 'assets/player-up-2.png';
+playerImages.down1.src = 'assets/player-down-1.png';
+playerImages.down2.src = 'assets/player-down-2.png';
+playerImages.left1.src = 'assets/player-left-1.png';
+playerImages.left2.src = 'assets/player-left-2.png';
+playerImages.right1.src = 'assets/player-right-1.png';
+playerImages.right2.src = 'assets/player-right-2.png';
+playerImages.attackUp1.src = 'assets/player-attack-up-1.png';
+playerImages.attackUp2.src = 'assets/player-attack-up-2.png';
+playerImages.attackDown1.src = 'assets/player-attack-down-1.png';
+playerImages.attackDown2.src = 'assets/player-attack-down-2.png';
+playerImages.attackLeft1.src = 'assets/player-attack-left-1.png';
+playerImages.attackLeft2.src = 'assets/player-attack-left-2.png';
+playerImages.attackRight1.src = 'assets/player-attack-right-1.png';
+playerImages.attackRight2.src = 'assets/player-attack-right-2.png';
+playerImages.actionUp1.src = 'assets/player-action-up-1.png';
+playerImages.actionUp2.src = 'assets/player-action-up-2.png';
+playerImages.actionDown1.src = 'assets/player-action-down-1.png';
+playerImages.actionDown2.src = 'assets/player-action-down-2.png';
+playerImages.actionLeft1.src = 'assets/player-action-left-1.png';
+playerImages.actionLeft2.src = 'assets/player-action-left-2.png';
+playerImages.actionRight1.src = 'assets/player-action-right-1.png';
+playerImages.actionRight2.src = 'assets/player-action-right-2.png';
+
 // 地圖與視窗設定
 const VIEW_WIDTH = canvas.width;
 const VIEW_HEIGHT = canvas.height;
@@ -16,6 +73,20 @@ const player = {
   speed: 4,
   moving: false,
   color: '#FFD700',
+  direction: 'down', // 預設朝下
+  isAttacking: false,
+  isActioning: false,
+  attackStartTime: 0,
+  actionStartTime: 0,
+  attackDuration: 300, // 攻擊動畫持續時間
+  actionDuration: 100, // 動作動畫持續時間（較短，讓動畫可以持續播放）
+  moveAnimationFrame: 1, // 移動動畫幀（1或2）
+  moveAnimationTime: 0, // 移動動畫計時器
+  moveAnimationSpeed: 200, // 移動動畫切換速度（毫秒）
+  attackAnimationFrame: 1, // 攻擊動畫幀（1或2）
+  attackAnimationSpeed: 150, // 攻擊動畫切換速度（毫秒）
+  actionAnimationFrame: 1, // 動作動畫幀（1或2）
+  actionAnimationSpeed: 250, // 動作動畫切換速度（毫秒）
 };
 
 // 鍵盤狀態
@@ -32,19 +103,16 @@ window.addEventListener('keydown', (e) => {
   if (e.code in keys) {
     keys[e.code] = true;
     if (e.code === 'Space') {
-      if (gameOver) {
-        // 遊戲結束時按空白鍵重新開始
-        restartGame();
-      } else if (gameWon) {
-        // 通關時按空白鍵重新開始
-        restartGame();
-      } else if (checkExit()) {
-        // 在出口位置按空白鍵通關
-        gameWon = true;
-        console.log('恭喜通關！');
-      } else {
+      // 只有在正常遊戲狀態下才執行動作
+      if (!gameOver && !gameWon) {
         // 執行動作：打招呼
-        console.log('哈囉！');
+        if (!player.isActioning) {
+          console.log('哈囉！');
+          player.isActioning = true;
+          player.actionStartTime = Date.now();
+          player.actionAnimationTime = Date.now();
+          player.actionAnimationFrame = 1;
+        }
       }
     }
   }
@@ -52,6 +120,23 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => {
   if (e.code in keys) {
     keys[e.code] = false;
+    if (e.code === 'Space') {
+      // 空白鍵放開時停止動作
+      player.isActioning = false;
+      
+      // 檢查是否需要重新開始或通關
+      if (gameOver) {
+        // 遊戲結束時放開空白鍵重新開始
+        restartGame();
+      } else if (gameWon) {
+        // 通關時放開空白鍵重新開始
+        restartGame();
+      } else if (checkExit()) {
+        // 在出口位置放開空白鍵通關
+        gameWon = true;
+        console.log('恭喜通關！');
+      }
+    }
   }
 });
 
@@ -197,21 +282,31 @@ function drawMonsters(offsetX, offsetY) {
 
 function updatePlayer() {
   player.moving = false;
+  
+  // 如果正在執行動作，禁止移動
+  if (player.isActioning) {
+    return;
+  }
+  
   if (keys.ArrowUp) {
     player.y -= player.speed;
     player.moving = true;
+    player.direction = 'up';
   }
   if (keys.ArrowDown) {
     player.y += player.speed;
     player.moving = true;
+    player.direction = 'down';
   }
   if (keys.ArrowLeft) {
     player.x -= player.speed;
     player.moving = true;
+    player.direction = 'left';
   }
   if (keys.ArrowRight) {
     player.x += player.speed;
     player.moving = true;
+    player.direction = 'right';
   }
   // 邊界限制
   player.x = Math.max(0, Math.min(MAP_WIDTH - player.width, player.x));
@@ -219,8 +314,51 @@ function updatePlayer() {
 }
 
 function drawPlayer(offsetX, offsetY) {
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x - offsetX, player.y - offsetY, player.width, player.height);
+  const currentTime = Date.now();
+  let imageToDraw;
+  
+  // 檢查動作動畫（最高優先級）
+  if (player.isActioning) {
+    // 更新動作動畫
+    if (currentTime - player.actionAnimationTime > player.actionAnimationSpeed) {
+      player.actionAnimationFrame = player.actionAnimationFrame === 1 ? 2 : 1;
+      player.actionAnimationTime = currentTime;
+    }
+    imageToDraw = playerImages[`action${player.direction.charAt(0).toUpperCase() + player.direction.slice(1)}${player.actionAnimationFrame}`];
+  }
+  
+  // 檢查攻擊動畫（第二優先級）
+  if (!imageToDraw && player.isAttacking) {
+    const attackElapsed = currentTime - player.attackStartTime;
+    if (attackElapsed < player.attackDuration) {
+      // 更新攻擊動畫
+      if (currentTime - player.attackAnimationTime > player.attackAnimationSpeed) {
+        player.attackAnimationFrame = player.attackAnimationFrame === 1 ? 2 : 1;
+        player.attackAnimationTime = currentTime;
+      }
+      imageToDraw = playerImages[`attack${player.direction.charAt(0).toUpperCase() + player.direction.slice(1)}${player.attackAnimationFrame}`];
+    } else {
+      player.isAttacking = false;
+    }
+  }
+  
+  // 如果沒有特殊動畫，使用移動動畫（最低優先級）
+  if (!imageToDraw) {
+    if (player.moving) {
+      // 更新移動動畫
+      if (currentTime - player.moveAnimationTime > player.moveAnimationSpeed) {
+        player.moveAnimationFrame = player.moveAnimationFrame === 1 ? 2 : 1;
+        player.moveAnimationTime = currentTime;
+      }
+      imageToDraw = playerImages[`${player.direction}${player.moveAnimationFrame}`];
+    } else {
+      // 停止時顯示第1幀
+      imageToDraw = playerImages[`${player.direction}1`];
+    }
+  }
+  
+  // 繪製角色圖片
+  ctx.drawImage(imageToDraw, player.x - offsetX, player.y - offsetY, player.width, player.height);
 }
 
 function clearScreen() {
@@ -241,7 +379,7 @@ function distance(ax, ay, bx, by) {
 }
 
 function autoAttack() {
-  if (!player.moving) {
+  if (!player.moving && !player.isActioning) {
     const currentTime = Date.now();
     if (currentTime - lastAttackTime < ATTACK_COOLDOWN) {
       return; // 還在冷卻中
@@ -268,6 +406,12 @@ function autoAttack() {
           vy: (dy / dist) * PROJECTILE_SPEED,
           targetMonster: i,
         });
+        
+        // 設定攻擊動畫
+        player.isAttacking = true;
+        player.attackStartTime = currentTime;
+        player.attackAnimationTime = currentTime;
+        player.attackAnimationFrame = 1;
         
         lastAttackTime = currentTime;
         // 一次只攻擊一隻
@@ -459,6 +603,15 @@ function restartGame() {
   player.x = MAP_WIDTH / 2;
   player.y = MAP_HEIGHT / 2;
   player.moving = false;
+  player.direction = 'down';
+  player.isAttacking = false;
+  player.isActioning = false;
+  player.moveAnimationFrame = 1;
+  player.moveAnimationTime = 0;
+  player.attackAnimationFrame = 1;
+  player.attackAnimationTime = 0;
+  player.actionAnimationFrame = 1;
+  player.actionAnimationTime = 0;
   
   // 清空所有怪物和彈幕
   monsters.length = 0;
