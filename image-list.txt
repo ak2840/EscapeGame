@@ -1,35 +1,116 @@
+Safe Zone Escape 遊戲圖片檔案清單
+=====================================
+
 玩家角色圖片檔案 (24張)
 ------------------------
 
 移動動畫 (8張):
-- player-up-1.png
-- player-up-2.png
-- player-down-1.png
-- player-down-2.png
-- player-left-1.png
-- player-left-2.png
-- player-right-1.png
-- player-right-2.png
+- assets/player/player-up-1.png
+- assets/player/player-up-2.png
+- assets/player/player-down-1.png
+- assets/player/player-down-2.png
+- assets/player/player-left-1.png
+- assets/player/player-left-2.png
+- assets/player/player-right-1.png
+- assets/player/player-right-2.png
 
 攻擊動畫 (8張):
-- player-attack-up-1.png
-- player-attack-up-2.png
-- player-attack-down-1.png
-- player-attack-down-2.png
-- player-attack-left-1.png
-- player-attack-left-2.png
-- player-attack-right-1.png
-- player-attack-right-2.png
+- assets/player/player-attack-up-1.png
+- assets/player/player-attack-up-2.png
+- assets/player/player-attack-down-1.png
+- assets/player/player-attack-down-2.png
+- assets/player/player-attack-left-1.png
+- assets/player/player-attack-left-2.png
+- assets/player/player-attack-right-1.png
+- assets/player/player-attack-right-2.png
 
 動作動畫 (8張):
-- player-action-up-1.png
-- player-action-up-2.png
-- player-action-down-1.png
-- player-action-down-2.png
-- player-action-left-1.png
-- player-action-left-2.png
-- player-action-right-1.png
-- player-action-right-2.png
+- assets/player/player-action-up-1.png
+- assets/player/player-action-up-2.png
+- assets/player/player-action-down-1.png
+- assets/player/player-action-down-2.png
+- assets/player/player-action-left-1.png
+- assets/player/player-action-left-2.png
+- assets/player/player-action-right-1.png
+- assets/player/player-action-right-2.png
 
-檔案位置: assets/
-總計: 24張圖片檔案
+怪物圖片檔案 (12張)
+-------------------
+
+普通怪物 (4張):
+- assets/monsters/normal-left-1.png
+- assets/monsters/normal-left-2.png
+- assets/monsters/normal-right-1.png
+- assets/monsters/normal-right-2.png
+
+追蹤怪物 (4張):
+- assets/monsters/tracker-left-1.png
+- assets/monsters/tracker-left-2.png
+- assets/monsters/tracker-right-1.png
+- assets/monsters/tracker-right-2.png
+
+砲塔怪物 (4張):
+- assets/monsters/turret-left-1.png
+- assets/monsters/turret-left-2.png
+- assets/monsters/turret-right-1.png
+- assets/monsters/turret-right-2.png
+
+檔案結構
+--------
+assets/
+├── player/
+│   ├── player-up-1.png
+│   ├── player-up-2.png
+│   ├── player-down-1.png
+│   ├── player-down-2.png
+│   ├── player-left-1.png
+│   ├── player-left-2.png
+│   ├── player-right-1.png
+│   ├── player-right-2.png
+│   ├── player-attack-up-1.png
+│   ├── player-attack-up-2.png
+│   ├── player-attack-down-1.png
+│   ├── player-attack-down-2.png
+│   ├── player-attack-left-1.png
+│   ├── player-attack-left-2.png
+│   ├── player-attack-right-1.png
+│   ├── player-attack-right-2.png
+│   ├── player-action-up-1.png
+│   ├── player-action-up-2.png
+│   ├── player-action-down-1.png
+│   ├── player-action-down-2.png
+│   ├── player-action-left-1.png
+│   ├── player-action-left-2.png
+│   ├── player-action-right-1.png
+│   └── player-action-right-2.png
+└── monsters/
+    ├── normal-left-1.png
+    ├── normal-left-2.png
+    ├── normal-right-1.png
+    ├── normal-right-2.png
+    ├── tracker-left-1.png
+    ├── tracker-left-2.png
+    ├── tracker-right-1.png
+    ├── tracker-right-2.png
+    ├── turret-left-1.png
+    ├── turret-left-2.png
+    ├── turret-right-1.png
+    └── turret-right-2.png
+
+圖片規格說明
+------------
+玩家角色圖片:
+- 尺寸: 40x60 像素
+- 格式: PNG (支援透明背景)
+- 動畫: 每種動作有2幀動畫
+
+怪物圖片:
+- 普通怪物: 40x40 像素
+- 追蹤怪物: 40x40 像素  
+- 砲塔怪物: 120x120 像素
+- 格式: PNG (支援透明背景)
+- 動畫: 每種方向有2幀動畫
+
+總計: 36張圖片檔案
+- 玩家角色: 24張
+- 怪物: 12張

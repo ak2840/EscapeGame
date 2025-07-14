@@ -32,31 +32,69 @@ const playerImages = {
   actionRight2: new Image()
 };
 
-// 載入圖片
-playerImages.up1.src = 'assets/player-up-1.png';
-playerImages.up2.src = 'assets/player-up-2.png';
-playerImages.down1.src = 'assets/player-down-1.png';
-playerImages.down2.src = 'assets/player-down-2.png';
-playerImages.left1.src = 'assets/player-left-1.png';
-playerImages.left2.src = 'assets/player-left-2.png';
-playerImages.right1.src = 'assets/player-right-1.png';
-playerImages.right2.src = 'assets/player-right-2.png';
-playerImages.attackUp1.src = 'assets/player-attack-up-1.png';
-playerImages.attackUp2.src = 'assets/player-attack-up-2.png';
-playerImages.attackDown1.src = 'assets/player-attack-down-1.png';
-playerImages.attackDown2.src = 'assets/player-attack-down-2.png';
-playerImages.attackLeft1.src = 'assets/player-attack-left-1.png';
-playerImages.attackLeft2.src = 'assets/player-attack-left-2.png';
-playerImages.attackRight1.src = 'assets/player-attack-right-1.png';
-playerImages.attackRight2.src = 'assets/player-attack-right-2.png';
-playerImages.actionUp1.src = 'assets/player-action-up-1.png';
-playerImages.actionUp2.src = 'assets/player-action-up-2.png';
-playerImages.actionDown1.src = 'assets/player-action-down-1.png';
-playerImages.actionDown2.src = 'assets/player-action-down-2.png';
-playerImages.actionLeft1.src = 'assets/player-action-left-1.png';
-playerImages.actionLeft2.src = 'assets/player-action-left-2.png';
-playerImages.actionRight1.src = 'assets/player-action-right-1.png';
-playerImages.actionRight2.src = 'assets/player-action-right-2.png';
+// 怪物圖片載入
+const monsterImages = {
+  normal: {
+    left1: new Image(),
+    left2: new Image(),
+    right1: new Image(),
+    right2: new Image()
+  },
+  tracker: {
+    left1: new Image(),
+    left2: new Image(),
+    right1: new Image(),
+    right2: new Image()
+  },
+  turret: {
+    left1: new Image(),
+    left2: new Image(),
+    right1: new Image(),
+    right2: new Image()
+  }
+};
+
+// 載入玩家圖片
+playerImages.up1.src = 'assets/player/player-up-1.png';
+playerImages.up2.src = 'assets/player/player-up-2.png';
+playerImages.down1.src = 'assets/player/player-down-1.png';
+playerImages.down2.src = 'assets/player/player-down-2.png';
+playerImages.left1.src = 'assets/player/player-left-1.png';
+playerImages.left2.src = 'assets/player/player-left-2.png';
+playerImages.right1.src = 'assets/player/player-right-1.png';
+playerImages.right2.src = 'assets/player/player-right-2.png';
+playerImages.attackUp1.src = 'assets/player/player-attack-up-1.png';
+playerImages.attackUp2.src = 'assets/player/player-attack-up-2.png';
+playerImages.attackDown1.src = 'assets/player/player-attack-down-1.png';
+playerImages.attackDown2.src = 'assets/player/player-attack-down-2.png';
+playerImages.attackLeft1.src = 'assets/player/player-attack-left-1.png';
+playerImages.attackLeft2.src = 'assets/player/player-attack-left-2.png';
+playerImages.attackRight1.src = 'assets/player/player-attack-right-1.png';
+playerImages.attackRight2.src = 'assets/player/player-attack-right-2.png';
+playerImages.actionUp1.src = 'assets/player/player-action-up-1.png';
+playerImages.actionUp2.src = 'assets/player/player-action-up-2.png';
+playerImages.actionDown1.src = 'assets/player/player-action-down-1.png';
+playerImages.actionDown2.src = 'assets/player/player-action-down-2.png';
+playerImages.actionLeft1.src = 'assets/player/player-action-left-1.png';
+playerImages.actionLeft2.src = 'assets/player/player-action-left-2.png';
+playerImages.actionRight1.src = 'assets/player/player-action-right-1.png';
+playerImages.actionRight2.src = 'assets/player/player-action-right-2.png';
+
+// 載入怪物圖片
+monsterImages.normal.left1.src = 'assets/monsters/normal-left-1.png';
+monsterImages.normal.left2.src = 'assets/monsters/normal-left-2.png';
+monsterImages.normal.right1.src = 'assets/monsters/normal-right-1.png';
+monsterImages.normal.right2.src = 'assets/monsters/normal-right-2.png';
+
+monsterImages.tracker.left1.src = 'assets/monsters/tracker-left-1.png';
+monsterImages.tracker.left2.src = 'assets/monsters/tracker-left-2.png';
+monsterImages.tracker.right1.src = 'assets/monsters/tracker-right-1.png';
+monsterImages.tracker.right2.src = 'assets/monsters/tracker-right-2.png';
+
+monsterImages.turret.left1.src = 'assets/monsters/turret-left-1.png';
+monsterImages.turret.left2.src = 'assets/monsters/turret-left-2.png';
+monsterImages.turret.right1.src = 'assets/monsters/turret-right-1.png';
+monsterImages.turret.right2.src = 'assets/monsters/turret-right-2.png';
 
 // 遊戲狀態管理
 let gameState = 'lobby'; // 'lobby', 'playing', 'gameOver', 'victory'
@@ -401,6 +439,11 @@ function spawnMonsters() {
       dy: 0,
       type: 'normal',
       speed: 1,
+      // 動畫相關屬性
+      direction: 'right', // 預設朝右
+      animationFrame: 1, // 動畫幀（1或2）
+      animationTime: 0, // 動畫計時器
+      animationSpeed: 300, // 動畫切換速度（毫秒）
     });
   }
   
@@ -418,6 +461,11 @@ function spawnMonsters() {
       dy: 0,
       type: 'tracker',
       speed: 1.5,
+      // 動畫相關屬性
+      direction: 'right', // 預設朝右
+      animationFrame: 1, // 動畫幀（1或2）
+      animationTime: 0, // 動畫計時器
+      animationSpeed: 250, // 動畫切換速度（毫秒，比普通怪物快一點）
     });
   }
   
@@ -438,11 +486,18 @@ function spawnMonsters() {
       lastAttackTime: 0, // 攻擊計時器
       attackCooldown: 2000, // 2秒攻擊間隔
       attackRange: 400, // 攻擊範圍
+      // 動畫相關屬性（砲塔也會有動畫，雖然不移動）
+      direction: 'right', // 預設朝右
+      animationFrame: 1, // 動畫幀（1或2）
+      animationTime: 0, // 動畫計時器
+      animationSpeed: 500, // 動畫切換速度（毫秒，較慢）
     });
   }
 }
 
 function drawMonsters(offsetX, offsetY) {
+  const currentTime = Date.now();
+  
   for (const m of monsters) {
     // 只繪製在可視範圍內的怪物
     if (
@@ -451,9 +506,24 @@ function drawMonsters(offsetX, offsetY) {
       m.y + m.height > offsetY &&
       m.y < offsetY + VIEW_HEIGHT
     ) {
-      // 繪製怪物本體
-      ctx.fillStyle = m.color;
-      ctx.fillRect(m.x - offsetX, m.y - offsetY, m.width, m.height);
+      // 更新怪物動畫
+      if (currentTime - m.animationTime > m.animationSpeed) {
+        m.animationFrame = m.animationFrame === 1 ? 2 : 1;
+        m.animationTime = currentTime;
+      }
+      
+      // 繪製怪物動畫圖片
+      const monsterImageSet = monsterImages[m.type];
+      const imageKey = `${m.direction}${m.animationFrame}`;
+      const monsterImage = monsterImageSet[imageKey];
+      
+      if (monsterImage && monsterImage.complete) {
+        ctx.drawImage(monsterImage, m.x - offsetX, m.y - offsetY, m.width, m.height);
+      } else {
+        // 如果圖片未載入完成，使用顏色方塊作為備用
+        ctx.fillStyle = m.color;
+        ctx.fillRect(m.x - offsetX, m.y - offsetY, m.width, m.height);
+      }
       
       // 繪製怪物血條
       drawMonsterHealthBar(m, offsetX, offsetY);
@@ -762,6 +832,14 @@ function updateMonsters() {
         const dy = py - my;
         const dist = Math.sqrt(dx * dx + dy * dy);
         
+        // 根據攻擊方向更新砲塔動畫方向
+        if (dx > 0) {
+          m.direction = 'right';
+        } else if (dx < 0) {
+          m.direction = 'left';
+        }
+        // 如果 dx = 0，保持當前方向
+        
         // 檢查攻擊冷卻和範圍
         if (dist <= m.attackRange && currentTime - m.lastAttackTime >= m.attackCooldown) {
           // 發射攻擊彈幕
@@ -799,6 +877,14 @@ function updateMonsters() {
       // 邊界限制
       m.x = Math.max(0, Math.min(MAP_WIDTH - m.width, m.x));
       m.y = Math.max(0, Math.min(MAP_HEIGHT - m.height, m.y));
+      
+      // 更新怪物動畫方向
+      if (m.dx > 0) {
+        m.direction = 'right';
+      } else if (m.dx < 0) {
+        m.direction = 'left';
+      }
+      // 如果 dx = 0，保持當前方向
     }
   }
 }
