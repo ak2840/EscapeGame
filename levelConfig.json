@@ -1,0 +1,85 @@
+{
+  "gameInfo": {
+    "name": "Safe Zone Escape",
+    "version": "1.0.0",
+    "description": "安全區域逃脫遊戲"
+  },
+  "maxLevel": 4,
+  "defaultSettings": {
+    "playerSpeed": 4,
+    "playerHp": 10,
+    "safeZoneSize": 200,
+    "projectileSpeed": 8,
+    "projectileSize": 4,
+    "monsterProjectileSpeed": 6,
+    "monsterProjectileSize": 6,
+    "attackCooldown": 300,
+    "invulnerableDuration": 1000
+  },
+  "monsterSettings": {
+    "normal": {
+      "hp": 2,
+      "speed": 1,
+      "color": "#FF4444"
+    },
+    "tracker": {
+      "hp": 2,
+      "speed": 1.5,
+      "color": "#FF0088"
+    },
+    "turret": {
+      "hp": 5,
+      "speed": 0,
+      "color": "#8B0000",
+      "attackCooldown": 2000,
+      "attackRange": 400,
+      "size": 120
+    }
+  },
+  "levels": {
+    "1": {
+      "name": "新手關卡",
+      "mapWidth": 2400,
+      "mapHeight": 1800,
+      "normalMonsters": 30,
+      "trackerMonsters": 10,
+      "turretMonsters": 2,
+      "gameTime": 90000,
+      "description": "熟悉基本操作",
+      "unlockRequirement": null
+    },
+    "2": {
+      "name": "進階關卡",
+      "mapWidth": 3200,
+      "mapHeight": 2400,
+      "normalMonsters": 40,
+      "trackerMonsters": 15,
+      "turretMonsters": 3,
+      "gameTime": 120000,
+      "description": "增加怪物數量",
+      "unlockRequirement": "完成第1關"
+    },
+    "3": {
+      "name": "挑戰關卡",
+      "mapWidth": 4000,
+      "mapHeight": 3000,
+      "normalMonsters": 50,
+      "trackerMonsters": 20,
+      "turretMonsters": 4,
+      "gameTime": 150000,
+      "description": "更大的地圖",
+      "unlockRequirement": "完成第2關"
+    },
+    "4": {
+      "name": "終極關卡",
+      "mapWidth": 4800,
+      "mapHeight": 3600,
+      "normalMonsters": 60,
+      "trackerMonsters": 25,
+      "turretMonsters": 5,
+      "gameTime": 180000,
+      "description": "最終挑戰",
+      "unlockRequirement": "完成第3關"
+    }
+  }
+} 

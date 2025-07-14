@@ -1,0 +1,35 @@
+玩家角色圖片檔案 (24張)
+------------------------
+
+移動動畫 (8張):
+- player-up-1.png
+- player-up-2.png
+- player-down-1.png
+- player-down-2.png
+- player-left-1.png
+- player-left-2.png
+- player-right-1.png
+- player-right-2.png
+
+攻擊動畫 (8張):
+- player-attack-up-1.png
+- player-attack-up-2.png
+- player-attack-down-1.png
+- player-attack-down-2.png
+- player-attack-left-1.png
+- player-attack-left-2.png
+- player-attack-right-1.png
+- player-attack-right-2.png
+
+動作動畫 (8張):
+- player-action-up-1.png
+- player-action-up-2.png
+- player-action-down-1.png
+- player-action-down-2.png
+- player-action-left-1.png
+- player-action-left-2.png
+- player-action-right-1.png
+- player-action-right-2.png
+
+檔案位置: assets/
+總計: 24張圖片檔案
