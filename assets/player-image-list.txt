@@ -34,7 +34,7 @@
 - assets/player/player-action-right-1.png
 - assets/player/player-action-right-2.png
 
-怪物圖片檔案 (20張)
+怪物圖片檔案 (28張)
 -------------------
 
 普通怪物A (4張):
@@ -55,11 +55,19 @@
 - assets/monsters/normalC-right-1.png
 - assets/monsters/normalC-right-2.png
 
-追蹤怪物 (4張):
-- assets/monsters/tracker-left-1.png
-- assets/monsters/tracker-left-2.png
-- assets/monsters/tracker-right-1.png
-- assets/monsters/tracker-right-2.png
+
+
+追蹤怪物A (4張):
+- assets/monsters/trackerA-left-1.png
+- assets/monsters/trackerA-left-2.png
+- assets/monsters/trackerA-right-1.png
+- assets/monsters/trackerA-right-2.png
+
+追蹤怪物B (4張):
+- assets/monsters/trackerB-left-1.png
+- assets/monsters/trackerB-left-2.png
+- assets/monsters/trackerB-right-1.png
+- assets/monsters/trackerB-right-2.png
 
 砲塔怪物 (4張):
 - assets/monsters/turret-left-1.png
@@ -108,10 +116,15 @@ assets/
     ├── normalC-left-2.png
     ├── normalC-right-1.png
     ├── normalC-right-2.png
-    ├── tracker-left-1.png
-    ├── tracker-left-2.png
-    ├── tracker-right-1.png
-    ├── tracker-right-2.png
+    
+    ├── trackerA-left-1.png
+    ├── trackerA-left-2.png
+    ├── trackerA-right-1.png
+    ├── trackerA-right-2.png
+    ├── trackerB-left-1.png
+    ├── trackerB-left-2.png
+    ├── trackerB-right-1.png
+    ├── trackerB-right-2.png
     ├── turret-left-1.png
     ├── turret-left-2.png
     ├── turret-right-1.png
@@ -128,11 +141,13 @@ assets/
 - 普通怪物A: 60x60 像素
 - 普通怪物B: 60x60 像素
 - 普通怪物C: 60x60 像素
-- 追蹤怪物: 120x120 像素  
+
+- 追蹤怪物A: 120x120 像素
+- 追蹤怪物B: 120x120 像素
 - 砲塔怪物: 300x300 像素
 - 格式: PNG (支援透明背景)
 - 動畫: 每種方向有2幀動畫
 
-總計: 44張圖片檔案
+總計: 52張圖片檔案
 - 玩家角色: 24張
-- 怪物: 20張
+- 怪物: 28張

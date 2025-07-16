@@ -329,7 +329,14 @@ const monsterImages = {
     right1: new Image(),
     right2: new Image()
   },
-  tracker: {
+
+  trackerA: {
+    left1: new Image(),
+    left2: new Image(),
+    right1: new Image(),
+    right2: new Image()
+  },
+  trackerB: {
     left1: new Image(),
     left2: new Image(),
     right1: new Image(),
@@ -391,10 +398,18 @@ monsterImages.normalC.left2.src = 'assets/monsters/normalC-left-2.png';
 monsterImages.normalC.right1.src = 'assets/monsters/normalC-right-1.png';
 monsterImages.normalC.right2.src = 'assets/monsters/normalC-right-2.png';
 
-monsterImages.tracker.left1.src = 'assets/monsters/tracker-left-1.png';
-monsterImages.tracker.left2.src = 'assets/monsters/tracker-left-2.png';
-monsterImages.tracker.right1.src = 'assets/monsters/tracker-right-1.png';
-monsterImages.tracker.right2.src = 'assets/monsters/tracker-right-2.png';
+
+
+// 載入追蹤怪物AB圖片（使用專屬圖片）
+monsterImages.trackerA.left1.src = 'assets/monsters/trackerA-left-1.png';
+monsterImages.trackerA.left2.src = 'assets/monsters/trackerA-left-2.png';
+monsterImages.trackerA.right1.src = 'assets/monsters/trackerA-right-1.png';
+monsterImages.trackerA.right2.src = 'assets/monsters/trackerA-right-2.png';
+
+monsterImages.trackerB.left1.src = 'assets/monsters/trackerB-left-1.png';
+monsterImages.trackerB.left2.src = 'assets/monsters/trackerB-left-2.png';
+monsterImages.trackerB.right1.src = 'assets/monsters/trackerB-right-1.png';
+monsterImages.trackerB.right2.src = 'assets/monsters/trackerB-right-2.png';
 
 monsterImages.turret.left1.src = 'assets/monsters/turret-left-1.png';
 monsterImages.turret.left2.src = 'assets/monsters/turret-left-2.png';
@@ -788,9 +803,11 @@ function updateLevelConfig() {
   NORMAL_A_MONSTER_COUNT = config.normalAMonsters;
   NORMAL_B_MONSTER_COUNT = config.normalBMonsters;
   NORMAL_C_MONSTER_COUNT = config.normalCMonsters;
-  TRACKER_MONSTER_COUNT = config.trackerMonsters;
+
+  TRACKER_A_MONSTER_COUNT = config.trackerAMonsters;
+  TRACKER_B_MONSTER_COUNT = config.trackerBMonsters;
   TURRET_MONSTER_COUNT = config.turretMonsters;
-  MONSTER_COUNT = NORMAL_A_MONSTER_COUNT + NORMAL_B_MONSTER_COUNT + NORMAL_C_MONSTER_COUNT + TRACKER_MONSTER_COUNT + TURRET_MONSTER_COUNT;
+  MONSTER_COUNT = NORMAL_A_MONSTER_COUNT + NORMAL_B_MONSTER_COUNT + NORMAL_C_MONSTER_COUNT + TRACKER_A_MONSTER_COUNT + TRACKER_B_MONSTER_COUNT + TURRET_MONSTER_COUNT;
 
   // 更新遊戲時間
   GAME_TIME = config.gameTime;
@@ -864,9 +881,11 @@ function updateLevelConfig() {
 let NORMAL_A_MONSTER_COUNT = 5; // 預設值，會在loadLevel()中更新
 let NORMAL_B_MONSTER_COUNT = 3; // 預設值，會在loadLevel()中更新
 let NORMAL_C_MONSTER_COUNT = 2; // 預設值，會在loadLevel()中更新
-let TRACKER_MONSTER_COUNT = 10; // 預設值，會在loadLevel()中更新
+
+let TRACKER_A_MONSTER_COUNT = 3; // 預設值，會在loadLevel()中更新
+let TRACKER_B_MONSTER_COUNT = 2; // 預設值，會在loadLevel()中更新
 let TURRET_MONSTER_COUNT = 2; // 預設值，會在loadLevel()中更新
-let MONSTER_COUNT = NORMAL_A_MONSTER_COUNT + NORMAL_B_MONSTER_COUNT + NORMAL_C_MONSTER_COUNT + TRACKER_MONSTER_COUNT + TURRET_MONSTER_COUNT;
+let MONSTER_COUNT = NORMAL_A_MONSTER_COUNT + NORMAL_B_MONSTER_COUNT + NORMAL_C_MONSTER_COUNT + TRACKER_A_MONSTER_COUNT + TRACKER_B_MONSTER_COUNT + TURRET_MONSTER_COUNT;
 const monsters = [];
 
 // 遊戲狀態
@@ -954,11 +973,11 @@ function spawnMonsters() {
       width: 60,
       height: 60,
       color: '#FF8800',
-      hp: 3,
+      hp: 5,
       dx: 0,
       dy: 0,
       type: 'normalA',
-      speed: 1.2,
+      speed: 0.8,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -976,7 +995,7 @@ function spawnMonsters() {
       width: 60,
       height: 60,
       color: '#8844FF',
-      hp: 2,
+      hp: 5,
       dx: 0,
       dy: 0,
       type: 'normalB',
@@ -998,11 +1017,11 @@ function spawnMonsters() {
       width: 60,
       height: 60,
       color: '#44FF44',
-      hp: 4,
+      hp: 5,
       dx: 0,
       dy: 0,
       type: 'normalC',
-      speed: 0.6,
+      speed: 0.8,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1011,8 +1030,10 @@ function spawnMonsters() {
     });
   }
   
-  // 生成追蹤怪物
-  for (let i = 0; i < TRACKER_MONSTER_COUNT; i++) {
+
+  
+  // 生成追蹤怪物A
+  for (let i = 0; i < TRACKER_A_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(120, 120);
     monsters.push({
       x: position.x,
@@ -1023,7 +1044,29 @@ function spawnMonsters() {
       hp: 2,
       dx: 0,
       dy: 0,
-      type: 'tracker',
+      type: 'trackerA',
+      speed: 1.5,
+      // 動畫相關屬性
+      direction: 'right', // 預設朝右
+      animationFrame: 1, // 動畫幀（1或2）
+      animationTime: 0, // 動畫計時器
+      animationSpeed: 250, // 動畫切換速度（毫秒，比普通怪物快一點）
+    });
+  }
+  
+  // 生成追蹤怪物B
+  for (let i = 0; i < TRACKER_B_MONSTER_COUNT; i++) {
+    const position = getRandomPositionOutsideSafeZone(120, 120);
+    monsters.push({
+      x: position.x,
+      y: position.y,
+      width: 120,
+      height: 120,
+      color: '#FF0088',
+      hp: 2,
+      dx: 0,
+      dy: 0,
+      type: 'trackerB',
       speed: 1.5,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
@@ -1138,14 +1181,15 @@ function drawMonsterHealthBar(monster, offsetX, offsetY) {
 
 function getMonsterMaxHp(type) {
   switch (type) {
-    case 'tracker':
+    case 'trackerA':
+    case 'trackerB':
       return 2;
     case 'normalA':
-      return 3;
+      return 5;
     case 'normalB':
-      return 2;
+      return 5;
     case 'normalC':
-      return 4;
+      return 5;
     case 'turret':
       return 5;
     default:
@@ -1368,7 +1412,7 @@ function updateMonsters() {
   const isPlayerInSafeZone = isInSafeZone(player.x, player.y, player.width, player.height);
   
   for (const m of monsters) {
-    if (m.type === 'tracker') {
+    if (m.type === 'trackerA' || m.type === 'trackerB') {
       // 追蹤怪物：檢查與玩家的距離
       const px = player.x + player.width / 2;
       const py = player.y + player.height / 2;
@@ -2011,7 +2055,7 @@ function drawGameInstructions() {
     '【關卡】',
     `• 當前：${config.name}`,
     `• 時間：${config.gameTime/1000}秒`,
-    `• 怪物：${config.normalMonsters + config.trackerMonsters + config.turretMonsters}隻`,
+    `• 怪物：${config.normalAMonsters + config.normalBMonsters + config.normalCMonsters + config.trackerAMonsters + config.trackerBMonsters + config.turretMonsters}隻`,
     '',
     '【怪物】',
     '• 紅色：普通怪物',
@@ -2271,11 +2315,16 @@ function gameLoop() {
 // 載入關卡設定檔
 async function loadLevelConfig() {
   try {
+    console.log('開始載入 levelConfig.json...');
     const response = await fetch('levelConfig.json');
+    console.log('Fetch 回應狀態:', response.status, response.statusText);
+    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
     }
+    
     const config = await response.json();
+    console.log('成功解析 JSON:', config);
     
     // 設定最大關卡數
     MAX_LEVEL = config.maxLevel;
@@ -2284,26 +2333,33 @@ async function loadLevelConfig() {
     levelConfigs = config.levels;
     
     console.log('關卡設定載入成功:', config);
+    console.log('最大關卡數:', MAX_LEVEL);
+    console.log('關卡配置:', levelConfigs);
     return true;
   } catch (error) {
     console.error('載入關卡設定失敗:', error);
+    console.error('錯誤詳情:', error.message);
+    console.error('錯誤堆疊:', error.stack);
     
     // 如果載入失敗，使用預設設定
     MAX_LEVEL = 4;
     levelConfigs = {
       1: {
-        name: "新手關卡",
-        mapWidth: 2400,
-        mapHeight: 1800,
-        normalMonsters: 30,
-        trackerMonsters: 10,
+        name: "新手關卡.1",
+        mapWidth: 1200,
+        mapHeight: 600,
+        normalAMonsters: 8,
+        normalBMonsters: 5,
+        normalCMonsters: 3,
+        trackerAMonsters: 3,
+        trackerBMonsters: 2,
         turretMonsters: 2,
         gameTime: 90000,
         description: "熟悉基本操作",
         mapTiles: [
           {
             "path": "assets/maps/map-level1-1.png",
-            "weight": 3
+            "weight": 10
           },
           {
             "path": "assets/maps/map-level1-2.png",
@@ -2328,11 +2384,14 @@ async function loadLevelConfig() {
         ]
       },
       2: {
-        name: "進階關卡",
+        name: "進階關卡.2",
         mapWidth: 3200,
         mapHeight: 2400,
-        normalMonsters: 40,
-        trackerMonsters: 15,
+        normalAMonsters: 12,
+        normalBMonsters: 8,
+        normalCMonsters: 5,
+        trackerAMonsters: 5,
+        trackerBMonsters: 2,
         turretMonsters: 3,
         gameTime: 120000,
         description: "增加怪物數量",
@@ -2364,18 +2423,21 @@ async function loadLevelConfig() {
         ]
       },
       3: {
-        name: "挑戰關卡",
+        name: "挑戰關卡.3",
         mapWidth: 4000,
         mapHeight: 3000,
-        normalMonsters: 50,
-        trackerMonsters: 20,
+        normalAMonsters: 18,
+        normalBMonsters: 12,
+        normalCMonsters: 8,
+        trackerAMonsters: 7,
+        trackerBMonsters: 3,
         turretMonsters: 4,
         gameTime: 150000,
         description: "更大的地圖",
         mapTiles: [
           {
             "path": "assets/maps/map-level3-1.png",
-            "weight": 3
+            "weight": 30
           },
           {
             "path": "assets/maps/map-level3-2.png",
@@ -2400,11 +2462,14 @@ async function loadLevelConfig() {
         ]
       },
       4: {
-        name: "終極關卡",
+        name: "終極關卡.4",
         mapWidth: 4800,
         mapHeight: 3600,
-        normalMonsters: 60,
-        trackerMonsters: 25,
+        normalAMonsters: 20,
+        normalBMonsters: 15,
+        normalCMonsters: 12,
+        trackerAMonsters: 8,
+        trackerBMonsters: 5,
         turretMonsters: 5,
         gameTime: 180000,
         description: "最終挑戰",

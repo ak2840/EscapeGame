@@ -18,21 +18,27 @@
   },
   "monsterSettings": {
     "normalA": {
-      "hp": 3,
-      "speed": 1.2,
+      "hp": 5,
+      "speed": 0.8,
       "color": "#FF8800"
     },
     "normalB": {
-      "hp": 2,
+      "hp": 5,
       "speed": 0.8,
       "color": "#8844FF"
     },
     "normalC": {
-      "hp": 4,
-      "speed": 0.6,
+      "hp": 5,
+      "speed": 0.8,
       "color": "#44FF44"
     },
-    "tracker": {
+    "trackerA": {
+      "hp": 2,
+      "speed": 1.5,
+      "color": "#FF0088",
+      "size": 120
+    },
+    "trackerB": {
       "hp": 2,
       "speed": 1.5,
       "color": "#FF0088",
@@ -55,7 +61,8 @@
       "normalAMonsters": 8,
       "normalBMonsters": 5,
       "normalCMonsters": 3,
-      "trackerMonsters": 10,
+      "trackerAMonsters": 3,
+      "trackerBMonsters": 2,
       "turretMonsters": 2,
       "gameTime": 90000,
       "description": "熟悉基本操作",
@@ -94,7 +101,8 @@
       "normalAMonsters": 12,
       "normalBMonsters": 8,
       "normalCMonsters": 5,
-      "trackerMonsters": 15,
+      "trackerAMonsters": 5,
+      "trackerBMonsters": 2,
       "turretMonsters": 3,
       "gameTime": 120000,
       "description": "增加怪物數量",
@@ -133,7 +141,8 @@
       "normalAMonsters": 18,
       "normalBMonsters": 12,
       "normalCMonsters": 8,
-      "trackerMonsters": 20,
+      "trackerAMonsters": 7,
+      "trackerBMonsters": 3,
       "turretMonsters": 4,
       "gameTime": 150000,
       "description": "更大的地圖",
@@ -172,7 +181,8 @@
       "normalAMonsters": 20,
       "normalBMonsters": 15,
       "normalCMonsters": 12,
-      "trackerMonsters": 25,
+      "trackerAMonsters": 8,
+      "trackerBMonsters": 5,
       "turretMonsters": 5,
       "gameTime": 180000,
       "description": "最終挑戰",
