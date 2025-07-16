@@ -108,8 +108,8 @@ let gameLoopRunning = false; // 控制遊戲循環是否正在運行
 let levelConfigs = {};
 
 // 地圖與視窗設定
-const VIEW_WIDTH = canvas.width;
-const VIEW_HEIGHT = canvas.height;
+let VIEW_WIDTH = canvas.width;
+let VIEW_HEIGHT = canvas.height;
 let MAP_WIDTH = VIEW_WIDTH * 3; // 預設值，會在loadLevel()中更新
 let MAP_HEIGHT = VIEW_HEIGHT * 3; // 預設值，會在loadLevel()中更新
 
@@ -150,7 +150,22 @@ const keys = {
   ArrowLeft: false,
   ArrowRight: false,
   Space: false,
+  Escape: false,
 };
+
+// 防抖函數
+let resizeTimeout;
+function debounceResize() {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (gameState === 'playing') {
+      resizeCanvas();
+    }
+  }, 150); // 150ms 延遲
+}
+
+// 視窗大小改變事件
+window.addEventListener('resize', debounceResize);
 
 // 鍵盤事件
 window.addEventListener('keydown', (e) => {
@@ -168,6 +183,11 @@ window.addEventListener('keydown', (e) => {
           player.actionAnimationFrame = 1;
         }
       }
+    }
+    
+    if (e.code === 'Escape' && gameState === 'playing') {
+      // ESC鍵返回大廳
+      returnToLobby();
     }
   }
 });
@@ -309,14 +329,17 @@ function completeLevel(level) {
 function updateLevelConfig() {
   const config = levelConfigs[currentLevel];
 
-  // 更新地圖大小（優先用 mapWidth/mapHeight，否則用 mapMultiplier）
-  if (config.mapWidth && config.mapHeight) {
-    MAP_WIDTH = config.mapWidth;
-    MAP_HEIGHT = config.mapHeight;
-  } else {
-    MAP_WIDTH = VIEW_WIDTH * config.mapMultiplier;
-    MAP_HEIGHT = VIEW_HEIGHT * config.mapMultiplier;
-  }
+  // 保存當前地圖比例（用於調整玩家位置）
+  const oldMapWidth = MAP_WIDTH;
+  const oldMapHeight = MAP_HEIGHT;
+  const oldPlayerX = player.x;
+  const oldPlayerY = player.y;
+  const oldExitX = exit.x;
+  const oldExitY = exit.y;
+
+  // 更新地圖大小（直接使用 levelConfig 中的 mapWidth 和 mapHeight）
+  MAP_WIDTH = config.mapWidth;
+  MAP_HEIGHT = config.mapHeight;
 
   // 更新怪物數量
   NORMAL_MONSTER_COUNT = config.normalMonsters;
@@ -335,11 +358,61 @@ function updateLevelConfig() {
   SAFE_ZONE_TOP = SAFE_ZONE_CENTER_Y - SAFE_ZONE_SIZE / 2;
   SAFE_ZONE_BOTTOM = SAFE_ZONE_CENTER_Y + SAFE_ZONE_SIZE / 2;
 
+  // 如果地圖大小改變了，調整玩家位置保持相對位置
+  if (oldMapWidth > 0 && oldMapHeight > 0) {
+    const scaleX = MAP_WIDTH / oldMapWidth;
+    const scaleY = MAP_HEIGHT / oldMapHeight;
+    
+    // 調整玩家位置
+    player.x = oldPlayerX * scaleX;
+    player.y = oldPlayerY * scaleY;
+    
+    // 確保玩家不超出新地圖邊界
+    player.x = Math.max(0, Math.min(MAP_WIDTH - player.width, player.x));
+    player.y = Math.max(0, Math.min(MAP_HEIGHT - player.height, player.y));
+    
+    // 調整出口位置保持相對位置
+    exit.x = oldExitX * scaleX;
+    exit.y = oldExitY * scaleY;
+    
+    // 確保出口不超出新地圖邊界
+    exit.x = Math.max(0, Math.min(MAP_WIDTH - exit.width, exit.x));
+    exit.y = Math.max(0, Math.min(MAP_HEIGHT - exit.height, exit.y));
+    
+    // 調整怪物位置
+    monsters.forEach(monster => {
+      monster.x = monster.x * scaleX;
+      monster.y = monster.y * scaleY;
+      
+      // 確保怪物不超出新地圖邊界
+      monster.x = Math.max(0, Math.min(MAP_WIDTH - monster.width, monster.x));
+      monster.y = Math.max(0, Math.min(MAP_HEIGHT - monster.height, monster.y));
+    });
+    
+    // 調整彈幕位置
+    projectiles.forEach(projectile => {
+      projectile.x = projectile.x * scaleX;
+      projectile.y = projectile.y * scaleY;
+    });
+    
+    monsterProjectiles.forEach(projectile => {
+      projectile.x = projectile.x * scaleX;
+      projectile.y = projectile.y * scaleY;
+    });
+    
+    // 調整攻擊特效位置
+    attackEffects.forEach(effect => {
+      effect.x = effect.x * scaleX;
+      effect.y = effect.y * scaleY;
+    });
+  }
+
   console.log(`關卡${currentLevel} - 安全區域中心: (${SAFE_ZONE_CENTER_X}, ${SAFE_ZONE_CENTER_Y})`);
   console.log(`載入關卡 ${currentLevel}: ${config.name}`);
   console.log(`地圖大小: ${MAP_WIDTH}x${MAP_HEIGHT}`);
   console.log(`怪物數量: ${MONSTER_COUNT}隻`);
   console.log(`遊戲時間: ${GAME_TIME/1000}秒`);
+  console.log(`出口位置: (${exit.x}, ${exit.y})`);
 }
 
 // 怪物設定（動態根據關卡調整）
@@ -720,7 +793,13 @@ function drawPlayerHealthBar(offsetX, offsetY) {
 }
 
 function clearScreen() {
-  ctx.clearRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+  // 創建與大廳一致的背景漸變
+  const gradient = ctx.createLinearGradient(0, 0, 0, VIEW_HEIGHT);
+  gradient.addColorStop(0, '#2a2a2a');
+  gradient.addColorStop(1, '#444');
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 }
 
 function getCameraOffset() {
@@ -1117,17 +1196,27 @@ function restartGame() {
 }
 
 function drawGameOver() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  // 半透明背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
   
+  // 主面板背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+  ctx.fillRect(VIEW_WIDTH / 2 - 250, VIEW_HEIGHT / 2 - 120, 500, 240);
+  
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(VIEW_WIDTH / 2 - 250, VIEW_HEIGHT / 2 - 120, 500, 240);
+  
   ctx.fillStyle = '#FF0000';
-  ctx.font = '48px Arial';
+  ctx.font = 'bold 56px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('遊戲結束！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 50);
+  ctx.fillText('遊戲結束！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
   
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '24px Arial';
-  ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 20);
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
 }
 
 function updateTimer() {
@@ -1146,43 +1235,185 @@ function drawTimer() {
   const seconds = Math.ceil(remainingTime / 1000);
   const color = seconds <= 3 ? '#FF0000' : seconds <= 5 ? '#FFFF00' : '#FFFFFF';
   
+  // 面板背景
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.fillRect(VIEW_WIDTH - 120, 10, 110, 40);
   
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VIEW_WIDTH - 120, 10, 110, 40);
+  
   ctx.fillStyle = color;
-  ctx.font = '24px Arial';
+  ctx.font = 'bold 28px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`時間: ${seconds}秒`, VIEW_WIDTH - 65, 35);
+  ctx.fillText(`時間: ${seconds}秒`, VIEW_WIDTH - 65, 40);
 }
 
 function drawKillCount() {
+  // 面板背景
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.fillRect(VIEW_WIDTH - 120, 60, 110, 40);
   
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VIEW_WIDTH - 120, 60, 110, 40);
+  
   ctx.fillStyle = '#00FF00';
-  ctx.font = '20px Arial';
+  ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`擊殺: ${killCount}`, VIEW_WIDTH - 65, 85);
+  ctx.fillText(`擊殺: ${killCount}`, VIEW_WIDTH - 65, 90);
 }
 
 function drawLevelInfo() {
+  // 面板背景
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.fillRect(VIEW_WIDTH - 120, 160, 110, 40);
   
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VIEW_WIDTH - 120, 160, 110, 40);
+  
   const config = levelConfigs[currentLevel];
   ctx.fillStyle = '#FFD700';
-  ctx.font = '16px Arial';
+  ctx.font = 'bold 20px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`關卡: ${currentLevel}`, VIEW_WIDTH - 65, 180);
+  ctx.fillText(`關卡: ${currentLevel}`, VIEW_WIDTH - 65, 185);
+  
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '14px Arial';
+  ctx.fillText(config.name, VIEW_WIDTH - 65, 200);
+}
+
+// 新增：顯示地圖尺寸和角色座標
+function drawMapAndPlayerInfo() {
+  // 面板背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(VIEW_WIDTH - 120, 210, 110, 80);
+  
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VIEW_WIDTH - 120, 210, 110, 80);
+  
+  // 地圖尺寸
+  ctx.fillStyle = '#00FFFF';
+  ctx.font = 'bold 14px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('地圖尺寸', VIEW_WIDTH - 65, 230);
   
   ctx.fillStyle = '#FFFFFF';
   ctx.font = '12px Arial';
-  ctx.fillText(config.name, VIEW_WIDTH - 65, 195);
+  ctx.fillText(`${MAP_WIDTH} × ${MAP_HEIGHT}`, VIEW_WIDTH - 65, 245);
+  
+  // 角色座標
+  ctx.fillStyle = '#00FFFF';
+  ctx.font = 'bold 14px Arial';
+  ctx.fillText('角色座標', VIEW_WIDTH - 65, 265);
+  
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '12px Arial';
+  ctx.fillText(`X: ${Math.round(player.x)}`, VIEW_WIDTH - 65, 280);
+  ctx.fillText(`Y: ${Math.round(player.y)}`, VIEW_WIDTH - 65, 295);
+}
+
+// 計算Canvas最佳尺寸
+function calculateCanvasSize() {
+  const container = document.getElementById('gameContainer');
+  const containerRect = container.getBoundingClientRect();
+  
+  // 最大尺寸
+  const MAX_WIDTH = 1200;
+  const MAX_HEIGHT = 900;
+  
+  // 容器可用空間（減去內邊距）
+  const availableWidth = containerRect.width - 40; // 20px padding on each side
+  const availableHeight = containerRect.height - 40;
+  
+  // 計算縮放比例
+  const scaleX = availableWidth / MAX_WIDTH;
+  const scaleY = availableHeight / MAX_HEIGHT;
+  const scale = Math.min(scaleX, scaleY, 1); // 不放大，只縮小
+  
+  // 計算實際尺寸
+  const actualWidth = Math.floor(MAX_WIDTH * scale);
+  const actualHeight = Math.floor(MAX_HEIGHT * scale);
+  
+  return { width: actualWidth, height: actualHeight, scale: scale };
+}
+
+// 設置Canvas尺寸
+function resizeCanvas() {
+  try {
+    const { width, height, scale } = calculateCanvasSize();
+    
+    // 確保尺寸有效
+    if (width <= 0 || height <= 0) {
+      console.warn('計算的Canvas尺寸無效，使用預設尺寸');
+      return;
+    }
+    
+    // 設置Canvas尺寸
+    canvas.width = width;
+    canvas.height = height;
+    
+    // 更新視窗大小（只更新可視範圍，不改變地圖大小）
+    VIEW_WIDTH = width;
+    VIEW_HEIGHT = height;
+    
+    // 注意：不再調用updateLevelConfig()，因為地圖大小應該保持固定
+    // 只有可視範圍（Canvas）會根據視窗大小調整
+    
+    console.log(`Canvas尺寸調整為: ${width}x${height}, 縮放比例: ${scale.toFixed(2)}`);
+    console.log('地圖大小保持固定，只調整可視範圍');
+    
+  } catch (error) {
+    console.error('調整Canvas尺寸時發生錯誤:', error);
+  }
+}
+
+// 新增：繪製遊戲標題
+function drawGameTitle() {
+  // 標題面板背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(10, VIEW_HEIGHT - 50, 400, 40);
+  
+  // 標題面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(10, VIEW_HEIGHT - 50, 400, 40);
+  
+  // 遊戲標題
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('Safe Zone Escape', 20, VIEW_HEIGHT - 25);
+  
+  // 返回大廳按鈕
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(VIEW_WIDTH - 120, VIEW_HEIGHT - 50, 110, 40);
+  
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VIEW_WIDTH - 120, VIEW_HEIGHT - 50, 110, 40);
+  
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('返回大廳 (ESC)', VIEW_WIDTH - 65, VIEW_HEIGHT - 25);
 }
 
 function drawPlayerHealth() {
+  // 面板背景
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
   ctx.fillRect(VIEW_WIDTH - 120, 110, 110, 40);
+  
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VIEW_WIDTH - 120, 110, 110, 40);
   
   // 血量顏色根據血量變化
   let healthColor;
@@ -1195,9 +1426,9 @@ function drawPlayerHealth() {
   }
   
   ctx.fillStyle = healthColor;
-  ctx.font = '20px Arial';
+  ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`血量: ${player.hp}/${player.maxHp}`, VIEW_WIDTH - 65, 135);
+  ctx.fillText(`血量: ${player.hp}/${player.maxHp}`, VIEW_WIDTH - 65, 140);
   
   // 如果處於無敵狀態，顯示閃爍效果
   if (player.isInvulnerable) {
@@ -1211,12 +1442,14 @@ function drawPlayerHealth() {
 }
 
 function drawGameInstructions() {
+  // 主面板背景
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(10, 10, 150, 320);
+  ctx.fillRect(10, 10, 220, 380);
   
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '16px Arial';
-  ctx.textAlign = 'left';
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(10, 10, 220, 380);
   
   const config = levelConfigs[currentLevel];
   const instructions = [
@@ -1245,30 +1478,41 @@ function drawGameInstructions() {
   instructions.forEach((text, index) => {
     if (text.startsWith('【')) {
       ctx.fillStyle = '#FFFF00';
-      ctx.font = '16px Arial';
+      ctx.font = 'bold 18px Arial';
     } else if (text.startsWith('•')) {
       ctx.fillStyle = '#00FFFF';
-      ctx.font = '14px Arial';
+      ctx.font = '16px Arial';
     } else {
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = '14px Arial';
+      ctx.font = '16px Arial';
     }
-    ctx.fillText(text, 20, 30 + index * 16);
+    ctx.textAlign = 'left';
+    ctx.fillText(text, 20, 35 + index * 18);
   });
 }
 
 function drawVictory() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  // 半透明背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
   ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
   
+  // 主面板背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+  ctx.fillRect(VIEW_WIDTH / 2 - 300, VIEW_HEIGHT / 2 - 120, 600, 240);
+  
+  // 面板邊框
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(VIEW_WIDTH / 2 - 300, VIEW_HEIGHT / 2 - 120, 600, 240);
+  
   ctx.fillStyle = '#00FF00';
-  ctx.font = '48px Arial';
+  ctx.font = 'bold 56px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('恭喜通關所有關卡！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 50);
+  ctx.fillText('恭喜通關所有關卡！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
   
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '24px Arial';
-  ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 20);
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
 }
 
 function drawGrid(offsetX, offsetY) {
@@ -1340,6 +1584,8 @@ function gameLoop() {
     drawKillCount();
     drawPlayerHealth();
     drawLevelInfo();
+    drawMapAndPlayerInfo();
+    drawGameTitle();
     
     if (gameOver) {
       drawGameOver();
@@ -1378,7 +1624,8 @@ async function loadLevelConfig() {
     levelConfigs = {
       1: {
         name: "新手關卡",
-        mapMultiplier: 3,
+        mapWidth: 2400,
+        mapHeight: 1800,
         normalMonsters: 30,
         trackerMonsters: 10,
         turretMonsters: 2,
@@ -1387,7 +1634,8 @@ async function loadLevelConfig() {
       },
       2: {
         name: "進階關卡",
-        mapMultiplier: 4,
+        mapWidth: 3200,
+        mapHeight: 2400,
         normalMonsters: 40,
         trackerMonsters: 15,
         turretMonsters: 3,
@@ -1396,7 +1644,8 @@ async function loadLevelConfig() {
       },
       3: {
         name: "挑戰關卡",
-        mapMultiplier: 5,
+        mapWidth: 4000,
+        mapHeight: 3000,
         normalMonsters: 50,
         trackerMonsters: 20,
         turretMonsters: 4,
@@ -1405,7 +1654,8 @@ async function loadLevelConfig() {
       },
       4: {
         name: "終極關卡",
-        mapMultiplier: 6,
+        mapWidth: 4800,
+        mapHeight: 3600,
         normalMonsters: 60,
         trackerMonsters: 25,
         turretMonsters: 5,
@@ -1427,13 +1677,19 @@ async function initLobby() {
 
 function showLobby() {
   document.getElementById('gameLobby').classList.remove('hidden');
-  document.getElementById('gameCanvas').style.display = 'none';
+  document.getElementById('gameContainer').classList.add('hidden');
   gameState = 'lobby';
 }
 
 function hideLobby() {
   document.getElementById('gameLobby').classList.add('hidden');
-  document.getElementById('gameCanvas').style.display = 'block';
+  document.getElementById('gameContainer').classList.remove('hidden');
+  
+  // 調整Canvas尺寸
+  setTimeout(() => {
+    resizeCanvas();
+  }, 100); // 稍微延遲，確保容器已經顯示
+  
   gameState = 'playing';
 }
 
@@ -1530,4 +1786,53 @@ window.forceSaveLevel = function(level) {
 window.checkCurrentLevel = function() {
   console.log(`當前關卡: ${currentLevel}`);
   console.log(`保存的關卡: ${getCookie('gameLevel')}`);
+};
+
+// 添加Canvas尺寸調試函數
+window.debugCanvasSize = function() {
+  console.log('=== Canvas 尺寸調試 ===');
+  console.log(`當前Canvas尺寸: ${canvas.width}x${canvas.height}`);
+  console.log(`當前視窗大小: ${VIEW_WIDTH}x${VIEW_HEIGHT}`);
+  console.log(`當前地圖大小: ${MAP_WIDTH}x${MAP_HEIGHT}`);
+  
+  const container = document.getElementById('gameContainer');
+  const containerRect = container.getBoundingClientRect();
+  console.log(`容器尺寸: ${containerRect.width}x${containerRect.height}`);
+  
+  const { width, height, scale } = calculateCanvasSize();
+  console.log(`建議尺寸: ${width}x${height}, 縮放比例: ${scale.toFixed(2)}`);
+  
+  console.log(`遊戲狀態: ${gameState}`);
+  console.log(`遊戲循環運行: ${gameLoopRunning}`);
+  
+  // 顯示玩家和怪物位置信息
+  if (gameState === 'playing') {
+    console.log(`玩家位置: (${player.x.toFixed(1)}, ${player.y.toFixed(1)})`);
+    console.log(`出口位置: (${exit.x.toFixed(1)}, ${exit.y.toFixed(1)})`);
+    console.log(`玩家血量: ${player.hp}/${player.maxHp}`);
+    console.log(`擊殺數: ${killCount}`);
+    console.log(`剩餘時間: ${Math.ceil(remainingTime / 1000)}秒`);
+    console.log(`怪物數量: ${monsters.length}`);
+    console.log(`彈幕數量: ${projectiles.length}`);
+  }
+};
+
+// 強制調整Canvas尺寸
+window.forceResizeCanvas = function() {
+  console.log('強制調整Canvas尺寸...');
+  resizeCanvas();
+};
+
+// 顯示出口位置信息
+window.showExitInfo = function() {
+  console.log('=== 出口位置信息 ===');
+  console.log(`出口位置: (${exit.x.toFixed(1)}, ${exit.y.toFixed(1)})`);
+  console.log(`出口尺寸: ${exit.width}x${exit.height}`);
+  console.log(`地圖大小: ${MAP_WIDTH}x${MAP_HEIGHT}`);
+  console.log(`地圖中心: (${MAP_WIDTH/2}, ${MAP_HEIGHT/2})`);
+  console.log(`玩家位置: (${player.x.toFixed(1)}, ${player.y.toFixed(1)})`);
+  
+  const distanceToExit = distance(player.x + player.width/2, player.y + player.height/2, 
+                                 exit.x + exit.width/2, exit.y + exit.height/2);
+  console.log(`玩家到出口距離: ${distanceToExit.toFixed(1)}像素`);
 }; 
