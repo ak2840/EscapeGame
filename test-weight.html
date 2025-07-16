@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地圖權重選擇測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background-color: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            background-color: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .weight-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .weight-item {
+            background-color: #444;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>地圖權重選擇測試</h1>
+        
+        <div class="test-section">
+            <h2>權重配置</h2>
+            <div class="weight-info">
+                <div class="weight-item">
+                    <strong>圖片1</strong><br>
+                    權重: 3<br>
+                    預期機率: 37.5%
+                </div>
+                <div class="weight-item">
+                    <strong>圖片2</strong><br>
+                    權重: 1<br>
+                    預期機率: 12.5%
+                </div>
+                <div class="weight-item">
+                    <strong>圖片3</strong><br>
+                    權重: 1<br>
+                    預期機率: 12.5%
+                </div>
+                <div class="weight-item">
+                    <strong>圖片4</strong><br>
+                    權重: 1<br>
+                    預期機率: 12.5%
+                </div>
+                <div class="weight-item">
+                    <strong>圖片5</strong><br>
+                    權重: 1<br>
+                    預期機率: 12.5%
+                </div>
+                <div class="weight-item">
+                    <strong>圖片6</strong><br>
+                    權重: 1<br>
+                    預期機率: 12.5%
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>權重選擇測試</h2>
+            <button onclick="testWeightedSelection()">測試權重選擇 (1000次)</button>
+            <button onclick="testMapLayout()">測試地圖佈局生成</button>
+            <button onclick="testAdjacentRandomness()">測試相鄰位置隨機性</button>
+            <div id="testResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>遊戲整合測試</h2>
+            <button onclick="loadGameAndTest()">載入遊戲並測試</button>
+            <div id="gameResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 權重選擇函數（從 main.js 複製）
+        function selectWeightedTileIndex(seed, weights) {
+            if (!weights || weights.length === 0) {
+                return 0;
+            }
+            
+            // 計算總權重
+            const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+            
+            // 使用更複雜的種子算法來增加隨機性
+            let randomValue = seed;
+            // 多次迭代來增加隨機性
+            for (let i = 0; i < 5; i++) {
+                randomValue = (randomValue * 9301 + 49297) % 233280;
+            }
+            const normalizedRandom = randomValue / 233280;
+            
+            // 根據權重選擇
+            let cumulativeWeight = 0;
+            for (let i = 0; i < weights.length; i++) {
+                cumulativeWeight += weights[i];
+                if (normalizedRandom <= cumulativeWeight / totalWeight) {
+                    return i;
+                }
+            }
+            
+            return weights.length - 1;
+        }
+
+        // 測試權重選擇
+        function testWeightedSelection() {
+            const weights = [3, 1, 1, 1, 1, 1]; // 第一張圖片權重為3
+            const totalTests = 1000;
+            const counts = new Array(weights.length).fill(0);
+            
+            for (let i = 0; i < totalTests; i++) {
+                const seed = i + 1;
+                const selectedIndex = selectWeightedTileIndex(seed, weights);
+                counts[selectedIndex]++;
+            }
+            
+            let result = `權重選擇測試結果 (${totalTests}次):\n\n`;
+            weights.forEach((weight, index) => {
+                const count = counts[index];
+                const percentage = ((count / totalTests) * 100).toFixed(1);
+                const expectedPercentage = ((weight / weights.reduce((a, b) => a + b, 0)) * 100).toFixed(1);
+                result += `圖片${index + 1}: 出現 ${count} 次 (${percentage}%) [預期: ${expectedPercentage}%]\n`;
+            });
+            
+            document.getElementById('testResult').textContent = result;
+        }
+
+        // 測試地圖佈局生成
+        function testMapLayout() {
+            const weights = [3, 1, 1, 1, 1, 1];
+            const gridCols = 24; // 第1關的地圖大小
+            const gridRows = 18;
+            const level = 1;
+            
+            const layout = [];
+            const counts = new Array(weights.length).fill(0);
+            
+            for (let row = 0; row < gridRows; row++) {
+                layout[row] = [];
+                for (let col = 0; col < gridCols; col++) {
+                    // 使用更複雜的種子組合來增加隨機性
+                    const seed = (row * 73856093) ^ (col * 19349663) ^ (level * 83492791);
+                    const tileIndex = selectWeightedTileIndex(seed, weights);
+                    layout[row][col] = tileIndex;
+                    counts[tileIndex]++;
+                }
+            }
+            
+            const totalTiles = gridCols * gridRows;
+            let result = `地圖佈局測試結果 (${gridCols}x${gridRows} = ${totalTiles}格):\n\n`;
+            weights.forEach((weight, index) => {
+                const count = counts[index];
+                const percentage = ((count / totalTiles) * 100).toFixed(1);
+                const expectedPercentage = ((weight / weights.reduce((a, b) => a + b, 0)) * 100).toFixed(1);
+                result += `圖片${index + 1}: 出現 ${count} 次 (${percentage}%) [預期: ${expectedPercentage}%]\n`;
+            });
+            
+            // 添加連續性檢查
+            result += '\n連續性檢查:\n';
+            let consecutiveCount = 0;
+            let maxConsecutive = 0;
+            let lastTile = -1;
+            
+            for (let row = 0; row < gridRows; row++) {
+                for (let col = 0; col < gridCols; col++) {
+                    const currentTile = layout[row][col];
+                    if (currentTile === lastTile) {
+                        consecutiveCount++;
+                        maxConsecutive = Math.max(maxConsecutive, consecutiveCount);
+                    } else {
+                        consecutiveCount = 1;
+                    }
+                    lastTile = currentTile;
+                }
+            }
+            
+            result += `最大連續相同圖片: ${maxConsecutive} 格\n`;
+            result += `平均連續性: ${(totalTiles / (weights.length * 2)).toFixed(1)} 格\n`;
+            
+            document.getElementById('testResult').textContent = result;
+        }
+
+        // 測試相鄰位置的隨機性
+        function testAdjacentRandomness() {
+            const weights = [3, 1, 1, 1, 1, 1];
+            const level = 1;
+            
+            let result = '相鄰位置隨機性測試:\n\n';
+            
+            // 測試水平相鄰
+            result += '水平相鄰位置測試:\n';
+            for (let row = 0; row < 5; row++) {
+                let rowResult = `第${row}行: `;
+                for (let col = 0; col < 10; col++) {
+                    const seed = (row * 73856093) ^ (col * 19349663) ^ (level * 83492791);
+                    const tileIndex = selectWeightedTileIndex(seed, weights);
+                    rowResult += `${tileIndex} `;
+                }
+                result += rowResult + '\n';
+            }
+            
+            result += '\n垂直相鄰位置測試:\n';
+            for (let col = 0; col < 5; col++) {
+                let colResult = `第${col}列: `;
+                for (let row = 0; row < 10; row++) {
+                    const seed = (row * 73856093) ^ (col * 19349663) ^ (level * 83492791);
+                    const tileIndex = selectWeightedTileIndex(seed, weights);
+                    colResult += `${tileIndex} `;
+                }
+                result += colResult + '\n';
+            }
+            
+            // 統計相鄰位置的變化
+            result += '\n相鄰位置變化統計:\n';
+            let totalChanges = 0;
+            let totalPairs = 0;
+            
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const seed1 = (row * 73856093) ^ (col * 19349663) ^ (level * 83492791);
+                    const seed2 = (row * 73856093) ^ ((col + 1) * 19349663) ^ (level * 83492791);
+                    const tile1 = selectWeightedTileIndex(seed1, weights);
+                    const tile2 = selectWeightedTileIndex(seed2, weights);
+                    
+                    if (tile1 !== tile2) {
+                        totalChanges++;
+                    }
+                    totalPairs++;
+                }
+            }
+            
+            const changeRate = ((totalChanges / totalPairs) * 100).toFixed(1);
+            result += `水平相鄰變化率: ${changeRate}% (${totalChanges}/${totalPairs})\n`;
+            
+            document.getElementById('testResult').textContent = result;
+        }
+
+        // 載入遊戲並測試
+        async function loadGameAndTest() {
+            try {
+                const response = await fetch('levelConfig.json');
+                const config = await response.json();
+                
+                let result = '遊戲配置載入成功!\n\n';
+                result += `遊戲名稱: ${config.gameInfo.name}\n`;
+                result += `最大關卡: ${config.maxLevel}\n\n`;
+                
+                // 檢查每個關卡的權重配置
+                Object.keys(config.levels).forEach(level => {
+                    const levelConfig = config.levels[level];
+                    result += `關卡${level} (${levelConfig.name}):\n`;
+                    
+                    if (levelConfig.mapTiles && Array.isArray(levelConfig.mapTiles)) {
+                        levelConfig.mapTiles.forEach((tile, index) => {
+                            if (tile.path && tile.weight) {
+                                result += `  圖片${index + 1}: ${tile.path} (權重: ${tile.weight})\n`;
+                            }
+                        });
+                    }
+                    result += '\n';
+                });
+                
+                document.getElementById('gameResult').textContent = result;
+            } catch (error) {
+                document.getElementById('gameResult').textContent = `載入失敗: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

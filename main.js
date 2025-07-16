@@ -54,6 +54,12 @@ const monsterImages = {
   }
 };
 
+// 地圖圖片載入
+const mapImages = {};
+let currentMapTiles = {};
+let currentMapWeights = []; // 地圖圖片權重陣列
+let mapTileLayout = []; // 儲存固定的地圖瓦片佈局
+
 // 載入玩家圖片
 playerImages.up1.src = 'assets/player/player-up-1.png';
 playerImages.up2.src = 'assets/player/player-up-2.png';
@@ -96,6 +102,125 @@ monsterImages.turret.left2.src = 'assets/monsters/turret-left-2.png';
 monsterImages.turret.right1.src = 'assets/monsters/turret-right-1.png';
 monsterImages.turret.right2.src = 'assets/monsters/turret-right-2.png';
 
+// 載入地圖圖片
+function loadMapImages(levelConfig) {
+  console.log('開始載入地圖圖片...');
+  console.log('關卡配置:', levelConfig);
+  
+  if (!levelConfig.mapTiles) {
+    console.log('錯誤: 關卡配置中沒有 mapTiles');
+    return;
+  }
+  
+  if (!Array.isArray(levelConfig.mapTiles)) {
+    console.log('錯誤: mapTiles 不是陣列格式');
+    return;
+  }
+  
+  currentMapTiles = [];
+  currentMapWeights = []; // 新增權重陣列
+  
+  for (const tileConfig of levelConfig.mapTiles) {
+    // 支援新的權重格式和舊的字串格式
+    let tilePath, weight;
+    if (typeof tileConfig === 'string') {
+      tilePath = tileConfig;
+      weight = 1; // 預設權重
+    } else if (tileConfig.path && tileConfig.weight) {
+      tilePath = tileConfig.path;
+      weight = tileConfig.weight;
+    } else {
+      console.error('無效的地圖圖片配置:', tileConfig);
+      continue;
+    }
+    
+    console.log(`載入圖片: ${tilePath}, 權重: ${weight}`);
+    if (!mapImages[tilePath]) {
+      mapImages[tilePath] = new Image();
+      mapImages[tilePath].src = tilePath;
+      
+      // 添加載入事件監聽器
+      mapImages[tilePath].onload = () => {
+        console.log(`圖片載入成功: ${tilePath}`);
+      };
+      
+      mapImages[tilePath].onerror = () => {
+        console.error(`圖片載入失敗: ${tilePath}`);
+      };
+    }
+    currentMapTiles.push(mapImages[tilePath]);
+    currentMapWeights.push(weight);
+  }
+  
+  console.log(`載入關卡地圖圖片: ${levelConfig.mapTiles.length}張`);
+  console.log('當前地圖圖片陣列:', currentMapTiles);
+  console.log('當前地圖權重陣列:', currentMapWeights);
+}
+
+// 根據權重隨機選擇圖片索引
+function selectWeightedTileIndex(seed) {
+  if (!currentMapWeights || currentMapWeights.length === 0) {
+    return 0;
+  }
+  
+  // 計算總權重
+  const totalWeight = currentMapWeights.reduce((sum, weight) => sum + weight, 0);
+  
+  // 使用更複雜的種子算法來增加隨機性
+  let randomValue = seed;
+  // 多次迭代來增加隨機性
+  for (let i = 0; i < 5; i++) {
+    randomValue = (randomValue * 9301 + 49297) % 233280;
+  }
+  const normalizedRandom = randomValue / 233280; // 正規化到 0-1
+  
+  // 根據權重選擇
+  let cumulativeWeight = 0;
+  for (let i = 0; i < currentMapWeights.length; i++) {
+    cumulativeWeight += currentMapWeights[i];
+    if (normalizedRandom <= cumulativeWeight / totalWeight) {
+      return i;
+    }
+  }
+  
+  // 如果沒有選中任何項目，返回最後一個
+  return currentMapWeights.length - 1;
+}
+
+// 生成固定的地圖佈局
+function generateMapLayout() {
+  const gridSize = 100;
+  const config = levelConfigs[currentLevel];
+  
+  if (!config || !config.mapTiles || currentMapTiles.length === 0) {
+    console.log('無法生成地圖佈局：缺少配置或圖片');
+    return;
+  }
+  
+  // 計算地圖的網格數量
+  const gridCols = Math.ceil(config.mapWidth / gridSize);
+  const gridRows = Math.ceil(config.mapHeight / gridSize);
+  
+  // 初始化地圖佈局陣列
+  mapTileLayout = [];
+  
+  console.log(`生成地圖佈局: ${gridCols}x${gridRows} 網格`);
+  console.log('使用權重選擇地圖圖片');
+  
+  // 為每個網格位置分配固定的圖片索引
+  for (let row = 0; row < gridRows; row++) {
+    mapTileLayout[row] = [];
+    for (let col = 0; col < gridCols; col++) {
+      // 使用更複雜的種子組合來增加隨機性
+      const seed = (row * 73856093) ^ (col * 19349663) ^ (currentLevel * 83492791);
+      const tileIndex = selectWeightedTileIndex(seed);
+      mapTileLayout[row][col] = tileIndex;
+    }
+  }
+  
+  console.log('地圖佈局生成完成');
+}
+
 // 遊戲狀態管理
 let gameState = 'lobby'; // 'lobby', 'playing', 'gameOver', 'victory'
 let currentLevel = 1;
@@ -117,8 +242,8 @@ let MAP_HEIGHT = VIEW_HEIGHT * 3; // 預設值，會在loadLevel()中更新
 const player = {
   x: MAP_WIDTH / 2,
   y: MAP_HEIGHT / 2,
-  width: 40,
-  height: 60,
+  width: 60,
+  height: 90,
   speed: 4,
   moving: false,
   color: '#FFD700',
@@ -329,6 +454,12 @@ function completeLevel(level) {
 function updateLevelConfig() {
   const config = levelConfigs[currentLevel];
 
+  // 載入地圖圖片
+  loadMapImages(config);
+
+  // 生成固定的地圖佈局
+  generateMapLayout();
+
   // 保存當前地圖比例（用於調整玩家位置）
   const oldMapWidth = MAP_WIDTH;
   const oldMapHeight = MAP_HEIGHT;
@@ -500,12 +631,12 @@ function spawnExit() {
 function spawnMonsters() {
   // 生成普通怪物
   for (let i = 0; i < NORMAL_MONSTER_COUNT; i++) {
-    const position = getRandomPositionOutsideSafeZone(40, 40);
+    const position = getRandomPositionOutsideSafeZone(60, 60);
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 40,
-      height: 40,
+      width: 60,
+      height: 60,
       color: '#FF4444',
       hp: 2,
       dx: 0,
@@ -522,12 +653,12 @@ function spawnMonsters() {
   
   // 生成追蹤怪物
   for (let i = 0; i < TRACKER_MONSTER_COUNT; i++) {
-    const position = getRandomPositionOutsideSafeZone(40, 40);
+    const position = getRandomPositionOutsideSafeZone(60, 60);
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 40,
-      height: 40,
+      width: 60,
+      height: 60,
       color: '#FF0088',
       hp: 2,
       dx: 0,
@@ -542,14 +673,14 @@ function spawnMonsters() {
     });
   }
   
-  // 生成砲塔怪物（體積三倍大，不會移動，會發射遠距離攻擊）
+  // 生成砲塔怪物（體積五倍大，不會移動，會發射遠距離攻擊）
   for (let i = 0; i < TURRET_MONSTER_COUNT; i++) {
-    const position = getRandomPositionOutsideSafeZone(120, 120); // 三倍大小
+    const position = getRandomPositionOutsideSafeZone(300, 300); // 五倍大小
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 120, // 40 * 3 = 120
-      height: 120, // 40 * 3 = 120
+      width: 300, // 60 * 5 = 300
+      height: 300, // 60 * 5 = 300
       color: '#8B0000', // 深紅色
       hp: 5, // 更多血量
       dx: 0,
@@ -1389,7 +1520,7 @@ function drawGameTitle() {
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText('Safe Zone Escape', 20, VIEW_HEIGHT - 25);
+  ctx.fillText('末日ESG小尖兵', 20, VIEW_HEIGHT - 25);
   
   // 返回大廳按鈕
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -1515,8 +1646,88 @@ function drawVictory() {
   ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
 }
 
+function drawMap(offsetX, offsetY) {
+  const gridSize = 100;
+  const config = levelConfigs[currentLevel];
+  
+  // 調試信息
+  if (!config) {
+    console.log('錯誤: 沒有找到關卡配置');
+    return;
+  }
+  
+  if (!config.mapTiles) {
+    console.log('錯誤: 關卡配置中沒有 mapTiles');
+    return;
+  }
+  
+  if (!Array.isArray(config.mapTiles)) {
+    console.log('錯誤: mapTiles 不是陣列格式');
+    return;
+  }
+  
+  if (currentMapTiles.length === 0) {
+    console.log('錯誤: 當前地圖圖片陣列為空');
+    return;
+  }
+  
+  if (mapTileLayout.length === 0) {
+    console.log('錯誤: 地圖佈局未生成');
+    return;
+  }
+  
+  // 計算需要繪製的網格範圍
+  const startX = Math.floor(offsetX / gridSize) * gridSize;
+  const startY = Math.floor(offsetY / gridSize) * gridSize;
+  const endX = startX + VIEW_WIDTH + gridSize;
+  const endY = startY + VIEW_HEIGHT + gridSize;
+  
+  let tilesDrawn = 0;
+  let tilesFailed = 0;
+  
+  // 繪製地圖瓦片
+  for (let x = startX; x < endX; x += gridSize) {
+    for (let y = startY; y < endY; y += gridSize) {
+      const drawX = x - offsetX;
+      const drawY = y - offsetY;
+      
+      // 計算網格位置
+      const gridCol = Math.floor(x / gridSize);
+      const gridRow = Math.floor(y / gridSize);
+      
+      // 檢查佈局陣列邊界
+      if (gridRow >= 0 && gridRow < mapTileLayout.length && 
+          gridCol >= 0 && gridCol < mapTileLayout[gridRow].length) {
+        
+        // 使用固定的地圖佈局
+        const tileIndex = mapTileLayout[gridRow][gridCol];
+        const tileImage = currentMapTiles[tileIndex];
+        
+        if (tileImage && tileImage.complete) {
+          ctx.drawImage(tileImage, drawX, drawY, gridSize, gridSize);
+          tilesDrawn++;
+        } else {
+          // 如果圖片未載入，使用顏色方塊作為備用
+          ctx.fillStyle = '#8B4513'; // 棕色
+          ctx.fillRect(drawX, drawY, gridSize, gridSize);
+          tilesFailed++;
+        }
+      } else {
+        // 超出地圖範圍，使用預設顏色
+        ctx.fillStyle = '#8B4513'; // 棕色
+        ctx.fillRect(drawX, drawY, gridSize, gridSize);
+      }
+    }
+  }
+  
+  // 每100幀輸出一次調試信息
+  if (Math.random() < 0.01) { // 1% 機率輸出
+    console.log(`地圖繪製: 成功${tilesDrawn}格, 失敗${tilesFailed}格, 總共${currentMapTiles.length}張圖片`);
+  }
+}
+
 function drawGrid(offsetX, offsetY) {
-  const gridSize = 50;
+  const gridSize = 100;
   ctx.strokeStyle = '#666666';
   ctx.lineWidth = 1;
   
@@ -1553,6 +1764,37 @@ function drawGrid(offsetX, offsetY) {
   );
 }
 
+function drawSafeZoneOverlay(offsetX, offsetY) {
+  // 檢查安全區域是否在可視範圍內
+  const safeZoneScreenX = SAFE_ZONE_LEFT - offsetX;
+  const safeZoneScreenY = SAFE_ZONE_TOP - offsetY;
+  
+  if (safeZoneScreenX + SAFE_ZONE_SIZE < 0 || safeZoneScreenX > VIEW_WIDTH ||
+      safeZoneScreenY + SAFE_ZONE_SIZE < 0 || safeZoneScreenY > VIEW_HEIGHT) {
+    return; // 安全區域不在可視範圍內，不繪製
+  }
+  
+  // 計算安全區域在螢幕上的實際位置和大小
+  const drawX = Math.max(0, safeZoneScreenX);
+  const drawY = Math.max(0, safeZoneScreenY);
+  const drawWidth = Math.min(SAFE_ZONE_SIZE, VIEW_WIDTH - drawX);
+  const drawHeight = Math.min(SAFE_ZONE_SIZE, VIEW_HEIGHT - drawY);
+  
+  // 繪製半透明的安全區域圖層
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.1)'; // 淡綠色，透明度0.1
+  ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+  
+  // 添加發光效果
+  ctx.shadowColor = 'rgba(0, 255, 0, 0.3)';
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = 'rgba(0, 255, 0, 0.05)';
+  ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+  
+  // 重置陰影效果
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+}
+
 function gameLoop() {
   if (!gameLoopRunning) return;
   
@@ -1570,7 +1812,9 @@ function gameLoop() {
   if (gameState === 'playing') {
     const { offsetX, offsetY } = getCameraOffset();
     clearScreen();
+    drawMap(offsetX, offsetY);
     drawGrid(offsetX, offsetY);
+    drawSafeZoneOverlay(offsetX, offsetY);
     drawExit(offsetX, offsetY);
     drawMonsters(offsetX, offsetY);
     drawPlayer(offsetX, offsetY);
@@ -1630,7 +1874,33 @@ async function loadLevelConfig() {
         trackerMonsters: 10,
         turretMonsters: 2,
         gameTime: 90000,
-        description: "熟悉基本操作"
+        description: "熟悉基本操作",
+        mapTiles: [
+          {
+            "path": "assets/maps/map-level1-1.png",
+            "weight": 3
+          },
+          {
+            "path": "assets/maps/map-level1-2.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level1-3.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level1-4.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level1-5.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level1-6.png",
+            "weight": 1
+          }
+        ]
       },
       2: {
         name: "進階關卡",
@@ -1640,7 +1910,33 @@ async function loadLevelConfig() {
         trackerMonsters: 15,
         turretMonsters: 3,
         gameTime: 120000,
-        description: "增加怪物數量"
+        description: "增加怪物數量",
+        mapTiles: [
+          {
+            "path": "assets/maps/map-level2-1.png",
+            "weight": 3
+          },
+          {
+            "path": "assets/maps/map-level2-2.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level2-3.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level2-4.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level2-5.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level2-6.png",
+            "weight": 1
+          }
+        ]
       },
       3: {
         name: "挑戰關卡",
@@ -1650,7 +1946,33 @@ async function loadLevelConfig() {
         trackerMonsters: 20,
         turretMonsters: 4,
         gameTime: 150000,
-        description: "更大的地圖"
+        description: "更大的地圖",
+        mapTiles: [
+          {
+            "path": "assets/maps/map-level3-1.png",
+            "weight": 3
+          },
+          {
+            "path": "assets/maps/map-level3-2.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level3-3.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level3-4.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level3-5.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level3-6.png",
+            "weight": 1
+          }
+        ]
       },
       4: {
         name: "終極關卡",
@@ -1660,7 +1982,33 @@ async function loadLevelConfig() {
         trackerMonsters: 25,
         turretMonsters: 5,
         gameTime: 180000,
-        description: "最終挑戰"
+        description: "最終挑戰",
+        mapTiles: [
+          {
+            "path": "assets/maps/map-level4-1.png",
+            "weight": 3
+          },
+          {
+            "path": "assets/maps/map-level4-2.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level4-3.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level4-4.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level4-5.png",
+            "weight": 1
+          },
+          {
+            "path": "assets/maps/map-level4-6.png",
+            "weight": 1
+          }
+        ]
       }
     };
     return false;
@@ -1817,6 +2165,32 @@ window.debugCanvasSize = function() {
   }
 };
 
+// 添加地圖圖片調試函數
+window.debugMapImages = function() {
+  console.log('=== 地圖圖片調試 ===');
+  console.log(`當前關卡: ${currentLevel}`);
+  
+  const config = levelConfigs[currentLevel];
+  if (config) {
+    console.log('關卡配置:', config);
+    console.log(`地圖圖片數量: ${config.mapTiles ? config.mapTiles.length : 0}`);
+  } else {
+    console.log('錯誤: 沒有找到關卡配置');
+  }
+  
+  console.log(`當前地圖圖片陣列長度: ${currentMapTiles.length}`);
+  console.log('地圖圖片狀態:');
+  currentMapTiles.forEach((img, index) => {
+    console.log(`圖片${index}: complete=${img.complete}, src=${img.src}`);
+  });
+  
+  console.log('所有已載入的圖片:');
+  Object.keys(mapImages).forEach(path => {
+    const img = mapImages[path];
+    console.log(`${path}: complete=${img.complete}`);
+  });
+};
+
 // 強制調整Canvas尺寸
 window.forceResizeCanvas = function() {
   console.log('強制調整Canvas尺寸...');
@@ -1835,4 +2209,33 @@ window.showExitInfo = function() {
   const distanceToExit = distance(player.x + player.width/2, player.y + player.height/2, 
                                  exit.x + exit.width/2, exit.y + exit.height/2);
   console.log(`玩家到出口距離: ${distanceToExit.toFixed(1)}像素`);
+};
+
+// 顯示地圖權重統計信息
+window.showMapWeightStats = function() {
+  console.log('=== 地圖權重統計 ===');
+  console.log(`當前關卡: ${currentLevel}`);
+  console.log('地圖圖片權重配置:');
+  currentMapWeights.forEach((weight, index) => {
+    console.log(`圖片${index + 1}: 權重 ${weight}`);
+  });
+  
+  const totalWeight = currentMapWeights.reduce((sum, weight) => sum + weight, 0);
+  console.log(`總權重: ${totalWeight}`);
+  
+  // 統計地圖佈局中各種圖片的出現次數
+  const tileCounts = {};
+  for (let row = 0; row < mapTileLayout.length; row++) {
+    for (let col = 0; col < mapTileLayout[row].length; col++) {
+      const tileIndex = mapTileLayout[row][col];
+      tileCounts[tileIndex] = (tileCounts[tileIndex] || 0) + 1;
+    }
+  }
+  
+  console.log('地圖佈局統計:');
+  Object.keys(tileCounts).forEach(index => {
+    const count = tileCounts[index];
+    const percentage = ((count / (mapTileLayout.length * mapTileLayout[0].length)) * 100).toFixed(1);
+    console.log(`圖片${parseInt(index) + 1}: 出現 ${count} 次 (${percentage}%)`);
+  });
 }; 

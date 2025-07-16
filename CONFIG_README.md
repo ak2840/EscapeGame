@@ -7,9 +7,9 @@
 ### 1. 遊戲資訊 (gameInfo)
 ```json
 {
-  "name": "Safe Zone Escape",
+  "name": "末日ESG小尖兵",
   "version": "1.0.0", 
-  "description": "安全區域逃脫遊戲"
+  "description": "末日環境中的ESG小尖兵冒險遊戲"
 }
 ```
 
@@ -27,20 +27,24 @@
 
 ### 3. 怪物設定 (monsterSettings)
 定義各種怪物的基本屬性：
-- `normal`: 普通怪物
-- `tracker`: 追蹤怪物
-- `turret`: 砲塔怪物
+- `normal`: 普通怪物 (60x60像素)
+- `tracker`: 追蹤怪物 (60x60像素)
+- `turret`: 砲塔怪物 (300x300像素)
 
 ### 4. 關卡設定 (levels)
 每個關卡的詳細配置：
 - `name`: 關卡名稱
-- `mapMultiplier`: 地圖大小倍數
+- `mapWidth`: 地圖寬度（像素）
+- `mapHeight`: 地圖高度（像素）
 - `normalMonsters`: 普通怪物數量
 - `trackerMonsters`: 追蹤怪物數量
 - `turretMonsters`: 砲塔怪物數量
 - `gameTime`: 遊戲時間（毫秒）
 - `description`: 關卡描述
 - `unlockRequirement`: 解鎖條件
+- `mapTiles`: 地圖圖片配置陣列
+  - `path`: 圖片檔案路徑
+  - `weight`: 權重值（數字越大出現機率越高）
 
 ## 如何修改設定
 
@@ -52,6 +56,11 @@
 ### 修改怪物屬性
 1. 在 `monsterSettings` 中修改對應怪物的屬性
 2. 修改會影響所有關卡中的該類型怪物
+
+### 調整地圖圖片權重
+1. 在 `levels` 的 `mapTiles` 中修改 `weight` 值
+2. 權重值越大，該圖片在地圖中出現的機率越高
+3. 例如：權重 3 的圖片出現機率是權重 1 的圖片的 3 倍
 
 ### 調整遊戲平衡
 1. 修改 `defaultSettings` 中的參數
@@ -65,13 +74,40 @@
   "levels": {
     "5": {
       "name": "地獄關卡",
-      "mapMultiplier": 7,
+      "mapWidth": 5600,
+      "mapHeight": 4200,
       "normalMonsters": 80,
       "trackerMonsters": 30,
       "turretMonsters": 8,
       "gameTime": 240000,
       "description": "終極挑戰",
-      "unlockRequirement": "完成第4關"
+      "unlockRequirement": "完成第4關",
+      "mapTiles": [
+        {
+          "path": "assets/maps/map-level5-1.png",
+          "weight": 3
+        },
+        {
+          "path": "assets/maps/map-level5-2.png",
+          "weight": 1
+        },
+        {
+          "path": "assets/maps/map-level5-3.png",
+          "weight": 1
+        },
+        {
+          "path": "assets/maps/map-level5-4.png",
+          "weight": 1
+        },
+        {
+          "path": "assets/maps/map-level5-5.png",
+          "weight": 1
+        },
+        {
+          "path": "assets/maps/map-level5-6.png",
+          "weight": 1
+        }
+      ]
     }
   }
 }

@@ -1,0 +1,98 @@
+末日ESG小尖兵 地圖圖片檔案清單
+
+地圖圖片規格
+------------
+- 尺寸: 100x100 像素
+- 格式: PNG (支援透明背景)
+- 用途: 地圖瓦片貼圖 (隨機使用)
+
+第1關 - 新手關卡
+----------------
+地圖尺寸: 2400x1800 (24x18格)
+需要圖片: 6張
+
+- assets/maps/map-level1-1.png
+- assets/maps/map-level1-2.png
+- assets/maps/map-level1-3.png
+- assets/maps/map-level1-4.png
+- assets/maps/map-level1-5.png
+- assets/maps/map-level1-6.png
+
+第2關 - 進階關卡
+----------------
+地圖尺寸: 3200x2400 (32x24格)
+需要圖片: 6張
+
+- assets/maps/map-level2-1.png
+- assets/maps/map-level2-2.png
+- assets/maps/map-level2-3.png
+- assets/maps/map-level2-4.png
+- assets/maps/map-level2-5.png
+- assets/maps/map-level2-6.png
+
+第3關 - 挑戰關卡
+----------------
+地圖尺寸: 4000x3000 (40x30格)
+需要圖片: 6張
+
+- assets/maps/map-level3-1.png
+- assets/maps/map-level3-2.png
+- assets/maps/map-level3-3.png
+- assets/maps/map-level3-4.png
+- assets/maps/map-level3-5.png
+- assets/maps/map-level3-6.png
+
+第4關 - 終極關卡
+----------------
+地圖尺寸: 4800x3600 (48x36格)
+需要圖片: 6張
+
+- assets/maps/map-level4-1.png
+- assets/maps/map-level4-2.png
+- assets/maps/map-level4-3.png
+- assets/maps/map-level4-4.png
+- assets/maps/map-level4-5.png
+- assets/maps/map-level4-6.png
+
+檔案結構
+--------
+assets/
+└── maps/
+    ├── map-level1-1.png
+    ├── map-level1-2.png
+    ├── map-level1-3.png
+    ├── map-level1-4.png
+    ├── map-level1-5.png
+    ├── map-level1-6.png
+    ├── map-level2-1.png
+    ├── map-level2-2.png
+    ├── map-level2-3.png
+    ├── map-level2-4.png
+    ├── map-level2-5.png
+    ├── map-level2-6.png
+    ├── map-level3-1.png
+    ├── map-level3-2.png
+    ├── map-level3-3.png
+    ├── map-level3-4.png
+    ├── map-level3-5.png
+    ├── map-level3-6.png
+    ├── map-level4-1.png
+    ├── map-level4-2.png
+    ├── map-level4-3.png
+    ├── map-level4-4.png
+    ├── map-level4-5.png
+    └── map-level4-6.png
+
+總計: 24張地圖圖片
+- 第1關: 6張
+- 第2關: 6張
+- 第3關: 6張
+- 第4關: 6張
+
+注意事項
+--------
+1. 所有圖片必須是100x100像素
+2. 使用PNG格式以支援透明背景
+3. 每個關卡的6張圖片會隨機使用
+4. 每格地圖都會隨機選擇一張圖片
+5. 圖片風格可以自由設計，不限制主題 
