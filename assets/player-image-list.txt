@@ -34,14 +34,26 @@
 - assets/player/player-action-right-1.png
 - assets/player/player-action-right-2.png
 
-怪物圖片檔案 (12張)
+怪物圖片檔案 (20張)
 -------------------
 
-普通怪物 (4張):
-- assets/monsters/normal-left-1.png
-- assets/monsters/normal-left-2.png
-- assets/monsters/normal-right-1.png
-- assets/monsters/normal-right-2.png
+普通怪物A (4張):
+- assets/monsters/normalA-left-1.png
+- assets/monsters/normalA-left-2.png
+- assets/monsters/normalA-right-1.png
+- assets/monsters/normalA-right-2.png
+
+普通怪物B (4張):
+- assets/monsters/normalB-left-1.png
+- assets/monsters/normalB-left-2.png
+- assets/monsters/normalB-right-1.png
+- assets/monsters/normalB-right-2.png
+
+普通怪物C (4張):
+- assets/monsters/normalC-left-1.png
+- assets/monsters/normalC-left-2.png
+- assets/monsters/normalC-right-1.png
+- assets/monsters/normalC-right-2.png
 
 追蹤怪物 (4張):
 - assets/monsters/tracker-left-1.png
@@ -84,10 +96,18 @@ assets/
 │   ├── player-action-right-1.png
 │   └── player-action-right-2.png
 └── monsters/
-    ├── normal-left-1.png
-    ├── normal-left-2.png
-    ├── normal-right-1.png
-    ├── normal-right-2.png
+    ├── normalA-left-1.png
+    ├── normalA-left-2.png
+    ├── normalA-right-1.png
+    ├── normalA-right-2.png
+    ├── normalB-left-1.png
+    ├── normalB-left-2.png
+    ├── normalB-right-1.png
+    ├── normalB-right-2.png
+    ├── normalC-left-1.png
+    ├── normalC-left-2.png
+    ├── normalC-right-1.png
+    ├── normalC-right-2.png
     ├── tracker-left-1.png
     ├── tracker-left-2.png
     ├── tracker-right-1.png
@@ -105,12 +125,14 @@ assets/
 - 動畫: 每種動作有2幀動畫
 
 怪物圖片:
-- 普通怪物: 60x60 像素
-- 追蹤怪物: 60x60 像素  
+- 普通怪物A: 60x60 像素
+- 普通怪物B: 60x60 像素
+- 普通怪物C: 60x60 像素
+- 追蹤怪物: 120x120 像素  
 - 砲塔怪物: 300x300 像素
 - 格式: PNG (支援透明背景)
 - 動畫: 每種方向有2幀動畫
 
-總計: 36張圖片檔案
+總計: 44張圖片檔案
 - 玩家角色: 24張
-- 怪物: 12張
+- 怪物: 20張

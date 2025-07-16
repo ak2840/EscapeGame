@@ -17,15 +17,26 @@
     "invulnerableDuration": 1000
   },
   "monsterSettings": {
-    "normal": {
+    "normalA": {
+      "hp": 3,
+      "speed": 1.2,
+      "color": "#FF8800"
+    },
+    "normalB": {
       "hp": 2,
-      "speed": 1,
-      "color": "#FF4444"
+      "speed": 0.8,
+      "color": "#8844FF"
+    },
+    "normalC": {
+      "hp": 4,
+      "speed": 0.6,
+      "color": "#44FF44"
     },
     "tracker": {
       "hp": 2,
       "speed": 1.5,
-      "color": "#FF0088"
+      "color": "#FF0088",
+      "size": 120
     },
     "turret": {
       "hp": 5,
@@ -41,7 +52,9 @@
       "name": "新手關卡.1",
       "mapWidth": 1200,
       "mapHeight": 600,
-      "normalMonsters": 30,
+      "normalAMonsters": 8,
+      "normalBMonsters": 5,
+      "normalCMonsters": 3,
       "trackerMonsters": 10,
       "turretMonsters": 2,
       "gameTime": 90000,
@@ -78,7 +91,9 @@
       "name": "進階關卡.2",
       "mapWidth": 3200,
       "mapHeight": 2400,
-      "normalMonsters": 40,
+      "normalAMonsters": 12,
+      "normalBMonsters": 8,
+      "normalCMonsters": 5,
       "trackerMonsters": 15,
       "turretMonsters": 3,
       "gameTime": 120000,
@@ -115,7 +130,9 @@
       "name": "挑戰關卡.3",
       "mapWidth": 4000,
       "mapHeight": 3000,
-      "normalMonsters": 50,
+      "normalAMonsters": 18,
+      "normalBMonsters": 12,
+      "normalCMonsters": 8,
       "trackerMonsters": 20,
       "turretMonsters": 4,
       "gameTime": 150000,
@@ -124,7 +141,7 @@
       "mapTiles": [
         {
           "path": "assets/maps/map-level3-1.png",
-          "weight": 3
+          "weight": 30
         },
         {
           "path": "assets/maps/map-level3-2.png",
@@ -152,7 +169,9 @@
       "name": "終極關卡.4",
       "mapWidth": 4800,
       "mapHeight": 3600,
-      "normalMonsters": 60,
+      "normalAMonsters": 20,
+      "normalBMonsters": 15,
+      "normalCMonsters": 12,
       "trackerMonsters": 25,
       "turretMonsters": 5,
       "gameTime": 180000,

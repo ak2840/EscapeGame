@@ -3,8 +3,8 @@ const ctx = canvas.getContext('2d');
 
 // 音效系統
 const audioSystem = {
-  bgmEnabled: true,
-  sfxEnabled: true,
+  bgmEnabled: false,
+  sfxEnabled: false,
   bgMusic: null,
   attackSound: null,
   hitSound: null,
@@ -20,6 +20,9 @@ const audioSystem = {
     this.gameOverSound = document.getElementById('gameOverSound');
     this.buttonClickSound = document.getElementById('buttonClickSound');
     
+    // 從 cookie 讀取音效設定
+    this.loadAudioSettings();
+    
     // 設置音效控制按鈕事件
     document.getElementById('bgmToggle').addEventListener('click', () => {
       this.toggleBGM();
@@ -33,6 +36,32 @@ const audioSystem = {
     this.updateButtonStates();
   },
   
+  loadAudioSettings() {
+    // 從 cookie 讀取背景音樂設定
+    const savedBGM = getCookie('bgmEnabled');
+    if (savedBGM !== null) {
+      this.bgmEnabled = savedBGM === 'true';
+      console.log(`從 cookie 讀取背景音樂設定: ${this.bgmEnabled}`);
+    }
+    
+    // 從 cookie 讀取音效設定
+    const savedSFX = getCookie('sfxEnabled');
+    if (savedSFX !== null) {
+      this.sfxEnabled = savedSFX === 'true';
+      console.log(`從 cookie 讀取音效設定: ${this.sfxEnabled}`);
+    }
+  },
+  
+  saveAudioSettings() {
+    // 儲存背景音樂設定到 cookie
+    setCookie('bgmEnabled', this.bgmEnabled.toString(), 365);
+    console.log(`儲存背景音樂設定到 cookie: ${this.bgmEnabled}`);
+    
+    // 儲存音效設定到 cookie
+    setCookie('sfxEnabled', this.sfxEnabled.toString(), 365);
+    console.log(`儲存音效設定到 cookie: ${this.sfxEnabled}`);
+  },
+  
   toggleBGM() {
     this.bgmEnabled = !this.bgmEnabled;
     if (this.bgmEnabled) {
@@ -41,11 +70,13 @@ const audioSystem = {
       this.bgMusic.pause();
     }
     this.updateButtonStates();
+    this.saveAudioSettings();
   },
   
   toggleSFX() {
     this.sfxEnabled = !this.sfxEnabled;
     this.updateButtonStates();
+    this.saveAudioSettings();
   },
   
   updateButtonStates() {
@@ -280,7 +311,19 @@ const playerImages = {
 
 // 怪物圖片載入
 const monsterImages = {
-  normal: {
+  normalA: {
+    left1: new Image(),
+    left2: new Image(),
+    right1: new Image(),
+    right2: new Image()
+  },
+  normalB: {
+    left1: new Image(),
+    left2: new Image(),
+    right1: new Image(),
+    right2: new Image()
+  },
+  normalC: {
     left1: new Image(),
     left2: new Image(),
     right1: new Image(),
@@ -333,10 +376,20 @@ playerImages.actionRight1.src = 'assets/player/player-action-right-1.png';
 playerImages.actionRight2.src = 'assets/player/player-action-right-2.png';
 
 // 載入怪物圖片
-monsterImages.normal.left1.src = 'assets/monsters/normal-left-1.png';
-monsterImages.normal.left2.src = 'assets/monsters/normal-left-2.png';
-monsterImages.normal.right1.src = 'assets/monsters/normal-right-1.png';
-monsterImages.normal.right2.src = 'assets/monsters/normal-right-2.png';
+monsterImages.normalA.left1.src = 'assets/monsters/normalA-left-1.png';
+monsterImages.normalA.left2.src = 'assets/monsters/normalA-left-2.png';
+monsterImages.normalA.right1.src = 'assets/monsters/normalA-right-1.png';
+monsterImages.normalA.right2.src = 'assets/monsters/normalA-right-2.png';
+
+monsterImages.normalB.left1.src = 'assets/monsters/normalB-left-1.png';
+monsterImages.normalB.left2.src = 'assets/monsters/normalB-left-2.png';
+monsterImages.normalB.right1.src = 'assets/monsters/normalB-right-1.png';
+monsterImages.normalB.right2.src = 'assets/monsters/normalB-right-2.png';
+
+monsterImages.normalC.left1.src = 'assets/monsters/normalC-left-1.png';
+monsterImages.normalC.left2.src = 'assets/monsters/normalC-left-2.png';
+monsterImages.normalC.right1.src = 'assets/monsters/normalC-right-1.png';
+monsterImages.normalC.right2.src = 'assets/monsters/normalC-right-2.png';
 
 monsterImages.tracker.left1.src = 'assets/monsters/tracker-left-1.png';
 monsterImages.tracker.left2.src = 'assets/monsters/tracker-left-2.png';
@@ -732,10 +785,12 @@ function updateLevelConfig() {
   MAP_HEIGHT = config.mapHeight;
 
   // 更新怪物數量
-  NORMAL_MONSTER_COUNT = config.normalMonsters;
+  NORMAL_A_MONSTER_COUNT = config.normalAMonsters;
+  NORMAL_B_MONSTER_COUNT = config.normalBMonsters;
+  NORMAL_C_MONSTER_COUNT = config.normalCMonsters;
   TRACKER_MONSTER_COUNT = config.trackerMonsters;
   TURRET_MONSTER_COUNT = config.turretMonsters;
-  MONSTER_COUNT = NORMAL_MONSTER_COUNT + TRACKER_MONSTER_COUNT + TURRET_MONSTER_COUNT;
+  MONSTER_COUNT = NORMAL_A_MONSTER_COUNT + NORMAL_B_MONSTER_COUNT + NORMAL_C_MONSTER_COUNT + TRACKER_MONSTER_COUNT + TURRET_MONSTER_COUNT;
 
   // 更新遊戲時間
   GAME_TIME = config.gameTime;
@@ -806,10 +861,12 @@ function updateLevelConfig() {
 }
 
 // 怪物設定（動態根據關卡調整）
-let NORMAL_MONSTER_COUNT = 30; // 預設值，會在loadLevel()中更新
+let NORMAL_A_MONSTER_COUNT = 5; // 預設值，會在loadLevel()中更新
+let NORMAL_B_MONSTER_COUNT = 3; // 預設值，會在loadLevel()中更新
+let NORMAL_C_MONSTER_COUNT = 2; // 預設值，會在loadLevel()中更新
 let TRACKER_MONSTER_COUNT = 10; // 預設值，會在loadLevel()中更新
 let TURRET_MONSTER_COUNT = 2; // 預設值，會在loadLevel()中更新
-let MONSTER_COUNT = NORMAL_MONSTER_COUNT + TRACKER_MONSTER_COUNT + TURRET_MONSTER_COUNT;
+let MONSTER_COUNT = NORMAL_A_MONSTER_COUNT + NORMAL_B_MONSTER_COUNT + NORMAL_C_MONSTER_COUNT + TRACKER_MONSTER_COUNT + TURRET_MONSTER_COUNT;
 const monsters = [];
 
 // 遊戲狀態
@@ -888,36 +945,80 @@ function spawnExit() {
 }
 
 function spawnMonsters() {
-  // 生成普通怪物
-  for (let i = 0; i < NORMAL_MONSTER_COUNT; i++) {
+  // 生成普通怪物A
+  for (let i = 0; i < NORMAL_A_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(60, 60);
     monsters.push({
       x: position.x,
       y: position.y,
       width: 60,
       height: 60,
-      color: '#FF4444',
-      hp: 2,
+      color: '#FF8800',
+      hp: 3,
       dx: 0,
       dy: 0,
-      type: 'normal',
-      speed: 1,
+      type: 'normalA',
+      speed: 1.2,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
       animationTime: 0, // 動畫計時器
-      animationSpeed: 300, // 動畫切換速度（毫秒）
+      animationSpeed: 280, // 動畫切換速度（毫秒，比普通怪物快一點）
+    });
+  }
+  
+  // 生成普通怪物B
+  for (let i = 0; i < NORMAL_B_MONSTER_COUNT; i++) {
+    const position = getRandomPositionOutsideSafeZone(60, 60);
+    monsters.push({
+      x: position.x,
+      y: position.y,
+      width: 60,
+      height: 60,
+      color: '#8844FF',
+      hp: 2,
+      dx: 0,
+      dy: 0,
+      type: 'normalB',
+      speed: 0.8,
+      // 動畫相關屬性
+      direction: 'right', // 預設朝右
+      animationFrame: 1, // 動畫幀（1或2）
+      animationTime: 0, // 動畫計時器
+      animationSpeed: 320, // 動畫切換速度（毫秒，比普通怪物慢一點）
+    });
+  }
+  
+  // 生成普通怪物C
+  for (let i = 0; i < NORMAL_C_MONSTER_COUNT; i++) {
+    const position = getRandomPositionOutsideSafeZone(60, 60);
+    monsters.push({
+      x: position.x,
+      y: position.y,
+      width: 60,
+      height: 60,
+      color: '#44FF44',
+      hp: 4,
+      dx: 0,
+      dy: 0,
+      type: 'normalC',
+      speed: 0.6,
+      // 動畫相關屬性
+      direction: 'right', // 預設朝右
+      animationFrame: 1, // 動畫幀（1或2）
+      animationTime: 0, // 動畫計時器
+      animationSpeed: 350, // 動畫切換速度（毫秒，最慢）
     });
   }
   
   // 生成追蹤怪物
   for (let i = 0; i < TRACKER_MONSTER_COUNT; i++) {
-    const position = getRandomPositionOutsideSafeZone(60, 60);
+    const position = getRandomPositionOutsideSafeZone(120, 120);
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 60,
-      height: 60,
+      width: 120,
+      height: 120,
       color: '#FF0088',
       hp: 2,
       dx: 0,
@@ -1037,9 +1138,14 @@ function drawMonsterHealthBar(monster, offsetX, offsetY) {
 
 function getMonsterMaxHp(type) {
   switch (type) {
-    case 'normal':
     case 'tracker':
       return 2;
+    case 'normalA':
+      return 3;
+    case 'normalB':
+      return 2;
+    case 'normalC':
+      return 4;
     case 'turret':
       return 5;
     default:
@@ -1331,8 +1437,8 @@ function updateMonsters() {
           }
         }
       }
-    } else {
-      // 普通怪物：隨機移動（不受玩家位置影響）
+    } else if (m.type === 'normalA' || m.type === 'normalB' || m.type === 'normalC') {
+      // 普通怪物ABC：隨機移動（不受玩家位置影響）
       if (Math.random() < 0.02) { // 2% 機率改變方向
         m.dx = (Math.random() - 0.5) * 2 * m.speed;
         m.dy = (Math.random() - 0.5) * 2 * m.speed;
