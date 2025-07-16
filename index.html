@@ -218,6 +218,26 @@
       border-color: #F44336;
     }
     
+    /* 音效圖標樣式 */
+    .sound-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      transition: all 0.3s ease;
+    }
+    
+    .sound-icon.muted {
+      display: none;
+    }
+    
+    .sound-button.muted .sound-icon:not(.muted) {
+      display: none;
+    }
+    
+    .sound-button.muted .sound-icon.muted {
+      display: block;
+    }
+    
     #gameContainer {
       position: absolute;
       top: 0;
@@ -312,8 +332,14 @@
 <body>
   <!-- 音效控制按鈕 -->
   <div class="sound-controls">
-    <button class="sound-button active" id="bgmToggle" title="背景音樂">🎵</button>
-    <button class="sound-button active" id="sfxToggle" title="音效">🔊</button>
+    <button class="sound-button active" id="bgmToggle" title="背景音樂">
+      <img src="assets/ui/volume-on.svg" alt="背景音樂" class="sound-icon">
+      <img src="assets/ui/volume-off.svg" alt="背景音樂關閉" class="sound-icon muted">
+    </button>
+    <button class="sound-button active" id="sfxToggle" title="音效">
+      <img src="assets/ui/sound-on.svg" alt="音效" class="sound-icon">
+      <img src="assets/ui/sound-off.svg" alt="音效關閉" class="sound-icon muted">
+    </button>
   </div>
 
   <div id="gameLobby">

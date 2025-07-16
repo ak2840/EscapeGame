@@ -1316,9 +1316,10 @@ function drawPlayerHealthBar(offsetX, offsetY) {
   // 血量數字（只在血量不滿時顯示）
   if (player.hp < player.maxHp) {
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '10px Arial';
+    ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(`${player.hp}/${player.maxHp}`, barX + barWidth / 2, barY + barHeight - 1);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${player.hp}/${player.maxHp}`, 47.5, 77.5);
   }
   
   // 如果處於無敵狀態，添加閃爍效果
@@ -1822,21 +1823,22 @@ function updateTimer() {
 
 function drawTimer() {
   const seconds = Math.ceil(remainingTime / 1000);
-  const color = seconds <= 3 ? '#FF0000' : seconds <= 5 ? '#FFFF00' : '#FFFFFF';
+  const color = seconds <= 3 ? '#FF4444' : seconds <= 5 ? '#FFAA00' : '#FFFFFF';
   
   // 面板背景
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(VIEW_WIDTH - 120, 10, 110, 40);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.fillRect(15, 15, 65, 35);
   
   // 面板邊框
-  ctx.strokeStyle = '#666';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(VIEW_WIDTH - 120, 10, 110, 40);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(15, 15, 65, 36);
   
   ctx.fillStyle = color;
-  ctx.font = 'bold 28px Arial';
+  ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`時間: ${seconds}秒`, VIEW_WIDTH - 65, 40);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${seconds}`, 47.5, 34);
 }
 
 function drawKillCount() {
@@ -1995,29 +1997,30 @@ function drawGameTitle() {
 }
 
 function drawPlayerHealth() {
-  // 面板背景
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(VIEW_WIDTH - 120, 110, 110, 40);
-  
-  // 面板邊框
-  ctx.strokeStyle = '#666';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(VIEW_WIDTH - 120, 110, 110, 40);
-  
   // 血量顏色根據血量變化
   let healthColor;
   if (player.hp >= 7) {
-    healthColor = '#00FF00'; // 綠色
+    healthColor = '#44FF44'; // 綠色
   } else if (player.hp >= 4) {
-    healthColor = '#FFFF00'; // 黃色
+    healthColor = '#FFAA00'; // 橙色
   } else {
-    healthColor = '#FF0000'; // 紅色
+    healthColor = '#FF4444'; // 紅色
   }
   
+  // 面板背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.fillRect(15, 60, 65, 35);
+  
+  // 面板邊框
+  ctx.strokeStyle = healthColor;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(15, 60, 65, 35);
+  
   ctx.fillStyle = healthColor;
-  ctx.font = 'bold 24px Arial';
+  ctx.font = 'bold 20px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`血量: ${player.hp}/${player.maxHp}`, VIEW_WIDTH - 65, 140);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`${player.hp}/${player.maxHp}`, 47.5, 77.5);
   
   // 如果處於無敵狀態，顯示閃爍效果
   if (player.isInvulnerable) {
@@ -2025,9 +2028,27 @@ function drawPlayerHealth() {
     const flashRate = 100; // 閃爍頻率（毫秒）
     if (Math.floor(currentTime / flashRate) % 2 === 0) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.fillRect(VIEW_WIDTH - 120, 110, 110, 40);
+      ctx.fillRect(15, 60, 65, 35);
     }
   }
+}
+
+// 新增：繪製左上角ESC離開按鈕
+function drawEscButton() {
+  // 按鈕背景
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.fillRect(15, 15, 65, 35);
+  
+  // 按鈕邊框
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(15, 15, 65, 35);
+  
+  // 按鈕文字
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 14px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('ESC 離開', 47.5, 33);
 }
 
 function drawGameInstructions() {
@@ -2291,14 +2312,9 @@ function gameLoop() {
     // 繪製粒子效果
     particleSystem.draw(offsetX, offsetY);
     
-    // 顯示遊戲說明和計時器
-    drawGameInstructions();
+    // 顯示遊戲UI（移除指定的元素）
     drawTimer();
-    drawKillCount();
     drawPlayerHealth();
-    drawLevelInfo();
-    drawMapAndPlayerInfo();
-    drawGameTitle();
     
     if (gameOver) {
       drawGameOver();
