@@ -1,6 +1,252 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// 音效系統
+const audioSystem = {
+  bgmEnabled: true,
+  sfxEnabled: true,
+  bgMusic: null,
+  attackSound: null,
+  hitSound: null,
+  victorySound: null,
+  gameOverSound: null,
+  buttonClickSound: null,
+  
+  init() {
+    this.bgMusic = document.getElementById('bgMusic');
+    this.attackSound = document.getElementById('attackSound');
+    this.hitSound = document.getElementById('hitSound');
+    this.victorySound = document.getElementById('victorySound');
+    this.gameOverSound = document.getElementById('gameOverSound');
+    this.buttonClickSound = document.getElementById('buttonClickSound');
+    
+    // 設置音效控制按鈕事件
+    document.getElementById('bgmToggle').addEventListener('click', () => {
+      this.toggleBGM();
+    });
+    
+    document.getElementById('sfxToggle').addEventListener('click', () => {
+      this.toggleSFX();
+    });
+    
+    // 初始化音效狀態
+    this.updateButtonStates();
+  },
+  
+  toggleBGM() {
+    this.bgmEnabled = !this.bgmEnabled;
+    if (this.bgmEnabled) {
+      this.bgMusic.play().catch(e => console.log('背景音樂播放失敗:', e));
+    } else {
+      this.bgMusic.pause();
+    }
+    this.updateButtonStates();
+  },
+  
+  toggleSFX() {
+    this.sfxEnabled = !this.sfxEnabled;
+    this.updateButtonStates();
+  },
+  
+  updateButtonStates() {
+    const bgmBtn = document.getElementById('bgmToggle');
+    const sfxBtn = document.getElementById('sfxToggle');
+    
+    bgmBtn.className = `sound-button ${this.bgmEnabled ? 'active' : 'muted'}`;
+    sfxBtn.className = `sound-button ${this.sfxEnabled ? 'active' : 'muted'}`;
+  },
+  
+  playBGM() {
+    if (this.bgmEnabled && this.bgMusic) {
+      this.bgMusic.play().catch(e => console.log('背景音樂播放失敗:', e));
+    }
+  },
+  
+  stopBGM() {
+    if (this.bgMusic) {
+      this.bgMusic.pause();
+      this.bgMusic.currentTime = 0;
+    }
+  },
+  
+  playSFX(sound) {
+    if (this.sfxEnabled && sound) {
+      sound.currentTime = 0;
+      sound.play().catch(e => console.log('音效播放失敗:', e));
+    }
+  },
+  
+  playAttack() {
+    this.playSFX(this.attackSound);
+  },
+  
+  playHit() {
+    this.playSFX(this.hitSound);
+  },
+  
+  playVictory() {
+    this.playSFX(this.victorySound);
+  },
+  
+  playGameOver() {
+    this.playSFX(this.gameOverSound);
+  },
+  
+  playButtonClick() {
+    this.playSFX(this.buttonClickSound);
+  }
+};
+
+// 粒子效果系統
+const particleSystem = {
+  particles: [],
+  
+  createParticle(x, y, vx, vy, color, size, life, type = 'normal') {
+    return {
+      x, y, vx, vy, color, size, life, maxLife: life, type
+    };
+  },
+  
+  addParticle(particle) {
+    this.particles.push(particle);
+  },
+  
+  createExplosion(x, y, color = '#FFD700', count = 8) {
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count;
+      const speed = 2 + Math.random() * 3;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const particle = this.createParticle(
+        x, y, vx, vy, color, 
+        3 + Math.random() * 3, 
+        30 + Math.random() * 30,
+        'explosion'
+      );
+      this.addParticle(particle);
+    }
+  },
+  
+  createHitEffect(x, y, color = '#FF4444') {
+    for (let i = 0; i < 5; i++) {
+      const vx = (Math.random() - 0.5) * 4;
+      const vy = (Math.random() - 0.5) * 4;
+      const particle = this.createParticle(
+        x, y, vx, vy, color,
+        2 + Math.random() * 2,
+        20 + Math.random() * 20,
+        'hit'
+      );
+      this.addParticle(particle);
+    }
+  },
+  
+  createTrail(x, y, color = '#00FFFF') {
+    const particle = this.createParticle(
+      x, y, 0, 0, color,
+      2, 15, 'trail'
+    );
+    this.addParticle(particle);
+  },
+  
+  update() {
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const particle = this.particles[i];
+      
+      // 更新位置
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      
+      // 更新生命週期
+      particle.life--;
+      
+      // 根據類型更新行為
+      switch (particle.type) {
+        case 'explosion':
+          particle.vx *= 0.95;
+          particle.vy *= 0.95;
+          particle.size *= 0.98;
+          break;
+        case 'hit':
+          particle.vx *= 0.9;
+          particle.vy *= 0.9;
+          particle.size *= 0.95;
+          break;
+        case 'trail':
+          particle.size *= 0.9;
+          break;
+      }
+      
+      // 移除死亡粒子
+      if (particle.life <= 0) {
+        this.particles.splice(i, 1);
+      }
+    }
+  },
+  
+  draw(offsetX, offsetY) {
+    ctx.save();
+    
+    for (const particle of this.particles) {
+      const alpha = particle.life / particle.maxLife;
+      ctx.globalAlpha = alpha;
+      
+      ctx.fillStyle = particle.color;
+      ctx.beginPath();
+      ctx.arc(
+        particle.x - offsetX, 
+        particle.y - offsetY, 
+        particle.size, 
+        0, 
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+    
+    ctx.restore();
+  },
+  
+  clear() {
+    this.particles = [];
+  }
+};
+
+
+
+// 遊戲統計系統
+const gameStats = {
+  currentGame: {
+    startTime: 0,
+    killCount: 0,
+    damageTaken: 0,
+    completionTime: 0,
+    noDamage: true
+  },
+  
+  reset() {
+    this.currentGame = {
+      startTime: Date.now(),
+      killCount: 0,
+      damageTaken: 0,
+      completionTime: 0,
+      noDamage: true
+    };
+  },
+  
+  recordKill() {
+    this.currentGame.killCount++;
+  },
+  
+  recordDamage() {
+    this.currentGame.damageTaken++;
+    this.currentGame.noDamage = false;
+  },
+  
+  recordCompletion() {
+    this.currentGame.completionTime = Date.now() - this.currentGame.startTime;
+  }
+};
+
 // 圖片載入
 const playerImages = {
   // 移動動畫圖片
@@ -442,11 +688,24 @@ function completeLevel(level) {
     highestUnlockedLevel = level + 1;
   }
   
+  // 記錄完成統計
+  gameStats.recordCompletion();
+  gameStats.currentGame.level = level;
+  gameStats.currentGame.completedLevels = completedLevels.length;
+  
+  // 播放勝利音效
+  audioSystem.playVictory();
+  
+  // 停止背景音樂
+  audioSystem.stopBGM();
+  
   // 保存進度
   saveProgress();
   
   console.log(`完成第${level}關！`);
   console.log(`已解鎖到第${highestUnlockedLevel}關`);
+  console.log(`擊殺數: ${gameStats.currentGame.killCount}`);
+  console.log(`完成時間: ${gameStats.currentGame.completionTime}ms`);
   
   return true;
 }
@@ -982,6 +1241,13 @@ function autoAttack() {
         player.attackAnimationFrame = 1;
         
         lastAttackTime = currentTime;
+        
+        // 播放攻擊音效
+        audioSystem.playAttack();
+        
+        // 創建攻擊粒子效果
+        particleSystem.createTrail(px, py, '#FFFF00');
+        
         // 一次只攻擊一隻
         break;
       }
@@ -1122,12 +1388,25 @@ function checkCollision() {
       player.isInvulnerable = true;
       player.invulnerableTime = Date.now();
       
+      // 記錄傷害統計
+      gameStats.recordDamage();
+      
+      // 播放受傷音效
+      audioSystem.playHit();
+      
+      // 創建受傷粒子效果
+      const playerCenterX = player.x + player.width / 2;
+      const playerCenterY = player.y + player.height / 2;
+      particleSystem.createHitEffect(playerCenterX, playerCenterY, '#FF4444');
+      
       console.log(`玩家受到傷害！剩餘血量：${player.hp}`);
       
-      if (player.hp <= 0) {
-        gameOver = true;
-        console.log('遊戲結束！你的血量耗盡了！');
-      }
+              if (player.hp <= 0) {
+          gameOver = true;
+          audioSystem.playGameOver();
+          audioSystem.stopBGM();
+          console.log('遊戲結束！你的血量耗盡了！');
+        }
       return;
     }
   }
@@ -1175,9 +1454,24 @@ function updateProjectiles() {
         // 擊中怪物
         m.hp--;
         console.log(`攻擊怪物！剩餘血量：${m.hp}`);
+        
+        // 播放擊中音效
+        audioSystem.playHit();
+        
+        // 創建擊中粒子效果
+        particleSystem.createHitEffect(mx, my, '#FF4444');
+        
         if (m.hp <= 0) {
+          // 怪物死亡
           monsters.splice(p.targetMonster, 1);
           killCount++;
+          
+          // 記錄擊殺統計
+          gameStats.recordKill();
+          
+          // 創建爆炸粒子效果
+          particleSystem.createExplosion(mx, my, '#FFD700', 12);
+          
           console.log(`怪物被消滅了！擊殺數：${killCount}`);
         }
         projectiles.splice(i, 1);
@@ -1215,6 +1509,7 @@ function updateMonsterProjectiles() {
         
         if (player.hp <= 0) {
           gameOver = true;
+          audioSystem.stopBGM();
           console.log('遊戲結束！你的血量耗盡了！');
         }
       }
@@ -1292,6 +1587,9 @@ function restartGame() {
   // 重置擊殺計數器
   killCount = 0;
   
+  // 重置遊戲統計
+  gameStats.reset();
+  
   // 重置玩家位置和狀態（確保在地圖中心）
   player.x = MAP_WIDTH / 2;
   player.y = MAP_HEIGHT / 2;
@@ -1319,9 +1617,15 @@ function restartGame() {
   monsterProjectiles.length = 0;
   attackEffects.length = 0;
   
+  // 清空粒子效果
+  particleSystem.clear();
+  
   // 重新生成怪物和出口
   spawnMonsters();
   spawnExit();
+  
+  // 播放背景音樂
+  audioSystem.playBGM();
   
   console.log('遊戲重新開始！');
 }
@@ -1348,6 +1652,9 @@ function drawGameOver() {
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 28px Arial';
   ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
+  
+  // 遊戲結束時停止背景音樂
+  audioSystem.stopBGM();
 }
 
 function updateTimer() {
@@ -1357,6 +1664,7 @@ function updateTimer() {
     
     if (remainingTime <= 0) {
       gameOver = true;
+      audioSystem.stopBGM();
       console.log('時間到！遊戲結束！');
     }
   }
@@ -1641,6 +1949,11 @@ function drawVictory() {
   ctx.textAlign = 'center';
   ctx.fillText('恭喜通關所有關卡！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
   
+  // 顯示遊戲統計
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText(`擊殺數: ${killCount}`, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 20);
+  
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 28px Arial';
   ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
@@ -1807,6 +2120,9 @@ function gameLoop() {
     updateTimer();
     autoAttack();
     checkCollision();
+    
+    // 更新粒子效果
+    particleSystem.update();
   }
   
   if (gameState === 'playing') {
@@ -1821,6 +2137,9 @@ function gameLoop() {
     drawProjectiles(offsetX, offsetY);
     drawMonsterProjectiles(offsetX, offsetY);
     drawAttackEffects(offsetX, offsetY);
+    
+    // 繪製粒子效果
+    particleSystem.draw(offsetX, offsetY);
     
     // 顯示遊戲說明和計時器
     drawGameInstructions();
@@ -2046,7 +2365,11 @@ function updateLobbyDisplay() {
   const levelGrid = document.getElementById('levelGrid');
   
   // 更新進度信息
-  progressInfo.textContent = `進度：第 ${highestUnlockedLevel} 關`;
+  if (completedLevels.length === MAX_LEVEL) {
+    progressInfo.textContent = '進度：完全通關';
+  } else {
+    progressInfo.textContent = `進度：第 ${highestUnlockedLevel} 關`;
+  }
   
   // 清空關卡網格
   levelGrid.innerHTML = '';
@@ -2072,6 +2395,7 @@ function updateLobbyDisplay() {
     // 添加點擊事件
     button.onclick = () => {
       if (level <= highestUnlockedLevel) {
+        audioSystem.playButtonClick();
         startLevel(level);
       }
     };
@@ -2093,9 +2417,33 @@ function startLevel(level) {
   }
 }
 
+function resetProgress() {
+  // 確認對話框
+  if (confirm('確定要重置所有通關進度嗎？此操作無法復原。')) {
+    // 重置進度變數
+    highestUnlockedLevel = 1;
+    completedLevels = [];
+    
+    // 清除Cookie
+    setCookie('highestUnlockedLevel', 1, 365);
+    setCookie('completedLevels', JSON.stringify([]), 365);
+    
+    // 播放按鈕音效
+    audioSystem.playButtonClick();
+    
+    // 更新大廳顯示
+    updateLobbyDisplay();
+    
+    console.log('進度已重置');
+  }
+}
+
 function returnToLobby() {
   showLobby();
   updateLobbyDisplay();
+  
+  // 停止背景音樂
+  audioSystem.stopBGM();
   
   // 停止遊戲循環
   gameLoopRunning = false;
@@ -2103,7 +2451,16 @@ function returnToLobby() {
 
 // 初始化遊戲
 async function initGame() {
+  // 初始化音效系統
+  audioSystem.init();
+  
   await initLobby();
+  
+  // 添加重置進度按鈕事件監聽器
+  const resetButton = document.getElementById('resetProgressBtn');
+  if (resetButton) {
+    resetButton.addEventListener('click', resetProgress);
+  }
   
   // 啟動遊戲循環（但只在需要時執行遊戲邏輯）
   gameLoopRunning = true;
@@ -2112,6 +2469,18 @@ async function initGame() {
 
 // 開始初始化
 initGame();
+
+// 頁面離開時停止背景音樂
+window.addEventListener('beforeunload', () => {
+  audioSystem.stopBGM();
+});
+
+// 頁面隱藏時停止背景音樂
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    audioSystem.stopBGM();
+  }
+});
 
 // 添加測試函數到全域範圍
 window.testCookie = function() {

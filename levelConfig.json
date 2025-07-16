@@ -38,9 +38,9 @@
   },
   "levels": {
     "1": {
-      "name": "新手關卡",
-      "mapWidth": 2400,
-      "mapHeight": 1800,
+      "name": "新手關卡.1",
+      "mapWidth": 1200,
+      "mapHeight": 600,
       "normalMonsters": 30,
       "trackerMonsters": 10,
       "turretMonsters": 2,
@@ -50,7 +50,7 @@
       "mapTiles": [
         {
           "path": "assets/maps/map-level1-1.png",
-          "weight": 3
+          "weight": 10
         },
         {
           "path": "assets/maps/map-level1-2.png",
@@ -75,7 +75,7 @@
       ]
     },
     "2": {
-      "name": "進階關卡",
+      "name": "進階關卡.2",
       "mapWidth": 3200,
       "mapHeight": 2400,
       "normalMonsters": 40,
@@ -112,7 +112,7 @@
       ]
     },
     "3": {
-      "name": "挑戰關卡",
+      "name": "挑戰關卡.3",
       "mapWidth": 4000,
       "mapHeight": 3000,
       "normalMonsters": 50,
@@ -149,7 +149,7 @@
       ]
     },
     "4": {
-      "name": "終極關卡",
+      "name": "終極關卡.4",
       "mapWidth": 4800,
       "mapHeight": 3600,
       "normalMonsters": 60,
