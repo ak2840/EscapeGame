@@ -3,9 +3,11 @@ const ctx = canvas.getContext('2d');
 
 // 音效系統
 const audioSystem = {
-  bgmEnabled: false,
-  sfxEnabled: false,
-  bgMusic: null,
+  bgmEnabled: true, // 預設開啟背景音樂
+  sfxEnabled: true, // 預設開啟音效
+  bgmVolume: 0.5, // 背景音樂音量 50%
+  sfxVolume: 0.5, // 音效音量 50%
+  gameMusic: null, // 遊戲背景音樂
   attackSound: null,
   hitSound: null,
   victorySound: null,
@@ -13,7 +15,7 @@ const audioSystem = {
   buttonClickSound: null,
   
   init() {
-    this.bgMusic = document.getElementById('bgMusic');
+    this.gameMusic = document.getElementById('gameMusic');
     this.attackSound = document.getElementById('attackSound');
     this.hitSound = document.getElementById('hitSound');
     this.victorySound = document.getElementById('victorySound');
@@ -23,16 +25,10 @@ const audioSystem = {
     // 從 cookie 讀取音效設定
     this.loadAudioSettings();
     
-    // 設置音效控制按鈕事件
-    document.getElementById('bgmToggle').addEventListener('click', () => {
-      this.toggleBGM();
-    });
+    // 設定音量
+    this.setVolume();
     
-    document.getElementById('sfxToggle').addEventListener('click', () => {
-      this.toggleSFX();
-    });
-    
-    // 初始化音效狀態
+    // 初始化音效狀態（不再需要HTML按鈕，因為使用遊戲內按鈕）
     this.updateButtonStates();
   },
   
@@ -50,6 +46,19 @@ const audioSystem = {
       this.sfxEnabled = savedSFX === 'true';
       console.log(`從 cookie 讀取音效設定: ${this.sfxEnabled}`);
     }
+    
+    // 從 cookie 讀取音量設定
+    const savedBGMVolume = getCookie('bgmVolume');
+    if (savedBGMVolume !== null) {
+      this.bgmVolume = parseFloat(savedBGMVolume);
+      console.log(`從 cookie 讀取背景音樂音量: ${this.bgmVolume}`);
+    }
+    
+    const savedSFXVolume = getCookie('sfxVolume');
+    if (savedSFXVolume !== null) {
+      this.sfxVolume = parseFloat(savedSFXVolume);
+      console.log(`從 cookie 讀取音效音量: ${this.sfxVolume}`);
+    }
   },
   
   saveAudioSettings() {
@@ -60,14 +69,20 @@ const audioSystem = {
     // 儲存音效設定到 cookie
     setCookie('sfxEnabled', this.sfxEnabled.toString(), 365);
     console.log(`儲存音效設定到 cookie: ${this.sfxEnabled}`);
+    
+    // 儲存音量設定到 cookie
+    setCookie('bgmVolume', this.bgmVolume.toString(), 365);
+    setCookie('sfxVolume', this.sfxVolume.toString(), 365);
+    console.log(`儲存音量設定到 cookie: BGM=${this.bgmVolume}, SFX=${this.sfxVolume}`);
   },
   
   toggleBGM() {
     this.bgmEnabled = !this.bgmEnabled;
-    if (this.bgmEnabled) {
-      this.bgMusic.play().catch(e => console.log('背景音樂播放失敗:', e));
-    } else {
-      this.bgMusic.pause();
+    // 先暫停遊戲音樂
+    this.stopGameMusic();
+    // 如果開啟且目前在遊戲中，播放遊戲音樂
+    if (this.bgmEnabled && gameState === 'playing') {
+      this.playGameMusic();
     }
     this.updateButtonStates();
     this.saveAudioSettings();
@@ -80,28 +95,52 @@ const audioSystem = {
   },
   
   updateButtonStates() {
-    const bgmBtn = document.getElementById('bgmToggle');
-    const sfxBtn = document.getElementById('sfxToggle');
+    // 不再需要更新HTML按鈕狀態，因為使用遊戲內按鈕
+    // 遊戲內按鈕會根據 audioSystem.bgmEnabled 和 audioSystem.sfxEnabled 自動更新
+  },
+  
+  setVolume() {
+    // 設定背景音樂音量
+    if (this.gameMusic) {
+      this.gameMusic.volume = this.bgmVolume;
+    }
     
-    bgmBtn.className = `sound-button ${this.bgmEnabled ? 'active' : 'muted'}`;
-    sfxBtn.className = `sound-button ${this.sfxEnabled ? 'active' : 'muted'}`;
+    // 設定所有音效音量
+    const soundEffects = [this.attackSound, this.hitSound, this.victorySound, this.gameOverSound, this.buttonClickSound];
+    soundEffects.forEach(sound => {
+      if (sound) {
+        sound.volume = this.sfxVolume;
+      }
+    });
+    
+    console.log(`音量已設定: BGM=${this.bgmVolume}, SFX=${this.sfxVolume}`);
   },
   
-  playBGM() {
-    if (this.bgmEnabled && this.bgMusic) {
-      this.bgMusic.play().catch(e => console.log('背景音樂播放失敗:', e));
+
+  
+  playGameMusic() {
+    if (this.bgmEnabled && this.gameMusic) {
+      this.gameMusic.volume = this.bgmVolume;
+      this.gameMusic.play().catch(e => console.log('遊戲背景音樂播放失敗:', e));
     }
   },
   
-  stopBGM() {
-    if (this.bgMusic) {
-      this.bgMusic.pause();
-      this.bgMusic.currentTime = 0;
+
+  
+  stopGameMusic() {
+    if (this.gameMusic) {
+      this.gameMusic.pause();
+      this.gameMusic.currentTime = 0;
     }
+  },
+  
+  stopAllMusic() {
+    this.stopGameMusic();
   },
   
   playSFX(sound) {
     if (this.sfxEnabled && sound) {
+      sound.volume = this.sfxVolume;
       sound.currentTime = 0;
       sound.play().catch(e => console.log('音效播放失敗:', e));
     }
@@ -125,6 +164,22 @@ const audioSystem = {
   
   playButtonClick() {
     this.playSFX(this.buttonClickSound);
+  },
+  
+  setBGMVolume(volume) {
+    this.bgmVolume = Math.max(0, Math.min(1, volume));
+    if (this.gameMusic) {
+      this.gameMusic.volume = this.bgmVolume;
+    }
+    this.saveAudioSettings();
+    console.log(`背景音樂音量已設定為: ${this.bgmVolume}`);
+  },
+  
+  setSFXVolume(volume) {
+    this.sfxVolume = Math.max(0, Math.min(1, volume));
+    this.setVolume();
+    this.saveAudioSettings();
+    console.log(`音效音量已設定為: ${this.sfxVolume}`);
   }
 };
 
@@ -382,6 +437,19 @@ playerImages.actionLeft2.src = 'assets/player/player-action-left-2.png';
 playerImages.actionRight1.src = 'assets/player/player-action-right-1.png';
 playerImages.actionRight2.src = 'assets/player/player-action-right-2.png';
 
+// 載入UI圖標
+const uiImages = {
+  volumeOn: new Image(),
+  volumeOff: new Image(),
+  soundOn: new Image(),
+  soundOff: new Image()
+};
+
+uiImages.volumeOn.src = 'assets/ui/volume-on.svg';
+uiImages.volumeOff.src = 'assets/ui/volume-off.svg';
+uiImages.soundOn.src = 'assets/ui/sound-on.svg';
+uiImages.soundOff.src = 'assets/ui/sound-off.svg';
+
 // 載入怪物圖片
 monsterImages.normalA.left1.src = 'assets/monsters/normalA-left-1.png';
 monsterImages.normalA.left2.src = 'assets/monsters/normalA-left-2.png';
@@ -608,6 +676,13 @@ window.addEventListener('resize', debounceResize);
 
 // 鍵盤事件
 window.addEventListener('keydown', (e) => {
+  // 檢查是否有元素被focus，如果有且不是canvas，則不處理遊戲按鍵
+  const activeElement = document.activeElement;
+  if (activeElement && activeElement.tagName !== 'CANVAS' && activeElement.id !== 'gameCanvas') {
+    // 如果有其他元素被focus，不處理遊戲按鍵
+    return;
+  }
+  
   if (e.code in keys) {
     keys[e.code] = true;
     if (e.code === 'Space') {
@@ -628,6 +703,43 @@ window.addEventListener('keydown', (e) => {
       // ESC鍵返回大廳
       returnToLobby();
     }
+  }
+});
+
+// 滑鼠點擊事件處理遊戲內按鈕
+canvas.addEventListener('click', (e) => {
+  if (gameState !== 'playing') return;
+  
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  // 計算按鈕位置
+  const buttonSize = 35;
+  const buttonSpacing = 10;
+  const startX = VIEW_WIDTH - buttonSize - 15;
+  const startY = 15;
+  
+  // 背景音樂按鈕
+  const bgmX = startX - buttonSize - buttonSpacing;
+  const bgmY = startY;
+  
+  // 音效按鈕
+  const sfxX = startX;
+  const sfxY = startY;
+  
+  // 檢查點擊背景音樂按鈕
+  if (x >= bgmX && x <= bgmX + buttonSize && y >= bgmY && y <= bgmY + buttonSize) {
+    audioSystem.toggleBGM();
+    audioSystem.playButtonClick();
+    return;
+  }
+  
+  // 檢查點擊音效按鈕
+  if (x >= sfxX && x <= sfxX + buttonSize && y >= sfxY && y <= sfxY + buttonSize) {
+    audioSystem.toggleSFX();
+    audioSystem.playButtonClick();
+    return;
   }
 });
 window.addEventListener('keyup', (e) => {
@@ -764,8 +876,8 @@ function completeLevel(level) {
   // 播放勝利音效
   audioSystem.playVictory();
   
-  // 停止背景音樂
-  audioSystem.stopBGM();
+  // 停止遊戲背景音樂
+  audioSystem.stopGameMusic();
   
   // 保存進度
   saveProgress();
@@ -1775,8 +1887,8 @@ function restartGame() {
   spawnMonsters();
   spawnExit();
   
-  // 播放背景音樂
-  audioSystem.playBGM();
+  // 播放遊戲背景音樂
+  audioSystem.playGameMusic();
   
   console.log('遊戲重新開始！');
 }
@@ -1805,7 +1917,7 @@ function drawGameOver() {
   ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
   
   // 遊戲結束時停止背景音樂
-  audioSystem.stopBGM();
+  audioSystem.stopGameMusic();
 }
 
 function updateTimer() {
@@ -1815,7 +1927,7 @@ function updateTimer() {
     
     if (remainingTime <= 0) {
       gameOver = true;
-      audioSystem.stopBGM();
+      audioSystem.stopGameMusic();
       console.log('時間到！遊戲結束！');
     }
   }
@@ -2030,6 +2142,72 @@ function drawPlayerHealth() {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.fillRect(15, 60, 65, 35);
     }
+  }
+}
+
+// 新增：繪製遊戲內音效控制按鈕
+function drawSoundControls() {
+  const buttonSize = 35;
+  const buttonSpacing = 10;
+  const startX = VIEW_WIDTH - buttonSize - 15;
+  const startY = 15;
+  
+  // 背景音樂按鈕
+  const bgmX = startX - buttonSize - buttonSpacing;
+  const bgmY = startY;
+  
+  // 按鈕背景
+  ctx.fillStyle = audioSystem.bgmEnabled ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)';
+  ctx.fillRect(bgmX, bgmY, buttonSize, buttonSize);
+  
+  // 按鈕邊框
+  ctx.strokeStyle = audioSystem.bgmEnabled ? '#4CAF50' : '#F44336';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(bgmX, bgmY, buttonSize, buttonSize);
+  
+  // 音量圖標（使用SVG）
+  const volumeIcon = audioSystem.bgmEnabled ? uiImages.volumeOn : uiImages.volumeOff;
+  if (volumeIcon && volumeIcon.complete) {
+    const iconSize = 20;
+    const iconX = bgmX + (buttonSize - iconSize) / 2;
+    const iconY = bgmY + (buttonSize - iconSize) / 2;
+    ctx.drawImage(volumeIcon, iconX, iconY, iconSize, iconSize);
+  } else {
+    // 如果SVG未載入，使用文字備用
+    ctx.fillStyle = audioSystem.bgmEnabled ? '#4CAF50' : '#F44336';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('♪', bgmX + buttonSize/2, bgmY + buttonSize/2);
+  }
+  
+  // 音效按鈕
+  const sfxX = startX;
+  const sfxY = startY;
+  
+  // 按鈕背景
+  ctx.fillStyle = audioSystem.sfxEnabled ? 'rgba(76, 175, 80, 0.3)' : 'rgba(244, 67, 54, 0.3)';
+  ctx.fillRect(sfxX, sfxY, buttonSize, buttonSize);
+  
+  // 按鈕邊框
+  ctx.strokeStyle = audioSystem.sfxEnabled ? '#4CAF50' : '#F44336';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(sfxX, sfxY, buttonSize, buttonSize);
+  
+  // 音效圖標（使用SVG）
+  const soundIcon = audioSystem.sfxEnabled ? uiImages.soundOn : uiImages.soundOff;
+  if (soundIcon && soundIcon.complete) {
+    const iconSize = 20;
+    const iconX = sfxX + (buttonSize - iconSize) / 2;
+    const iconY = sfxY + (buttonSize - iconSize) / 2;
+    ctx.drawImage(soundIcon, iconX, iconY, iconSize, iconSize);
+  } else {
+    // 如果SVG未載入，使用文字備用
+    ctx.fillStyle = audioSystem.sfxEnabled ? '#4CAF50' : '#F44336';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🔊', sfxX + buttonSize/2, sfxY + buttonSize/2);
   }
 }
 
@@ -2315,6 +2493,7 @@ function gameLoop() {
     // 顯示遊戲UI（移除指定的元素）
     drawTimer();
     drawPlayerHealth();
+    drawSoundControls();
     
     if (gameOver) {
       drawGameOver();
@@ -2602,6 +2781,14 @@ function startLevel(level) {
     gameLoopRunning = true;
     gameLoop();
   }
+  
+  // 確保canvas被focus，避免其他元素被focus
+  setTimeout(() => {
+    const canvas = document.getElementById('gameCanvas');
+    if (canvas) {
+      canvas.focus();
+    }
+  }, 100);
 }
 
 function resetProgress() {
@@ -2626,14 +2813,50 @@ function resetProgress() {
 }
 
 function returnToLobby() {
+  // 停止遊戲背景音樂
+  audioSystem.stopGameMusic();
+  
   showLobby();
   updateLobbyDisplay();
   
-  // 停止背景音樂
-  audioSystem.stopBGM();
+  // 更新大廳音效按鈕狀態
+  updateLobbyAudioButtons();
   
   // 停止遊戲循環
   gameLoopRunning = false;
+}
+
+function updateLobbyAudioButtons() {
+  const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+  const sfxToggleBtn = document.getElementById('sfxToggleBtn');
+  const bgmIcon = document.getElementById('bgmIcon');
+  const sfxIcon = document.getElementById('sfxIcon');
+  
+  if (bgmToggleBtn && bgmIcon) {
+    // 更新背景音樂按鈕狀態
+    if (audioSystem.bgmEnabled) {
+      bgmToggleBtn.classList.remove('muted');
+      bgmToggleBtn.classList.add('active');
+      bgmIcon.src = 'assets/ui/volume-on.svg';
+    } else {
+      bgmToggleBtn.classList.remove('active');
+      bgmToggleBtn.classList.add('muted');
+      bgmIcon.src = 'assets/ui/volume-off.svg';
+    }
+  }
+  
+  if (sfxToggleBtn && sfxIcon) {
+    // 更新音效按鈕狀態
+    if (audioSystem.sfxEnabled) {
+      sfxToggleBtn.classList.remove('muted');
+      sfxToggleBtn.classList.add('active');
+      sfxIcon.src = 'assets/ui/sound-on.svg';
+    } else {
+      sfxToggleBtn.classList.remove('active');
+      sfxToggleBtn.classList.add('muted');
+      sfxIcon.src = 'assets/ui/sound-off.svg';
+    }
+  }
 }
 
 // 初始化遊戲
@@ -2649,6 +2872,31 @@ async function initGame() {
     resetButton.addEventListener('click', resetProgress);
   }
   
+  // 添加音效控制按鈕事件監聽器
+  const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+  const sfxToggleBtn = document.getElementById('sfxToggleBtn');
+  const bgmIcon = document.getElementById('bgmIcon');
+  const sfxIcon = document.getElementById('sfxIcon');
+  
+  if (bgmToggleBtn) {
+    bgmToggleBtn.addEventListener('click', () => {
+      audioSystem.toggleBGM();
+      updateLobbyAudioButtons();
+      audioSystem.playButtonClick();
+    });
+  }
+  
+  if (sfxToggleBtn) {
+    sfxToggleBtn.addEventListener('click', () => {
+      audioSystem.toggleSFX();
+      updateLobbyAudioButtons();
+      audioSystem.playButtonClick();
+    });
+  }
+  
+  // 初始化大廳音效按鈕狀態
+  updateLobbyAudioButtons();
+  
   // 啟動遊戲循環（但只在需要時執行遊戲邏輯）
   gameLoopRunning = true;
   gameLoop();
@@ -2657,15 +2905,17 @@ async function initGame() {
 // 開始初始化
 initGame();
 
-// 頁面離開時停止背景音樂
+
+
+// 頁面離開時停止所有音樂
 window.addEventListener('beforeunload', () => {
-  audioSystem.stopBGM();
+  audioSystem.stopAllMusic();
 });
 
-// 頁面隱藏時停止背景音樂
+// 頁面隱藏時停止所有音樂
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    audioSystem.stopBGM();
+    audioSystem.stopAllMusic();
   }
 });
 

@@ -153,30 +153,59 @@
     }
     
     /* 重置進度按鈕 */
-    .reset-button {
-      background: linear-gradient(135deg, #F44336, #D32F2F);
-      color: white;
-      border: 2px solid #F44336;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: bold;
+    .control-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px auto;
+    }
+    
+    .control-button {
+      width: 50px;
+      height: 50px;
+      border: 2px solid #666;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2c3e50, #34495e);
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.3s ease;
-      margin: 15px auto 25px auto;
-      display: block;
-      box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
     
-    .reset-button:hover {
+    .control-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
-      border-color: #D32F2F;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      border-color: #FFD700;
     }
     
-    .reset-button:active {
+    .control-button:active {
       transform: translateY(0);
     }
+    
+    .control-button.active {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      border-color: #4CAF50;
+    }
+    
+    .control-button.muted {
+      background: linear-gradient(135deg, #F44336, #D32F2F);
+      border-color: #F44336;
+    }
+    
+    .control-icon {
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) invert(1);
+      transition: all 0.3s ease;
+    }
+    
+    .control-button:hover .control-icon {
+      filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(45deg);
+    }
+    
+
     
     /* 音效控制按鈕 */
     .sound-controls {
@@ -277,6 +306,8 @@
       height: auto;
       /* 確保不會超出容器 */
       object-fit: contain;
+      /* 移除focus外框 */
+      outline: none;
     }
     
     /* 響應式設計 */
@@ -330,17 +361,7 @@
   </style>
 </head>
 <body>
-  <!-- 音效控制按鈕 -->
-  <div class="sound-controls">
-    <button class="sound-button active" id="bgmToggle" title="背景音樂">
-      <img src="assets/ui/volume-on.svg" alt="背景音樂" class="sound-icon">
-      <img src="assets/ui/volume-off.svg" alt="背景音樂關閉" class="sound-icon muted">
-    </button>
-    <button class="sound-button active" id="sfxToggle" title="音效">
-      <img src="assets/ui/sound-on.svg" alt="音效" class="sound-icon">
-      <img src="assets/ui/sound-off.svg" alt="音效關閉" class="sound-icon muted">
-    </button>
-  </div>
+
 
   <div id="gameLobby">
     <div class="lobby-container">
@@ -355,9 +376,17 @@
         <!-- 關卡按鈕將由JavaScript動態生成 -->
       </div>
       
-      <button class="reset-button" id="resetProgressBtn">
-        重置通關進度
-      </button>
+      <div class="control-buttons">
+        <button class="control-button" id="resetProgressBtn" title="重置通關進度">
+          <img src="assets/ui/reset.svg" alt="重置" class="control-icon">
+        </button>
+        <button class="control-button" id="bgmToggleBtn" title="背景音樂">
+          <img src="assets/ui/volume-on.svg" alt="音量" class="control-icon" id="bgmIcon">
+        </button>
+        <button class="control-button" id="sfxToggleBtn" title="音效">
+          <img src="assets/ui/sound-on.svg" alt="音效" class="control-icon" id="sfxIcon">
+        </button>
+      </div>
       
       <div class="instructions">
         <strong>遊戲說明：</strong>
@@ -369,15 +398,17 @@
           <li>按空白鍵執行動作</li>
         </ul>
       </div>
+      
+
     </div>
   </div>
   
   <div id="gameContainer" class="hidden">
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
   </div>
   
   <!-- 音效元素 -->
-  <audio id="bgMusic" loop>
+  <audio id="gameMusic" loop>
     <source src="assets/audio/background-music.mp3" type="audio/mpeg">
   </audio>
   <audio id="attackSound">
