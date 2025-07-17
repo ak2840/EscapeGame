@@ -613,6 +613,9 @@ let gameLoopRunning = false; // 控制遊戲循環是否正在運行
 
 // 關卡設定（將從外部檔案載入）
 let levelConfigs = {};
+let monsterSettings = {};
+let defaultSettings = {};
+
 
 // 地圖與視窗設定
 let VIEW_WIDTH = canvas.width;
@@ -626,7 +629,7 @@ const player = {
   y: MAP_HEIGHT / 2,
   width: 60,
   height: 90,
-  speed: 4,
+  speed: 4, // 會在loadLevel()中更新
   moving: false,
   color: '#FFD700',
   direction: 'down', // 預設朝下
@@ -643,11 +646,11 @@ const player = {
   attackAnimationSpeed: 150, // 攻擊動畫切換速度（毫秒）
   actionAnimationFrame: 1, // 動作動畫幀（1或2）
   actionAnimationSpeed: 250, // 動作動畫切換速度（毫秒）
-  hp: 10, // 玩家血量
-  maxHp: 10, // 最大血量
+  hp: 10, // 玩家血量，會在loadLevel()中更新
+  maxHp: 10, // 最大血量，會在loadLevel()中更新
   isInvulnerable: false, // 無敵狀態
   invulnerableTime: 0, // 無敵時間
-  invulnerableDuration: 1000, // 無敵持續時間（1秒）
+  invulnerableDuration: 1000, // 無敵持續時間（1秒），會在loadLevel()中更新
 };
 
 // 鍵盤狀態
@@ -923,6 +926,20 @@ function updateLevelConfig() {
 
   // 更新遊戲時間
   GAME_TIME = config.gameTime;
+  
+  // 更新預設遊戲參數
+  ATTACK_COOLDOWN = defaultSettings.attackCooldown || 300;
+  SAFE_ZONE_SIZE = defaultSettings.safeZoneSize || 200;
+  PROJECTILE_SPEED = defaultSettings.projectileSpeed || 8;
+  PROJECTILE_SIZE = defaultSettings.projectileSize || 4;
+  MONSTER_PROJECTILE_SPEED = defaultSettings.monsterProjectileSpeed || 6;
+  MONSTER_PROJECTILE_SIZE = defaultSettings.monsterProjectileSize || 6;
+  
+  // 更新玩家設定
+  player.speed = defaultSettings.playerSpeed || 4;
+  player.hp = defaultSettings.playerHp || 10;
+  player.maxHp = defaultSettings.playerHp || 10;
+  player.invulnerableDuration = defaultSettings.invulnerableDuration || 1000;
 
   // 更新安全區域位置（確保在地圖中心）
   SAFE_ZONE_CENTER_X = MAP_WIDTH / 2;
@@ -1004,7 +1021,7 @@ const monsters = [];
 let gameOver = false;
 let gameWon = false;
 let lastAttackTime = 0;
-const ATTACK_COOLDOWN = 300; // 0.3秒冷卻時間
+let ATTACK_COOLDOWN = 300; // 0.3秒冷卻時間，會在loadLevel()中更新
 
 // 倒數計時
 let GAME_TIME = 90000; // 預設值，會在loadLevel()中更新
@@ -1015,7 +1032,7 @@ let remainingTime = GAME_TIME;
 let killCount = 0;
 
 // 安全區域設定
-const SAFE_ZONE_SIZE = 200; // 4格 x 50像素 = 200像素
+let SAFE_ZONE_SIZE = 200; // 4格 x 50像素 = 200像素，會在loadLevel()中更新
 let SAFE_ZONE_CENTER_X = MAP_WIDTH / 2;
 let SAFE_ZONE_CENTER_Y = MAP_HEIGHT / 2;
 let SAFE_ZONE_LEFT = SAFE_ZONE_CENTER_X - SAFE_ZONE_SIZE / 2;
@@ -1028,13 +1045,13 @@ const attackEffects = [];
 
 // 攻擊彈幕
 const projectiles = [];
-const PROJECTILE_SPEED = 8;
-const PROJECTILE_SIZE = 4;
+let PROJECTILE_SPEED = 8; // 會在loadLevel()中更新
+let PROJECTILE_SIZE = 4; // 會在loadLevel()中更新
 
 // 怪物攻擊彈幕
 const monsterProjectiles = [];
-const MONSTER_PROJECTILE_SPEED = 6;
-const MONSTER_PROJECTILE_SIZE = 6;
+let MONSTER_PROJECTILE_SPEED = 6; // 會在loadLevel()中更新
+let MONSTER_PROJECTILE_SIZE = 6; // 會在loadLevel()中更新
 
 // 通關出口
 const exit = {
@@ -1079,17 +1096,18 @@ function spawnMonsters() {
   // 生成普通怪物A
   for (let i = 0; i < NORMAL_A_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(60, 60);
+    const settings = monsterSettings.normalA || {};
     monsters.push({
       x: position.x,
       y: position.y,
       width: 60,
       height: 60,
-      color: '#FF8800',
-      hp: 5,
+      color: settings.color || '#FF8800',
+      hp: settings.hp || 5,
       dx: 0,
       dy: 0,
       type: 'normalA',
-      speed: 0.8,
+      speed: settings.speed || 0.8,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1101,17 +1119,18 @@ function spawnMonsters() {
   // 生成普通怪物B
   for (let i = 0; i < NORMAL_B_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(60, 60);
+    const settings = monsterSettings.normalB || {};
     monsters.push({
       x: position.x,
       y: position.y,
       width: 60,
       height: 60,
-      color: '#8844FF',
-      hp: 5,
+      color: settings.color || '#8844FF',
+      hp: settings.hp || 5,
       dx: 0,
       dy: 0,
       type: 'normalB',
-      speed: 0.8,
+      speed: settings.speed || 0.8,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1123,17 +1142,18 @@ function spawnMonsters() {
   // 生成普通怪物C
   for (let i = 0; i < NORMAL_C_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(60, 60);
+    const settings = monsterSettings.normalC || {};
     monsters.push({
       x: position.x,
       y: position.y,
       width: 60,
       height: 60,
-      color: '#44FF44',
-      hp: 5,
+      color: settings.color || '#44FF44',
+      hp: settings.hp || 5,
       dx: 0,
       dy: 0,
       type: 'normalC',
-      speed: 0.8,
+      speed: settings.speed || 0.8,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1147,17 +1167,18 @@ function spawnMonsters() {
   // 生成追蹤怪物A
   for (let i = 0; i < TRACKER_A_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(120, 120);
+    const settings = monsterSettings.trackerA || {};
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 120,
-      height: 120,
-      color: '#FF0088',
-      hp: 2,
+      width: settings.size || 120,
+      height: settings.size || 120,
+      color: settings.color || '#FF0088',
+      hp: settings.hp || 2,
       dx: 0,
       dy: 0,
       type: 'trackerA',
-      speed: 1.5,
+      speed: settings.speed || 1.5,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1169,17 +1190,18 @@ function spawnMonsters() {
   // 生成追蹤怪物B
   for (let i = 0; i < TRACKER_B_MONSTER_COUNT; i++) {
     const position = getRandomPositionOutsideSafeZone(120, 120);
+    const settings = monsterSettings.trackerB || {};
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 120,
-      height: 120,
-      color: '#FF0088',
-      hp: 2,
+      width: settings.size || 120,
+      height: settings.size || 120,
+      color: settings.color || '#FF0088',
+      hp: settings.hp || 2,
       dx: 0,
       dy: 0,
       type: 'trackerB',
-      speed: 1.5,
+      speed: settings.speed || 1.5,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1190,21 +1212,24 @@ function spawnMonsters() {
   
   // 生成砲塔怪物（體積五倍大，不會移動，會發射遠距離攻擊）
   for (let i = 0; i < TURRET_MONSTER_COUNT; i++) {
-    const position = getRandomPositionOutsideSafeZone(300, 300); // 五倍大小
+    const settings = monsterSettings.turret || {};
+    const size = settings.size || 120;
+    const position = getRandomPositionOutsideSafeZone(size, size);
     monsters.push({
       x: position.x,
       y: position.y,
-      width: 300, // 60 * 5 = 300
-      height: 300, // 60 * 5 = 300
-      color: '#8B0000', // 深紅色
-      hp: 5, // 更多血量
+      width: size,
+      height: size,
+      color: settings.color || '#8B0000',
+      hp: settings.hp || 30,
       dx: 0,
       dy: 0,
       type: 'turret',
-      speed: 0, // 不會移動
+      speed: settings.speed || 0, // 不會移動
       lastAttackTime: 0, // 攻擊計時器
-      attackCooldown: 2000, // 2秒攻擊間隔
-      attackRange: 400, // 攻擊範圍
+      attackCooldown: settings.attackCooldown || 500, // 攻擊間隔
+      attackRange: settings.attackRange || 250, // 攻擊範圍
+      attackCount: 0, // 攻擊計數器
       // 動畫相關屬性（砲塔也會有動畫，雖然不移動）
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1292,6 +1317,12 @@ function drawMonsterHealthBar(monster, offsetX, offsetY) {
 }
 
 function getMonsterMaxHp(type) {
+  // 從 monsterSettings 中獲取最大血量
+  if (monsterSettings[type] && monsterSettings[type].hp) {
+    return monsterSettings[type].hp;
+  }
+  
+  // 如果沒有設定，使用預設值
   switch (type) {
     case 'trackerA':
     case 'trackerB':
@@ -1303,7 +1334,7 @@ function getMonsterMaxHp(type) {
     case 'normalC':
       return 5;
     case 'turret':
-      return 5;
+      return 30;
     default:
       return 2;
   }
@@ -1483,7 +1514,14 @@ function autoAttack() {
       const py = player.y + player.height / 2;
       const mx = m.x + m.width / 2;
       const my = m.y + m.height / 2;
-      if (distance(px, py, mx, my) < 300) {
+      
+      // 計算射擊距離，加上角色和怪物的寬度
+      const baseRange = 300; // 基礎射擊距離
+      const playerWidth = player.width;
+      const monsterWidth = m.width;
+      const totalRange = baseRange + playerWidth / 2 + monsterWidth / 2;
+      
+      if (distance(px, py, mx, my) < totalRange) {
         // 發射彈幕
         const dx = mx - px;
         const dy = my - py;
@@ -1560,38 +1598,78 @@ function updateMonsters() {
       }
     } else if (m.type === 'turret') {
       // 砲塔怪物：不會移動，但會發射攻擊
-      // 只有當玩家不在安全區域內時才攻擊
-      if (!isPlayerInSafeZone) {
-        const px = player.x + player.width / 2;
-        const py = player.y + player.height / 2;
-        const mx = m.x + m.width / 2;
-        const my = m.y + m.height / 2;
-        
-        const dx = px - mx;
-        const dy = py - my;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        // 根據攻擊方向更新砲塔動畫方向
-        if (dx > 0) {
-          m.direction = 'right';
-        } else if (dx < 0) {
-          m.direction = 'left';
-        }
-        // 如果 dx = 0，保持當前方向
-        
-        // 檢查攻擊冷卻和範圍
-        if (dist <= m.attackRange && currentTime - m.lastAttackTime >= m.attackCooldown) {
-          // 發射攻擊彈幕
-          if (dist > 0) {
+      // 持續攻擊，不受玩家位置或安全區域影響
+      const px = player.x + player.width / 2;
+      const py = player.y + player.height / 2;
+      const mx = m.x + m.width / 2;
+      const my = m.y + m.height / 2;
+      
+      const dx = px - mx;
+      const dy = py - my;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      // 根據攻擊方向更新砲塔動畫方向
+      if (dx > 0) {
+        m.direction = 'right';
+      } else if (dx < 0) {
+        m.direction = 'left';
+      }
+      // 如果 dx = 0，保持當前方向
+      
+      // 只檢查攻擊冷卻時間，不檢查範圍和玩家位置
+      if (currentTime - m.lastAttackTime >= m.attackCooldown) {
+        // 發射攻擊彈幕
+        if (dist > 0) {
+          m.attackCount++; // 增加攻擊計數
+          
+          // 檢查是否為第10次攻擊（特殊攻擊模式）
+          if (m.attackCount % 10 === 0) {
+            // 特殊攻擊：全方位射擊18發子彈
+            for (let i = 0; i < 18; i++) {
+              // 計算360度全方位角度，每20度一發
+              const angle = (i * 20) * (Math.PI / 180); // 轉換為弧度
+              
+              // 計算攻擊速度向量（全方位，速度為一般的一半）
+              const targetVx = Math.cos(angle) * (MONSTER_PROJECTILE_SPEED * 0.5);
+              const targetVy = Math.sin(angle) * (MONSTER_PROJECTILE_SPEED * 0.5);
+              
+              monsterProjectiles.push({
+                x: mx,
+                y: my,
+                vx: targetVx,
+                vy: targetVy,
+                targetPlayer: true,
+              });
+            }
+          } else if (m.attackCount % 10 !== 1 && m.attackCount % 10 !== 2) {
+            // 普通攻擊：發射1顆子彈（排除特殊攻擊後的冷卻期）
+            // 瞄準角色位置中心加上隨機偏移（-100到+100像素）
+            const offsetX = (Math.random() - 0.5) * 200; // -100到+100
+            const offsetY = (Math.random() - 0.5) * 200; // -100到+100
+            
+            // 計算瞄準目標位置（角色中心 + 隨機偏移）
+            const targetX = px + offsetX;
+            const targetY = py + offsetY;
+            
+            // 計算從砲塔到目標的方向向量
+            const targetDx = targetX - mx;
+            const targetDy = targetY - my;
+            const targetDist = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
+            
+            // 計算攻擊速度向量
+            const targetVx = (targetDx / targetDist) * MONSTER_PROJECTILE_SPEED;
+            const targetVy = (targetDy / targetDist) * MONSTER_PROJECTILE_SPEED;
+            
             monsterProjectiles.push({
               x: mx,
               y: my,
-              vx: (dx / dist) * MONSTER_PROJECTILE_SPEED,
-              vy: (dy / dist) * MONSTER_PROJECTILE_SPEED,
+              vx: targetVx,
+              vy: targetVy,
               targetPlayer: true,
             });
-            m.lastAttackTime = currentTime;
           }
+          
+          m.lastAttackTime = currentTime;
         }
       }
     } else if (m.type === 'normalA' || m.type === 'normalB' || m.type === 'normalC') {
@@ -1667,7 +1745,6 @@ function checkCollision() {
               if (player.hp <= 0) {
           gameOver = true;
           audioSystem.playGameOver();
-          audioSystem.stopBGM();
           console.log('遊戲結束！你的血量耗盡了！');
         }
       return;
@@ -1772,7 +1849,6 @@ function updateMonsterProjectiles() {
         
         if (player.hp <= 0) {
           gameOver = true;
-          audioSystem.stopBGM();
           console.log('遊戲結束！你的血量耗盡了！');
         }
       }
@@ -1927,7 +2003,6 @@ function updateTimer() {
     
     if (remainingTime <= 0) {
       gameOver = true;
-      audioSystem.stopGameMusic();
       console.log('時間到！遊戲結束！');
     }
   }
@@ -2521,11 +2596,19 @@ async function loadLevelConfig() {
     const config = await response.json();
     console.log('成功解析 JSON:', config);
     
+
+    
     // 設定最大關卡數
     MAX_LEVEL = config.maxLevel;
     
     // 設定關卡配置
     levelConfigs = config.levels;
+    
+    // 設定怪物屬性配置
+    monsterSettings = config.monsterSettings;
+    
+    // 設定預設遊戲參數
+    defaultSettings = config.defaultSettings;
     
     console.log('關卡設定載入成功:', config);
     console.log('最大關卡數:', MAX_LEVEL);
@@ -2538,18 +2621,73 @@ async function loadLevelConfig() {
     
     // 如果載入失敗，使用預設設定
     MAX_LEVEL = 4;
+    
+
+    
+    // 預設遊戲參數
+    defaultSettings = {
+      playerSpeed: 4,
+      playerHp: 10,
+      safeZoneSize: 200,
+      projectileSpeed: 8,
+      projectileSize: 4,
+      monsterProjectileSpeed: 6,
+      monsterProjectileSize: 6,
+      attackCooldown: 300,
+      invulnerableDuration: 1000
+    };
+    
+    // 預設怪物設定
+    monsterSettings = {
+      normalA: {
+        hp: 5,
+        speed: 0.8,
+        color: "#FF8800"
+      },
+      normalB: {
+        hp: 5,
+        speed: 0.8,
+        color: "#8844FF"
+      },
+      normalC: {
+        hp: 5,
+        speed: 0.8,
+        color: "#44FF44"
+      },
+      trackerA: {
+        hp: 2,
+        speed: 1.5,
+        color: "#FF0088",
+        size: 120
+      },
+      trackerB: {
+        hp: 2,
+        speed: 1.5,
+        color: "#FF0088",
+        size: 120
+      },
+      turret: {
+        hp: 30,
+        speed: 0,
+        color: "#8B0000",
+        attackCooldown: 500,
+        attackRange: 250,
+        size: 300
+      }
+    };
+    
     levelConfigs = {
       1: {
-        name: "新手關卡.1",
+        name: "新手關卡",
         mapWidth: 1200,
         mapHeight: 600,
-        normalAMonsters: 8,
-        normalBMonsters: 5,
-        normalCMonsters: 3,
-        trackerAMonsters: 3,
-        trackerBMonsters: 2,
-        turretMonsters: 2,
-        gameTime: 90000,
+        normalAMonsters: 0,
+        normalBMonsters: 0,
+        normalCMonsters: 0,
+        trackerAMonsters: 0,
+        trackerBMonsters: 0,
+        turretMonsters: 0,
+        gameTime: 10000,
         description: "熟悉基本操作",
         mapTiles: [
           {
@@ -2579,16 +2717,16 @@ async function loadLevelConfig() {
         ]
       },
       2: {
-        name: "進階關卡.2",
+        name: "進階關卡",
         mapWidth: 3200,
         mapHeight: 2400,
-        normalAMonsters: 12,
-        normalBMonsters: 8,
-        normalCMonsters: 5,
-        trackerAMonsters: 5,
-        trackerBMonsters: 2,
-        turretMonsters: 3,
-        gameTime: 120000,
+        normalAMonsters: 0,
+        normalBMonsters: 0,
+        normalCMonsters: 0,
+        trackerAMonsters: 30,
+        trackerBMonsters: 30,
+        turretMonsters: 0,
+        gameTime: 100000,
         description: "增加怪物數量",
         mapTiles: [
           {
@@ -2618,16 +2756,16 @@ async function loadLevelConfig() {
         ]
       },
       3: {
-        name: "挑戰關卡.3",
+        name: "挑戰關卡",
         mapWidth: 4000,
         mapHeight: 3000,
-        normalAMonsters: 18,
-        normalBMonsters: 12,
-        normalCMonsters: 8,
-        trackerAMonsters: 7,
-        trackerBMonsters: 3,
-        turretMonsters: 4,
-        gameTime: 150000,
+        normalAMonsters: 15,
+        normalBMonsters: 15,
+        normalCMonsters: 15,
+        trackerAMonsters: 10,
+        trackerBMonsters: 10,
+        turretMonsters: 0,
+        gameTime: 100000,
         description: "更大的地圖",
         mapTiles: [
           {
@@ -2657,16 +2795,16 @@ async function loadLevelConfig() {
         ]
       },
       4: {
-        name: "終極關卡.4",
-        mapWidth: 4800,
-        mapHeight: 3600,
-        normalAMonsters: 20,
-        normalBMonsters: 15,
-        normalCMonsters: 12,
-        trackerAMonsters: 8,
-        trackerBMonsters: 5,
-        turretMonsters: 5,
-        gameTime: 180000,
+        name: "終極關卡",
+        mapWidth: 2400,
+        mapHeight: 1800,
+        normalAMonsters: 0,
+        normalBMonsters: 0,
+        normalCMonsters: 0,
+        trackerAMonsters: 0,
+        trackerBMonsters: 0,
+        turretMonsters: 1,
+        gameTime: 200000,
         description: "最終挑戰",
         mapTiles: [
           {

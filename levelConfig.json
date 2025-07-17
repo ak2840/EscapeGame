@@ -45,12 +45,12 @@
       "size": 120
     },
     "turret": {
-      "hp": 5,
+      "hp": 30,
       "speed": 0,
       "color": "#8B0000",
-      "attackCooldown": 2000,
-      "attackRange": 400,
-      "size": 120
+      "attackCooldown": 500,
+      "attackRange": 250,
+      "size": 300
     }
   },
   "levels": {
@@ -101,10 +101,10 @@
       "normalAMonsters": 0,
       "normalBMonsters": 0,
       "normalCMonsters": 0,
-      "trackerAMonsters": 10,
-      "trackerBMonsters": 10,
+      "trackerAMonsters": 30,
+      "trackerBMonsters": 30,
       "turretMonsters": 0,
-      "gameTime": 120000,
+      "gameTime": 100000,
       "description": "增加怪物數量",
       "unlockRequirement": "完成第1關",
       "mapTiles": [
@@ -135,16 +135,16 @@
       ]
     },
     "3": {
-      "name": "挑戰關卡.3",
+      "name": "挑戰關卡",
       "mapWidth": 4000,
       "mapHeight": 3000,
       "normalAMonsters": 15,
       "normalBMonsters": 15,
       "normalCMonsters": 15,
-      "trackerAMonsters": 20,
-      "trackerBMonsters": 20,
+      "trackerAMonsters": 10,
+      "trackerBMonsters": 10,
       "turretMonsters": 0,
-      "gameTime": 150000,
+      "gameTime": 100000,
       "description": "更大的地圖",
       "unlockRequirement": "完成第2關",
       "mapTiles": [
@@ -175,16 +175,16 @@
       ]
     },
     "4": {
-      "name": "終極關卡.4",
-      "mapWidth": 4800,
-      "mapHeight": 3600,
+      "name": "終極關卡",
+      "mapWidth": 2400,
+      "mapHeight": 1800,
       "normalAMonsters": 0,
       "normalBMonsters": 0,
       "normalCMonsters": 0,
       "trackerAMonsters": 0,
       "trackerBMonsters": 0,
       "turretMonsters": 1,
-      "gameTime": 180000,
+      "gameTime": 200000,
       "description": "最終挑戰",
       "unlockRequirement": "完成第3關",
       "mapTiles": [
