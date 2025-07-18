@@ -589,12 +589,13 @@ function generateMapLayout() {
   console.log(`生成地圖佈局: ${gridCols}x${gridRows} 網格`);
   console.log('使用權重選擇地圖圖片');
   
-  // 為每個網格位置分配固定的圖片索引
+  // 為每個網格位置分配隨機的圖片索引
   for (let row = 0; row < gridRows; row++) {
     mapTileLayout[row] = [];
     for (let col = 0; col < gridCols; col++) {
-      // 使用更複雜的種子組合來增加隨機性
-      const seed = (row * 73856093) ^ (col * 19349663) ^ (currentLevel * 83492791);
+      // 使用時間戳和位置來生成隨機種子，確保每次都有不同的地圖佈局
+      const timeSeed = Date.now() % 1000000; // 使用時間戳的後6位
+      const seed = (row * 73856093) ^ (col * 19349663) ^ (currentLevel * 83492791) ^ timeSeed;
       const tileIndex = selectWeightedTileIndex(seed);
       mapTileLayout[row][col] = tileIndex;
     }
@@ -615,6 +616,18 @@ let gameLoopRunning = false; // 控制遊戲循環是否正在運行
 let levelConfigs = {};
 let monsterSettings = {};
 let defaultSettings = {};
+let itemSettings = {};
+
+// 道具系統變數
+let items = [];
+let itemImages = {};
+let itemCounts = {
+  mapItemA: 0,
+  mapItemB: 0,
+  monsterItemA: 0,
+  monsterItemB: 0
+};
+let totalItemsCollected = 0;
 
 
 // 地圖與視窗設定
@@ -768,13 +781,22 @@ window.addEventListener('keyup', (e) => {
           // 還有下一關，直接進入下一關
           console.log(`恭喜通過第${completedLevel}關！進入第${completedLevel + 1}關`);
           currentLevel = completedLevel + 1;
-          loadLevel();
-          restartGame();
+          loadLevel(); // 只載入進度，不更新配置
+          // 等待關卡配置更新完成後再重新開始遊戲
+          updateLevelConfig().then(() => {
+            restartGame();
+          }).catch(error => {
+            console.error('關卡配置更新失敗:', error);
+            restartGame(); // 即使失敗也要重新開始遊戲
+          });
         } else {
           // 最後一關通關，回到大廳
           gameWon = true;
           console.log('恭喜通關所有關卡！');
         }
+      } else if (isPlayerNearExit()) {
+        // 玩家在出口附近但條件未滿足，顯示提示
+        showExitConditionHint();
       }
     }
   }
@@ -851,7 +873,7 @@ function loadLevel() {
   console.log(`最高解鎖關卡: ${highestUnlockedLevel}`);
   console.log(`已完成關卡: ${completedLevels.join(', ')}`);
   
-  updateLevelConfig();
+  // 注意：updateLevelConfig() 會在需要時由外部呼叫
 }
 
 function saveProgress() {
@@ -893,11 +915,14 @@ function completeLevel(level) {
   return true;
 }
 
-function updateLevelConfig() {
+async function updateLevelConfig() {
   const config = levelConfigs[currentLevel];
 
   // 載入地圖圖片
   loadMapImages(config);
+
+  // 載入道具圖片
+  await loadItemImages();
 
   // 生成固定的地圖佈局
   generateMapLayout();
@@ -1004,6 +1029,9 @@ function updateLevelConfig() {
   console.log(`怪物數量: ${MONSTER_COUNT}隻`);
   console.log(`遊戲時間: ${GAME_TIME/1000}秒`);
   console.log(`出口位置: (${exit.x}, ${exit.y})`);
+  
+  // 生成地圖道具
+  spawnMapItems();
 }
 
 // 怪物設定（動態根據關卡調整）
@@ -1059,7 +1087,6 @@ const exit = {
   y: 0,
   width: 60,
   height: 60,
-  color: '#00FF00',
 };
 
 function isInSafeZone(x, y, width, height) {
@@ -1073,9 +1100,25 @@ function isInSafeZone(x, y, width, height) {
 
 function getRandomPositionOutsideSafeZone(width, height) {
   let x, y;
+  const margin = 50; // 離邊緣50像素的距離
+  
   do {
-    x = Math.random() * (MAP_WIDTH - width);
-    y = Math.random() * (MAP_HEIGHT - height);
+    // 計算有效範圍（離邊緣50像素）
+    const minX = margin;
+    const maxX = MAP_WIDTH - margin - width;
+    const minY = margin;
+    const maxY = MAP_HEIGHT - margin - height;
+    
+    // 確保有效範圍不為負數
+    if (minX >= maxX || minY >= maxY) {
+      console.warn(`無法生成位置：地圖太小或物件太大`);
+      // 如果無法滿足邊緣距離要求，使用原來的邏輯
+      x = Math.random() * (MAP_WIDTH - width);
+      y = Math.random() * (MAP_HEIGHT - height);
+    } else {
+      x = Math.random() * (maxX - minX) + minX;
+      y = Math.random() * (maxY - minY) + minY;
+    }
   } while (isInSafeZone(x, y, width, height));
   
   return { x, y };
@@ -1240,38 +1283,43 @@ function spawnMonsters() {
 }
 
 function drawMonsters(offsetX, offsetY) {
+  for (const monster of monsters) {
+    drawSingleMonster(monster, offsetX, offsetY);
+  }
+}
+
+// 繪製單個怪物
+function drawSingleMonster(monster, offsetX, offsetY) {
   const currentTime = Date.now();
   
-  for (const m of monsters) {
-    // 只繪製在可視範圍內的怪物
-    if (
-      m.x + m.width > offsetX &&
-      m.x < offsetX + VIEW_WIDTH &&
-      m.y + m.height > offsetY &&
-      m.y < offsetY + VIEW_HEIGHT
-    ) {
-      // 更新怪物動畫
-      if (currentTime - m.animationTime > m.animationSpeed) {
-        m.animationFrame = m.animationFrame === 1 ? 2 : 1;
-        m.animationTime = currentTime;
-      }
-      
-      // 繪製怪物動畫圖片
-      const monsterImageSet = monsterImages[m.type];
-      const imageKey = `${m.direction}${m.animationFrame}`;
-      const monsterImage = monsterImageSet[imageKey];
-      
-      if (monsterImage && monsterImage.complete) {
-        ctx.drawImage(monsterImage, m.x - offsetX, m.y - offsetY, m.width, m.height);
-      } else {
-        // 如果圖片未載入完成，使用顏色方塊作為備用
-        ctx.fillStyle = m.color;
-        ctx.fillRect(m.x - offsetX, m.y - offsetY, m.width, m.height);
-      }
-      
-      // 繪製怪物血條
-      drawMonsterHealthBar(m, offsetX, offsetY);
+  // 只繪製在可視範圍內的怪物
+  if (
+    monster.x + monster.width > offsetX &&
+    monster.x < offsetX + VIEW_WIDTH &&
+    monster.y + monster.height > offsetY &&
+    monster.y < offsetY + VIEW_HEIGHT
+  ) {
+    // 更新怪物動畫
+    if (currentTime - monster.animationTime > monster.animationSpeed) {
+      monster.animationFrame = monster.animationFrame === 1 ? 2 : 1;
+      monster.animationTime = currentTime;
     }
+    
+    // 繪製怪物動畫圖片
+    const monsterImageSet = monsterImages[monster.type];
+    const imageKey = `${monster.direction}${monster.animationFrame}`;
+    const monsterImage = monsterImageSet[imageKey];
+    
+    if (monsterImage && monsterImage.complete) {
+      ctx.drawImage(monsterImage, monster.x - offsetX, monster.y - offsetY, monster.width, monster.height);
+    } else {
+      // 如果圖片未載入完成，使用顏色方塊作為備用
+      ctx.fillStyle = monster.color;
+      ctx.fillRect(monster.x - offsetX, monster.y - offsetY, monster.width, monster.height);
+    }
+    
+    // 繪製怪物血條
+    drawMonsterHealthBar(monster, offsetX, offsetY);
   }
 }
 
@@ -1504,6 +1552,12 @@ function autoAttack() {
     const currentTime = Date.now();
     if (currentTime - lastAttackTime < ATTACK_COOLDOWN) {
       return; // 還在冷卻中
+    }
+    
+    // 檢查玩家是否在安全區域內，如果在安全區域內則不能攻擊
+    const isPlayerInSafeZone = isInSafeZone(player.x, player.y, player.width, player.height);
+    if (isPlayerInSafeZone) {
+      return; // 在安全區域內不能攻擊
     }
     
     // 檢查所有怪物
@@ -1760,13 +1814,69 @@ function checkExit() {
     player.y < exit.y + exit.height &&
     player.y + player.height > exit.y
   ) {
-    return true;
+    // 檢查道具通關條件
+    return checkExitConditions();
   }
   return false;
 }
 
+function checkExitConditions() {
+  const config = levelConfigs[currentLevel];
+  if (!config || !config.exitCondition) {
+    // 如果沒有設定通關條件，直接允許通關
+    return true;
+  }
+  
+  // 檢查每個道具的數量是否達到要求
+  for (const [itemType, requiredCount] of Object.entries(config.exitCondition)) {
+    if (itemCounts[itemType] < requiredCount) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function isPlayerNearExit() {
+  // 檢查玩家是否在出口附近（但不在出口上）
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  const exitCenterX = exit.x + exit.width / 2;
+  const exitCenterY = exit.y + exit.height / 2;
+  
+  const distance = Math.sqrt(
+    Math.pow(playerCenterX - exitCenterX, 2) + 
+    Math.pow(playerCenterY - exitCenterY, 2)
+  );
+  
+  // 在出口附近100像素內，但不在出口上
+  return distance < 100 && distance > 30;
+}
+
+function showExitConditionHint() {
+  const config = levelConfigs[currentLevel];
+  if (!config || !config.exitCondition) {
+    return;
+  }
+  
+  // 顯示提示訊息
+  console.log('通關條件未滿足！');
+  
+  // 創建提示粒子效果
+  const exitCenterX = exit.x + exit.width / 2;
+  const exitCenterY = exit.y + exit.height / 2;
+  particleSystem.createExplosion(exitCenterX, exitCenterY, '#FF0000', 8);
+  
+  // 播放提示音效
+  audioSystem.playSFX(audioSystem.hitSound);
+}
+
 function drawExit(offsetX, offsetY) {
-  ctx.fillStyle = exit.color;
+  // 根據通關條件狀態決定顏色
+  const canExit = checkExitConditions();
+  const exitColor = canExit ? '#00FF00' : '#FF0000'; // 綠色表示可以通關，紅色表示條件未滿足
+  
+  ctx.fillStyle = exitColor;
   ctx.fillRect(exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
   
   // 畫一個 "EXIT" 文字
@@ -1774,6 +1884,14 @@ function drawExit(offsetX, offsetY) {
   ctx.font = '12px Arial';
   ctx.textAlign = 'center';
   ctx.fillText('EXIT', exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height / 2 + 4);
+  
+  // 如果條件未滿足，顯示提示文字
+  if (!canExit) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('需要收集道具', exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
+  }
 }
 
 function updateProjectiles() {
@@ -1803,6 +1921,7 @@ function updateProjectiles() {
         
         if (m.hp <= 0) {
           // 怪物死亡
+          const deadMonster = monsters[p.targetMonster];
           monsters.splice(p.targetMonster, 1);
           killCount++;
           
@@ -1811,6 +1930,9 @@ function updateProjectiles() {
           
           // 創建爆炸粒子效果
           particleSystem.createExplosion(mx, my, '#FFD700', 12);
+          
+          // 掉落道具
+          dropMonsterItem(deadMonster);
           
           console.log(`怪物被消滅了！擊殺數：${killCount}`);
         }
@@ -1878,38 +2000,53 @@ function updateAttackEffects() {
   }
 }
 
-function drawProjectiles(offsetX, offsetY) {
+// 繪製單個彈幕
+function drawSingleProjectile(projectile, offsetX, offsetY) {
   ctx.fillStyle = '#FFFF00';
-  for (const p of projectiles) {
-    ctx.beginPath();
-    ctx.arc(p.x - offsetX, p.y - offsetY, PROJECTILE_SIZE, 0, 2 * Math.PI);
-    ctx.fill();
+  ctx.beginPath();
+  ctx.arc(projectile.x - offsetX, projectile.y - offsetY, PROJECTILE_SIZE, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+function drawProjectiles(offsetX, offsetY) {
+  for (const projectile of projectiles) {
+    drawSingleProjectile(projectile, offsetX, offsetY);
   }
 }
 
-function drawMonsterProjectiles(offsetX, offsetY) {
+// 繪製單個怪物彈幕
+function drawSingleMonsterProjectile(projectile, offsetX, offsetY) {
   ctx.fillStyle = '#FF0000'; // 紅色怪物攻擊彈幕
-  for (const p of monsterProjectiles) {
-    ctx.beginPath();
-    ctx.arc(p.x - offsetX, p.y - offsetY, MONSTER_PROJECTILE_SIZE, 0, 2 * Math.PI);
-    ctx.fill();
+  ctx.beginPath();
+  ctx.arc(projectile.x - offsetX, projectile.y - offsetY, MONSTER_PROJECTILE_SIZE, 0, 2 * Math.PI);
+  ctx.fill();
+}
+
+function drawMonsterProjectiles(offsetX, offsetY) {
+  for (const projectile of monsterProjectiles) {
+    drawSingleMonsterProjectile(projectile, offsetX, offsetY);
   }
+}
+
+// 繪製單個攻擊特效
+function drawSingleAttackEffect(effect, offsetX, offsetY) {
+  const alpha = 1 - ((Date.now() - effect.startTime) / effect.duration);
+  ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(
+    effect.x - offsetX,
+    effect.y - offsetY,
+    effect.radius,
+    0,
+    2 * Math.PI
+  );
+  ctx.stroke();
 }
 
 function drawAttackEffects(offsetX, offsetY) {
   for (const effect of attackEffects) {
-    const alpha = 1 - ((Date.now() - effect.startTime) / effect.duration);
-    ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(
-      effect.x - offsetX,
-      effect.y - offsetY,
-      effect.radius,
-      0,
-      2 * Math.PI
-    );
-    ctx.stroke();
+    drawSingleAttackEffect(effect, offsetX, offsetY);
   }
 }
 
@@ -1959,9 +2096,15 @@ function restartGame() {
   // 清空粒子效果
   particleSystem.clear();
   
+  // 重置道具系統
+  resetItems();
+  
   // 重新生成怪物和出口
   spawnMonsters();
   spawnExit();
+  
+  // 重新生成地圖道具
+  spawnMapItems();
   
   // 播放遊戲背景音樂
   audioSystem.playGameMusic();
@@ -2490,8 +2633,8 @@ function drawGrid(offsetX, offsetY) {
     ctx.stroke();
   }
   
-  // 繪製安全區域邊界（淡藍色）
-  ctx.strokeStyle = 'rgba(0, 150, 255, 0.3)';
+  // 繪製安全區域邊界（綠色）
+  ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
   ctx.lineWidth = 2;
   ctx.strokeRect(
     SAFE_ZONE_LEFT - offsetX,
@@ -2502,34 +2645,143 @@ function drawGrid(offsetX, offsetY) {
 }
 
 function drawSafeZoneOverlay(offsetX, offsetY) {
-  // 檢查安全區域是否在可視範圍內
+  // 計算安全區域在螢幕上的位置
   const safeZoneScreenX = SAFE_ZONE_LEFT - offsetX;
   const safeZoneScreenY = SAFE_ZONE_TOP - offsetY;
   
-  if (safeZoneScreenX + SAFE_ZONE_SIZE < 0 || safeZoneScreenX > VIEW_WIDTH ||
-      safeZoneScreenY + SAFE_ZONE_SIZE < 0 || safeZoneScreenY > VIEW_HEIGHT) {
-    return; // 安全區域不在可視範圍內，不繪製
-  }
+  // 計算安全區域與螢幕的交集
+  const intersectX = Math.max(0, safeZoneScreenX);
+  const intersectY = Math.max(0, safeZoneScreenY);
+  const intersectWidth = Math.min(SAFE_ZONE_SIZE, VIEW_WIDTH - intersectX);
+  const intersectHeight = Math.min(SAFE_ZONE_SIZE, VIEW_HEIGHT - intersectY);
   
-  // 計算安全區域在螢幕上的實際位置和大小
-  const drawX = Math.max(0, safeZoneScreenX);
-  const drawY = Math.max(0, safeZoneScreenY);
-  const drawWidth = Math.min(SAFE_ZONE_SIZE, VIEW_WIDTH - drawX);
-  const drawHeight = Math.min(SAFE_ZONE_SIZE, VIEW_HEIGHT - drawY);
+  // 如果沒有交集，不繪製
+  if (intersectWidth <= 0 || intersectHeight <= 0) {
+    return;
+  }
   
   // 繪製半透明的安全區域圖層
   ctx.fillStyle = 'rgba(0, 255, 0, 0.1)'; // 淡綠色，透明度0.1
-  ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+  ctx.fillRect(intersectX, intersectY, intersectWidth, intersectHeight);
   
   // 添加發光效果
   ctx.shadowColor = 'rgba(0, 255, 0, 0.3)';
   ctx.shadowBlur = 10;
   ctx.fillStyle = 'rgba(0, 255, 0, 0.05)';
-  ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+  ctx.fillRect(intersectX, intersectY, intersectWidth, intersectHeight);
   
   // 重置陰影效果
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
+}
+
+// 繪製安全區域邊框
+function drawSafeZoneBorder(offsetX, offsetY) {
+  // 計算安全區域在螢幕上的位置
+  const safeZoneScreenX = SAFE_ZONE_LEFT - offsetX;
+  const safeZoneScreenY = SAFE_ZONE_TOP - offsetY;
+  
+  // 計算安全區域與螢幕的交集
+  const intersectX = Math.max(0, safeZoneScreenX);
+  const intersectY = Math.max(0, safeZoneScreenY);
+  const intersectWidth = Math.min(SAFE_ZONE_SIZE, VIEW_WIDTH - intersectX);
+  const intersectHeight = Math.min(SAFE_ZONE_SIZE, VIEW_HEIGHT - intersectY);
+  
+  // 如果沒有交集，不繪製
+  if (intersectWidth <= 0 || intersectHeight <= 0) {
+    return;
+  }
+  
+  // 繪製明顯的綠色邊框
+  ctx.strokeStyle = '#00FF00'; // 亮綠色
+  ctx.lineWidth = 3; // 3像素寬的線條
+  ctx.strokeRect(intersectX, intersectY, intersectWidth, intersectHeight);
+  
+  // 添加發光效果
+  ctx.shadowColor = '#00FF00';
+  ctx.shadowBlur = 5;
+  ctx.strokeStyle = '#00FF00';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(intersectX, intersectY, intersectWidth, intersectHeight);
+  
+  // 重置陰影效果
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+}
+
+// 根據z軸排序繪製遊戲物件
+function drawGameObjectsWithZOrder(offsetX, offsetY) {
+  const gameObjects = [];
+  
+  // 收集所有遊戲物件及其底部y座標
+  // 出口
+  gameObjects.push({
+    type: 'exit',
+    bottomY: exit.y + exit.height,
+    draw: () => drawExit(offsetX, offsetY)
+  });
+  
+  // 道具
+  for (const item of items) {
+    if (!item.collected) {
+      gameObjects.push({
+        type: 'item',
+        bottomY: item.y + item.height,
+        draw: () => drawSingleItem(item, offsetX, offsetY)
+      });
+    }
+  }
+  
+  // 怪物
+  for (const monster of monsters) {
+    gameObjects.push({
+      type: 'monster',
+      bottomY: monster.y + monster.height,
+      draw: () => drawSingleMonster(monster, offsetX, offsetY)
+    });
+  }
+  
+  // 玩家
+  gameObjects.push({
+    type: 'player',
+    bottomY: player.y + player.height,
+    draw: () => drawPlayer(offsetX, offsetY)
+  });
+  
+  // 彈幕
+  for (const projectile of projectiles) {
+    gameObjects.push({
+      type: 'projectile',
+      bottomY: projectile.y + PROJECTILE_SIZE,
+      draw: () => drawSingleProjectile(projectile, offsetX, offsetY)
+    });
+  }
+  
+  // 怪物彈幕
+  for (const projectile of monsterProjectiles) {
+    gameObjects.push({
+      type: 'monsterProjectile',
+      bottomY: projectile.y + MONSTER_PROJECTILE_SIZE,
+      draw: () => drawSingleMonsterProjectile(projectile, offsetX, offsetY)
+    });
+  }
+  
+  // 攻擊特效
+  for (const effect of attackEffects) {
+    gameObjects.push({
+      type: 'attackEffect',
+      bottomY: effect.y + effect.radius,
+      draw: () => drawSingleAttackEffect(effect, offsetX, offsetY)
+    });
+  }
+  
+  // 根據底部y座標排序（y值越大越靠前）
+  gameObjects.sort((a, b) => a.bottomY - b.bottomY);
+  
+  // 按順序繪製
+  for (const obj of gameObjects) {
+    obj.draw();
+  }
 }
 
 function gameLoop() {
@@ -2541,9 +2793,11 @@ function gameLoop() {
     updateProjectiles();
     updateMonsterProjectiles();
     updateAttackEffects();
+    updateItems();
     updateTimer();
     autoAttack();
     checkCollision();
+    checkItemCollection();
     
     // 更新粒子效果
     particleSystem.update();
@@ -2554,13 +2808,9 @@ function gameLoop() {
     clearScreen();
     drawMap(offsetX, offsetY);
     drawGrid(offsetX, offsetY);
-    drawSafeZoneOverlay(offsetX, offsetY);
-    drawExit(offsetX, offsetY);
-    drawMonsters(offsetX, offsetY);
-    drawPlayer(offsetX, offsetY);
-    drawProjectiles(offsetX, offsetY);
-    drawMonsterProjectiles(offsetX, offsetY);
-    drawAttackEffects(offsetX, offsetY);
+    
+    // 使用z軸排序繪製遊戲物件
+    drawGameObjectsWithZOrder(offsetX, offsetY);
     
     // 繪製粒子效果
     particleSystem.draw(offsetX, offsetY);
@@ -2568,6 +2818,7 @@ function gameLoop() {
     // 顯示遊戲UI（移除指定的元素）
     drawTimer();
     drawPlayerHealth();
+    drawItemStats();
     drawSoundControls();
     
     if (gameOver) {
@@ -2610,9 +2861,13 @@ async function loadLevelConfig() {
     // 設定預設遊戲參數
     defaultSettings = config.defaultSettings;
     
+    // 設定道具配置
+    itemSettings = config.itemSettings || {};
+    
     console.log('關卡設定載入成功:', config);
     console.log('最大關卡數:', MAX_LEVEL);
     console.log('關卡配置:', levelConfigs);
+    console.log('道具配置:', itemSettings);
     return true;
   } catch (error) {
     console.error('載入關卡設定失敗:', error);
@@ -2622,7 +2877,37 @@ async function loadLevelConfig() {
     // 如果載入失敗，使用預設設定
     MAX_LEVEL = 4;
     
-
+    // 預設道具設定
+    itemSettings = {
+      "mapItemA": {
+        "name": "OPEE",
+        "description": "一個機器人",
+        "color": "#FF4444",
+        "size": 80,
+        "image": "assets/items/item-map-a.png"
+      },
+      "mapItemB": {
+        "name": "共感頻率器",
+        "description": "大喇叭",
+        "color": "#44FF44",
+        "size": 50,
+        "image": "assets/items/item-map-b.png"
+      },
+      "monsterItemA": {
+        "name": "綠能聚合晶體",
+        "description": "綠色的石頭",
+        "color": "#FFAA00",
+        "size": 35,
+        "image": "assets/items/item-monster-a.png"
+      },
+      "monsterItemB": {
+        "name": "動能核心",
+        "description": "有電的東西",
+        "color": "#4444FF",
+        "size": 45,
+        "image": "assets/items/item-monster-b.png"
+      }
+    };
     
     // 預設遊戲參數
     defaultSettings = {
@@ -2689,6 +2974,22 @@ async function loadLevelConfig() {
         turretMonsters: 0,
         gameTime: 10000,
         description: "熟悉基本操作",
+        exitCondition: {
+          mapItemA: 1
+        },
+        items: {
+          mapItems: {
+            mapItemA: 1
+          },
+          monsterDropRates: {
+            trackerA: {
+              monsterItemA: 1.0
+            },
+            trackerB: {
+              monsterItemA: 1.0
+            }
+          }
+        },
         mapTiles: [
           {
             "path": "assets/maps/map-level1-1.png",
@@ -2728,6 +3029,20 @@ async function loadLevelConfig() {
         turretMonsters: 0,
         gameTime: 100000,
         description: "增加怪物數量",
+        exitCondition: {
+          monsterItemA: 10
+        },
+        items: {
+          mapItems: {},
+          monsterDropRates: {
+            trackerA: {
+              monsterItemA: 1.0
+            },
+            trackerB: {
+              monsterItemA: 1.0
+            }
+          }
+        },
         mapTiles: [
           {
             "path": "assets/maps/map-level2-1.png",
@@ -2767,6 +3082,23 @@ async function loadLevelConfig() {
         turretMonsters: 0,
         gameTime: 100000,
         description: "更大的地圖",
+        exitCondition: {
+          mapItemB: 15,
+          monsterItemA: 5
+        },
+        items: {
+          mapItems: {
+            mapItemB: 20
+          },
+          monsterDropRates: {
+            trackerA: {
+              monsterItemA: 1.0
+            },
+            trackerB: {
+              monsterItemA: 1.0
+            }
+          }
+        },
         mapTiles: [
           {
             "path": "assets/maps/map-level3-1.png",
@@ -2806,6 +3138,17 @@ async function loadLevelConfig() {
         turretMonsters: 1,
         gameTime: 200000,
         description: "最終挑戰",
+        exitCondition: {
+          monsterItemB: 1
+        },
+        items: {
+          mapItems: {},
+          monsterDropRates: {
+            turret: {
+              monsterItemB: 1.0
+            }
+          }
+        },
         mapTiles: [
           {
             "path": "assets/maps/map-level4-1.png",
@@ -2908,9 +3251,10 @@ function updateLobbyDisplay() {
   }
 }
 
-function startLevel(level) {
+async function startLevel(level) {
   currentLevel = level;
-  loadLevel();
+  loadLevel(); // 只載入進度，不更新配置
+  await updateLevelConfig(); // 更新關卡配置
   restartGame();
   hideLobby();
   
@@ -3182,4 +3526,360 @@ window.showMapWeightStats = function() {
     const percentage = ((count / (mapTileLayout.length * mapTileLayout[0].length)) * 100).toFixed(1);
     console.log(`圖片${parseInt(index) + 1}: 出現 ${count} 次 (${percentage}%)`);
   });
-}; 
+};
+
+// ==================== 道具系統函數 ====================
+
+// 載入道具圖片
+async function loadItemImages() {
+  console.log('開始載入道具圖片...');
+  
+  const itemTypes = ['mapItemA', 'mapItemB', 'monsterItemA', 'monsterItemB'];
+  
+  for (const itemType of itemTypes) {
+    const itemConfig = itemSettings[itemType];
+    if (itemConfig && itemConfig.image) {
+      try {
+        const img = new Image();
+        img.src = itemConfig.image;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => {
+            console.warn(`道具圖片載入失敗: ${itemConfig.image}，使用預設顏色`);
+            reject();
+          };
+        });
+        itemImages[itemType] = img;
+        console.log(`道具圖片載入成功: ${itemType} -> ${itemConfig.image}`);
+      } catch (error) {
+        console.warn(`道具圖片載入失敗: ${itemType}，使用預設顏色`);
+        itemImages[itemType] = null;
+      }
+    }
+  }
+  
+  console.log('道具圖片載入完成');
+}
+
+// 生成地圖道具
+function spawnMapItems() {
+  console.log('開始生成地圖道具...');
+  console.log('當前關卡:', currentLevel);
+  console.log('關卡配置:', levelConfigs[currentLevel]);
+  
+  const levelConfig = levelConfigs[currentLevel];
+  if (!levelConfig || !levelConfig.items || !levelConfig.items.mapItems) {
+    console.log('當前關卡沒有地圖道具配置');
+    console.log('levelConfig:', levelConfig);
+    console.log('items:', levelConfig?.items);
+    console.log('mapItems:', levelConfig?.items?.mapItems);
+    return;
+  }
+  
+  const mapItems = levelConfig.items.mapItems;
+  console.log('地圖道具配置:', mapItems);
+  
+  for (const [itemType, count] of Object.entries(mapItems)) {
+    const itemConfig = itemSettings[itemType];
+    const itemSize = itemConfig ? itemConfig.size : 32; // 預設大小32
+    
+    for (let i = 0; i < count; i++) {
+      // 計算道具的有效生成範圍（離邊緣50像素）
+      const margin = 50;
+      const minX = margin + itemSize / 2;
+      const maxX = MAP_WIDTH - margin - itemSize / 2;
+      const minY = margin + itemSize / 2;
+      const maxY = MAP_HEIGHT - margin - itemSize / 2;
+      
+      // 確保有效範圍不為負數
+      if (minX >= maxX || minY >= maxY) {
+        console.warn(`道具 ${itemType} 無法生成：地圖太小或道具太大`);
+        continue;
+      }
+      
+      // 重試機制：最多嘗試10次找到不在安全區域的位置
+      let item = null;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (attempts < maxAttempts) {
+        const testItem = {
+          type: itemType,
+          x: Math.random() * (maxX - minX) + minX,
+          y: Math.random() * (maxY - minY) + minY,
+          width: itemSize,
+          height: itemSize,
+          collected: false,
+          animationTime: 0,
+          floatOffset: Math.random() * Math.PI * 2 // 隨機浮動相位
+        };
+        
+        // 檢查是否不在安全區域內
+        if (!isInSafeZone(testItem.x, testItem.y, testItem.width, testItem.height)) {
+          item = testItem;
+          break;
+        }
+        
+        attempts++;
+      }
+      
+      // 如果找到合適位置，加入道具列表
+      if (item) {
+        items.push(item);
+        console.log(`生成地圖道具: ${itemType} 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) 大小: ${itemSize} (嘗試${attempts + 1}次)`);
+      } else {
+        console.warn(`道具 ${itemType} 無法找到合適位置：嘗試${maxAttempts}次後仍在安全區域內`);
+      }
+    }
+  }
+  
+  console.log(`地圖道具生成完成，總共 ${items.length} 個道具`);
+}
+
+// 怪物死亡時掉落道具
+function dropMonsterItem(monster) {
+  const levelConfig = levelConfigs[currentLevel];
+  if (!levelConfig || !levelConfig.items || !levelConfig.items.monsterDropRates) {
+    return;
+  }
+  
+  const dropRates = levelConfig.items.monsterDropRates[monster.type];
+  if (!dropRates) {
+    return;
+  }
+  
+  // 檢查每種道具的掉落機率
+  for (const [itemType, rate] of Object.entries(dropRates)) {
+    if (Math.random() < rate) {
+      const itemConfig = itemSettings[itemType];
+      const itemSize = itemConfig ? itemConfig.size : 32; // 預設大小32
+      
+      const item = {
+        type: itemType,
+        x: monster.x + monster.width / 2 - itemSize / 2,
+        y: monster.y + monster.height / 2 - itemSize / 2,
+        width: itemSize,
+        height: itemSize,
+        collected: false,
+        animationTime: 0,
+        floatOffset: Math.random() * Math.PI * 2
+      };
+      
+      items.push(item);
+      console.log(`怪物掉落道具: ${itemType} 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) 大小: ${itemSize}`);
+    }
+  }
+}
+
+// 檢查道具收集
+function checkItemCollection() {
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  
+  for (let i = items.length - 1; i >= 0; i--) {
+    const item = items[i];
+    if (item.collected) continue;
+    
+    const itemCenterX = item.x + item.width / 2;
+    const itemCenterY = item.y + item.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(playerCenterX - itemCenterX, 2) + 
+      Math.pow(playerCenterY - itemCenterY, 2)
+    );
+    
+    if (distance < 50) { // 收集範圍
+      item.collected = true;
+      itemCounts[item.type]++;
+      totalItemsCollected++;
+      
+      console.log(`收集道具: ${item.type} (總計: ${itemCounts[item.type]})`);
+      
+      // 創建收集特效
+      const itemConfig = itemSettings[item.type];
+      if (itemConfig) {
+        particleSystem.createExplosion(itemCenterX, itemCenterY, itemConfig.color, 6);
+      }
+      
+      // 播放收集音效
+      audioSystem.playSFX(audioSystem.hitSound);
+    }
+  }
+}
+
+// 更新道具動畫
+function updateItems() {
+  const currentTime = Date.now();
+  
+  for (const item of items) {
+    if (!item.collected) {
+      item.animationTime = currentTime;
+    }
+  }
+}
+
+// 繪製單個道具
+function drawSingleItem(item, offsetX, offsetY) {
+  if (item.collected) return;
+  
+  const x = item.x - offsetX;
+  const y = item.y - offsetY;
+  
+  // 檢查是否在可視範圍內
+  if (x < -50 || x > VIEW_WIDTH + 50 || y < -50 || y > VIEW_HEIGHT + 50) {
+    return;
+  }
+  
+  const itemConfig = itemSettings[item.type];
+  if (!itemConfig) return;
+  
+  // 浮動動畫
+  const floatY = y + Math.sin((Date.now() + item.floatOffset * 1000) / 1000) * 3;
+  
+  // 繪製道具
+  if (itemImages[item.type]) {
+    // 使用圖片
+    ctx.drawImage(itemImages[item.type], x, floatY, item.width, item.height);
+  } else {
+    // 使用預設顏色
+    ctx.fillStyle = itemConfig.color;
+    ctx.fillRect(x, floatY, item.width, item.height);
+    
+    // 添加邊框
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, floatY, item.width, item.height);
+  }
+  
+  // 添加發光效果
+  ctx.shadowColor = itemConfig.color;
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = itemConfig.color;
+  ctx.globalAlpha = 0.3;
+  ctx.fillRect(x - 5, floatY - 5, item.width + 10, item.height + 10);
+  ctx.globalAlpha = 1.0;
+  ctx.shadowBlur = 0;
+}
+
+// 繪製道具（保留原函數以維持相容性）
+function drawItems(offsetX, offsetY) {
+  for (const item of items) {
+    drawSingleItem(item, offsetX, offsetY);
+  }
+}
+
+// 繪製道具統計
+function drawItemStats() {
+  const startX = 20; // 移到左側，與血量面板對齊
+  const startY = 110; // 血量面板下方 (60 + 35 + 5)
+  const baseItemSize = 18;
+  const spacing = 8;
+  
+  // 獲取當前關卡的通關條件
+  const config = levelConfigs[currentLevel];
+  const exitCondition = config ? config.exitCondition : null;
+  
+  // 只顯示當前關卡需要的道具
+  const requiredItems = exitCondition ? Object.keys(exitCondition) : [];
+  
+  // 計算需要的背景高度
+  const itemCount = requiredItems.length;
+  const backgroundHeight = 50 + (itemCount * 22);
+  
+  // 繪製半透明背景，帶有圓角和邊框
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.fillRect(startX - 8, startY - 8, 180, backgroundHeight);
+  
+  // 繪製邊框
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(startX - 8, startY - 8, 180, backgroundHeight);
+  
+  // 標題
+  ctx.fillStyle = '#FFD700';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('通關道具', startX, startY);
+  
+  let y = startY + 18;
+  
+  if (requiredItems.length === 0) {
+    // 如果沒有通關條件，顯示提示
+    ctx.fillStyle = '#FFFF00';
+    ctx.font = '11px Arial';
+    ctx.fillText('無道具要求', startX, y);
+  } else {
+    // 顯示需要的道具
+    for (const itemType of requiredItems) {
+      const count = itemCounts[itemType] || 0;
+      const requiredCount = exitCondition[itemType];
+      const itemConfig = itemSettings[itemType];
+      
+      if (!itemConfig) continue;
+      
+      // 統一道具圖示大小
+      const displaySize = baseItemSize;
+      
+      // 繪製道具圖示背景（圓角矩形）
+      const iconX = startX;
+      const iconY = y - 2;
+      
+      // 道具圖示背景
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.fillRect(iconX - 2, iconY - 2, displaySize + 4, displaySize + 4);
+      
+      // 繪製道具圖示
+      if (itemImages[itemType]) {
+        ctx.drawImage(itemImages[itemType], iconX, iconY, displaySize, displaySize);
+      } else {
+        ctx.fillStyle = itemConfig.color;
+        ctx.fillRect(iconX, iconY, displaySize, displaySize);
+        
+        // 添加邊框
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(iconX, iconY, displaySize, displaySize);
+      }
+      
+      // 顯示數量文字
+      const textX = startX + baseItemSize + spacing;
+      const textY = y + 12;
+      
+      // 道具名稱
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '11px Arial';
+      ctx.fillText(itemConfig.name, textX, textY);
+      
+      // 數量（帶顏色）
+      const countText = `${count}/${requiredCount}`;
+      const countWidth = ctx.measureText(countText).width;
+      const countX = startX + 160 - countWidth; // 右對齊（調整為新的面板寬度）
+      
+      if (count >= requiredCount) {
+        ctx.fillStyle = '#00FF00'; // 綠色表示已達到要求
+      } else {
+        ctx.fillStyle = '#FF6666'; // 較柔和的紅色表示未達到要求
+      }
+      
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(countText, countX, textY);
+      
+      y += 22;
+    }
+  }
+}
+
+// 重置道具系統
+function resetItems() {
+  console.log('重置道具系統...');
+  console.log('重置前道具數量:', items.length);
+  items = [];
+  itemCounts = {
+    mapItemA: 0,
+    mapItemB: 0,
+    monsterItemA: 0,
+    monsterItemB: 0
+  };
+  totalItemsCollected = 0;
+  console.log('道具系統已重置，道具數量:', items.length);
+} 

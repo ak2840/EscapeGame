@@ -16,6 +16,36 @@
     "attackCooldown": 300,
     "invulnerableDuration": 1000
   },
+  "itemSettings": {
+    "mapItemA": {
+      "name": "OPEE",
+      "description": "一個機器人",
+      "color": "#FF4444",
+      "size": 80,
+      "image": "assets/items/item-map-a.png"
+    },
+    "mapItemB": {
+      "name": "共感頻率器",
+      "description": "大喇叭",
+      "color": "#44FF44",
+      "size": 50,
+      "image": "assets/items/item-map-b.png"
+    },
+    "monsterItemA": {
+      "name": "綠能聚合晶體",
+      "description": "綠色的石頭",
+      "color": "#FFAA00",
+      "size": 35,
+      "image": "assets/items/item-monster-a.png"
+    },
+    "monsterItemB": {
+      "name": "動能核心",
+      "description": "有電的東西",
+      "color": "#4444FF",
+      "size": 45,
+      "image": "assets/items/item-monster-b.png"
+    }
+  },
   "monsterSettings": {
     "normalA": {
       "hp": 5,
@@ -67,6 +97,22 @@
       "gameTime": 10000,
       "description": "熟悉基本操作",
       "unlockRequirement": null,
+      "exitCondition": {
+        "mapItemA": 1
+      },
+      "items": {
+        "mapItems": {
+          "mapItemA": 1
+        },
+        "monsterDropRates": {
+          "trackerA": {
+            "monsterItemA": 1.0
+          },
+          "trackerB": {
+            "monsterItemA": 1.0
+          }
+        }
+      },
       "mapTiles": [
         {
           "path": "assets/maps/map-level1-1.png",
@@ -107,6 +153,20 @@
       "gameTime": 100000,
       "description": "增加怪物數量",
       "unlockRequirement": "完成第1關",
+      "exitCondition": {
+        "monsterItemA": 10
+      },
+      "items": {
+        "mapItems": {},
+        "monsterDropRates": {
+          "trackerA": {
+            "monsterItemA": 1.0
+          },
+          "trackerB": {
+            "monsterItemA": 1.0
+          }
+        }
+      },
       "mapTiles": [
         {
           "path": "assets/maps/map-level2-1.png",
@@ -147,6 +207,23 @@
       "gameTime": 100000,
       "description": "更大的地圖",
       "unlockRequirement": "完成第2關",
+      "exitCondition": {
+        "mapItemB": 15,
+        "monsterItemA": 5
+      },
+      "items": {
+        "mapItems": {
+          "mapItemB": 20
+        },
+        "monsterDropRates": {
+          "trackerA": {
+            "monsterItemA": 1.0
+          },
+          "trackerB": {
+            "monsterItemA": 1.0
+          }
+        }
+      },
       "mapTiles": [
         {
           "path": "assets/maps/map-level3-1.png",
@@ -187,6 +264,17 @@
       "gameTime": 200000,
       "description": "最終挑戰",
       "unlockRequirement": "完成第3關",
+      "exitCondition": {
+        "monsterItemB": 1
+      },
+      "items": {
+        "mapItems": {},
+        "monsterDropRates": {
+          "turret": {
+            "monsterItemB": 1.0
+          }
+        }
+      },
       "mapTiles": [
         {
           "path": "assets/maps/map-level4-1.png",
