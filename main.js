@@ -640,9 +640,10 @@ let MAP_HEIGHT = VIEW_HEIGHT * 3; // 預設值，會在loadLevel()中更新
 const player = {
   x: MAP_WIDTH / 2,
   y: MAP_HEIGHT / 2,
-  width: 60,
+  width: 90,
   height: 90,
-  speed: 4, // 會在loadLevel()中更新
+  speed: 4, // 基礎速度，會在loadLevel()中更新
+  baseSpeed: 4, // 新增：基礎速度，不受縮放影響
   moving: false,
   color: '#FFD700',
   direction: 'down', // 預設朝下
@@ -955,13 +956,14 @@ async function updateLevelConfig() {
   // 更新預設遊戲參數
   ATTACK_COOLDOWN = defaultSettings.attackCooldown || 300;
   SAFE_ZONE_SIZE = defaultSettings.safeZoneSize || 200;
-  PROJECTILE_SPEED = defaultSettings.projectileSpeed || 8;
+  PROJECTILE_SPEED = (defaultSettings.projectileSpeed || 8); // 保持固定速度
   PROJECTILE_SIZE = defaultSettings.projectileSize || 4;
-  MONSTER_PROJECTILE_SPEED = defaultSettings.monsterProjectileSpeed || 6;
+  MONSTER_PROJECTILE_SPEED = (defaultSettings.monsterProjectileSpeed || 6); // 保持固定速度
   MONSTER_PROJECTILE_SIZE = defaultSettings.monsterProjectileSize || 6;
   
   // 更新玩家設定
-  player.speed = defaultSettings.playerSpeed || 4;
+  player.baseSpeed = defaultSettings.playerSpeed || 4;
+  player.speed = player.baseSpeed;
   player.hp = defaultSettings.playerHp || 10;
   player.maxHp = defaultSettings.playerHp || 10;
   player.invulnerableDuration = defaultSettings.invulnerableDuration || 1000;
@@ -1150,7 +1152,8 @@ function spawnMonsters() {
       dx: 0,
       dy: 0,
       type: 'normalA',
-      speed: settings.speed || 0.8,
+      baseSpeed: settings.speed || 0.8, // 基礎速度
+      speed: (settings.speed || 0.8), // 保持固定速度
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1173,7 +1176,8 @@ function spawnMonsters() {
       dx: 0,
       dy: 0,
       type: 'normalB',
-      speed: settings.speed || 0.8,
+      baseSpeed: settings.speed || 0.8, // 基礎速度
+      speed: (settings.speed || 0.8), // 保持固定速度
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1196,7 +1200,8 @@ function spawnMonsters() {
       dx: 0,
       dy: 0,
       type: 'normalC',
-      speed: settings.speed || 0.8,
+      baseSpeed: settings.speed || 0.8, // 基礎速度
+      speed: (settings.speed || 0.8), // 保持固定速度
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1221,7 +1226,8 @@ function spawnMonsters() {
       dx: 0,
       dy: 0,
       type: 'trackerA',
-      speed: settings.speed || 1.5,
+      baseSpeed: settings.speed || 1.5, // 基礎速度
+      speed: (settings.speed || 1.5), // 保持固定速度
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1244,7 +1250,8 @@ function spawnMonsters() {
       dx: 0,
       dy: 0,
       type: 'trackerB',
-      speed: settings.speed || 1.5,
+      baseSpeed: settings.speed || 1.5, // 基礎速度
+      speed: (settings.speed || 1.5), // 保持固定速度
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1268,7 +1275,8 @@ function spawnMonsters() {
       dx: 0,
       dy: 0,
       type: 'turret',
-      speed: settings.speed || 0, // 不會移動
+      baseSpeed: settings.speed || 0, // 基礎速度（砲塔不會移動）
+      speed: settings.speed || 0, // 不會移動，不需要縮放調整
       lastAttackTime: 0, // 攻擊計時器
       attackCooldown: settings.attackCooldown || 500, // 攻擊間隔
       attackRange: settings.attackRange || 250, // 攻擊範圍
@@ -1581,6 +1589,23 @@ function autoAttack() {
         const dy = my - py;
         const dist = Math.sqrt(dx * dx + dy * dy);
         
+        // 根據攻擊方向更新角色朝向
+        if (Math.abs(dx) > Math.abs(dy)) {
+          // 水平方向為主
+          if (dx > 0) {
+            player.direction = 'right';
+          } else {
+            player.direction = 'left';
+          }
+        } else {
+          // 垂直方向為主
+          if (dy > 0) {
+            player.direction = 'down';
+          } else {
+            player.direction = 'up';
+          }
+        }
+        
         projectiles.push({
           x: px,
           y: py,
@@ -1771,13 +1796,25 @@ function checkCollision() {
     }
   }
   
+  // 計算玩家中心點
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  const playerRadius = 30; // 固定玩家碰撞半徑為30像素
+  
   for (const m of monsters) {
-    if (
-      player.x < m.x + m.width &&
-      player.x + player.width > m.x &&
-      player.y < m.y + m.height &&
-      player.y + player.height > m.y
-    ) {
+    // 計算怪物中心點
+    const monsterCenterX = m.x + m.width / 2;
+    const monsterCenterY = m.y + m.height / 2;
+    const monsterRadius = Math.min(m.width, m.height) / 2; // 使用較小的邊作為半徑
+    
+    // 計算兩個中心點之間的距離
+    const distance = Math.sqrt(
+      Math.pow(playerCenterX - monsterCenterX, 2) + 
+      Math.pow(playerCenterY - monsterCenterY, 2)
+    );
+    
+    // 如果距離小於兩個半徑之和，則發生碰撞
+    if (distance < (playerRadius + monsterRadius)) {
       // 玩家受到傷害
       player.hp--;
       player.isInvulnerable = true;
@@ -1790,17 +1827,15 @@ function checkCollision() {
       audioSystem.playHit();
       
       // 創建受傷粒子效果
-      const playerCenterX = player.x + player.width / 2;
-      const playerCenterY = player.y + player.height / 2;
       particleSystem.createHitEffect(playerCenterX, playerCenterY, '#FF4444');
       
       console.log(`玩家受到傷害！剩餘血量：${player.hp}`);
       
-              if (player.hp <= 0) {
-          gameOver = true;
-          audioSystem.playGameOver();
-          console.log('遊戲結束！你的血量耗盡了！');
-        }
+      if (player.hp <= 0) {
+        gameOver = true;
+        audioSystem.playGameOver();
+        console.log('遊戲結束！你的血量耗盡了！');
+      }
       return;
     }
   }
