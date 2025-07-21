@@ -7,7 +7,7 @@
 ### 1. 遊戲資訊 (gameInfo)
 ```json
 {
-  "name": "末日ESG小尖兵",
+  "name": "焦土中的信號 Signal",
   "version": "1.0.0", 
   "description": "末日環境中的ESG小尖兵冒險遊戲"
 }

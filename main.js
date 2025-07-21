@@ -758,6 +758,45 @@ canvas.addEventListener('click', (e) => {
     audioSystem.playButtonClick();
     return;
   }
+  
+  // 檢查點擊Debug按鈕
+  const debugX = startX - (buttonSize + buttonSpacing) * 2;
+  const debugY = startY;
+  if (x >= debugX && x <= debugX + buttonSize && y >= debugY && y <= debugY + buttonSize) {
+    // Debug功能：收集足夠道具
+    const config = levelConfigs[currentLevel];
+    if (config && config.exitCondition) {
+      // 將所有道具數量設定為通關要求
+      for (const [itemType, requiredCount] of Object.entries(config.exitCondition)) {
+        itemCounts[itemType] = requiredCount;
+        console.log(`Debug: 設定道具 ${itemType} 數量為 ${requiredCount}`);
+      }
+      
+      // 播放按鈕音效
+      audioSystem.playButtonClick();
+      
+      // 創建收集特效
+      const playerCenterX = player.x + player.width / 2;
+      const playerCenterY = player.y + player.height / 2;
+      particleSystem.createExplosion(playerCenterX, playerCenterY, '#00FF00', 12);
+      
+      console.log('Debug: 已收集足夠道具，可以通關！');
+    } else {
+      // 如果沒有通關條件，設定全通關
+      highestUnlockedLevel = MAX_LEVEL;
+      completedLevels = Array.from({length: MAX_LEVEL}, (_, i) => i + 1);
+      
+      // 更新Cookie
+      setCookie('highestUnlockedLevel', MAX_LEVEL.toString(), 365);
+      setCookie('completedLevels', JSON.stringify(completedLevels), 365);
+      
+      // 播放按鈕音效
+      audioSystem.playButtonClick();
+      
+      console.log('Debug: 已全通關！');
+    }
+    return;
+  }
 });
 window.addEventListener('keyup', (e) => {
   if (e.code in keys) {
@@ -2345,7 +2384,7 @@ function drawGameTitle() {
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText('末日ESG小尖兵', 20, VIEW_HEIGHT - 25);
+          ctx.fillText('焦土中的信號 Signal', 20, VIEW_HEIGHT - 25);
   
   // 返回大廳按鈕
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -2462,6 +2501,29 @@ function drawSoundControls() {
     ctx.textBaseline = 'middle';
     ctx.fillText('🔊', sfxX + buttonSize/2, sfxY + buttonSize/2);
   }
+  
+  // Debug按鈕
+  const debugX = startX - (buttonSize + buttonSpacing) * 2;
+  const debugY = startY;
+  
+  // 按鈕背景（漸層效果）
+  const gradient = ctx.createLinearGradient(debugX, debugY, debugX + buttonSize, debugY + buttonSize);
+  gradient.addColorStop(0, 'rgba(255, 107, 107, 0.8)');
+  gradient.addColorStop(1, 'rgba(255, 142, 83, 0.8)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(debugX, debugY, buttonSize, buttonSize);
+  
+  // 按鈕邊框
+  ctx.strokeStyle = '#FF6B6B';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(debugX, debugY, buttonSize, buttonSize);
+  
+  // Debug文字
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 10px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('DEBUG', debugX + buttonSize/2, debugY + buttonSize/2);
 }
 
 // 新增：繪製左上角ESC離開按鈕
@@ -3413,6 +3475,30 @@ async function initGame() {
   
   // 初始化大廳音效按鈕狀態
   updateLobbyAudioButtons();
+  
+  // 添加debug按鈕事件監聽器
+  const debugBtn = document.getElementById('debugBtn');
+  if (debugBtn) {
+    debugBtn.addEventListener('click', () => {
+      // 全通關功能
+      // 設定最高解鎖關卡為最大關卡數
+      highestUnlockedLevel = MAX_LEVEL;
+      // 設定所有關卡為已完成
+      completedLevels = Array.from({length: MAX_LEVEL}, (_, i) => i + 1);
+      
+      // 更新Cookie
+      setCookie('highestUnlockedLevel', MAX_LEVEL.toString(), 365);
+      setCookie('completedLevels', JSON.stringify(completedLevels), 365);
+      
+      // 播放按鈕音效
+      audioSystem.playButtonClick();
+      
+      // 更新大廳顯示
+      updateLobbyDisplay();
+      
+      console.log('Debug: 已全通關！');
+    });
+  }
   
   // 啟動遊戲循環（但只在需要時執行遊戲邏輯）
   gameLoopRunning = true;
