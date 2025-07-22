@@ -605,12 +605,232 @@ function generateMapLayout() {
 }
 
 // 遊戲狀態管理
-let gameState = 'lobby'; // 'lobby', 'playing', 'gameOver', 'victory'
+let gameState = 'lobby'; // 'lobby', 'playing', 'gameOver', 'victory', 'storyIntro', 'storyOutro'
 let currentLevel = 1;
 let MAX_LEVEL = 4; // 將從設定檔讀取
 let highestUnlockedLevel = 1; // 最高解鎖關卡
 let completedLevels = []; // 已完成的關卡
 let gameLoopRunning = false; // 控制遊戲循環是否正在運行
+
+// 劇情系統
+const storySystem = {
+  introImages: {}, // 關卡開始前的劇情圖片
+  outroImages: {}, // 關卡結束後的劇情圖片
+  currentImage: null, // 當前顯示的劇情圖片
+  imageLoaded: false, // 圖片是否已載入
+  
+  // 載入劇情圖片
+  async loadStoryImages() {
+    console.log('開始載入劇情圖片...');
+    console.log('MAX_LEVEL:', MAX_LEVEL);
+    
+    if (!MAX_LEVEL || MAX_LEVEL <= 0) {
+      console.error('MAX_LEVEL 未正確設定，使用預設值 4');
+      MAX_LEVEL = 4;
+    }
+    
+    // 載入關卡開始劇情圖片
+    for (let level = 1; level <= MAX_LEVEL; level++) {
+      try {
+        const introImg = new Image();
+        introImg.src = `assets/story/story_${level}_before.jpg`;
+        await new Promise((resolve, reject) => {
+          introImg.onload = resolve;
+          introImg.onerror = () => {
+            console.warn(`關卡${level}開始劇情圖片載入失敗，使用預設圖片`);
+            reject();
+          };
+        });
+        this.introImages[level] = introImg;
+        console.log(`關卡${level}開始劇情圖片載入成功`);
+      } catch (error) {
+        // 如果載入失敗，創建一個預設的劇情圖片
+        this.introImages[level] = this.createDefaultIntroImage(level);
+        console.log(`關卡${level}使用預設開始劇情圖片`);
+      }
+    }
+    
+    // 載入關卡結束劇情圖片
+    for (let level = 1; level <= MAX_LEVEL; level++) {
+      try {
+        const outroImg = new Image();
+        outroImg.src = `assets/story/story_${level}_after.jpg`;
+        await new Promise((resolve, reject) => {
+          outroImg.onload = resolve;
+          outroImg.onerror = () => {
+            console.warn(`關卡${level}結束劇情圖片載入失敗，使用預設圖片`);
+            reject();
+          };
+        });
+        this.outroImages[level] = outroImg;
+        console.log(`關卡${level}結束劇情圖片載入成功`);
+      } catch (error) {
+        // 如果載入失敗，創建一個預設的劇情圖片
+        this.outroImages[level] = this.createDefaultOutroImage(level);
+        console.log(`關卡${level}使用預設結束劇情圖片`);
+      }
+    }
+    
+    console.log('劇情圖片載入完成');
+  },
+  
+  // 創建預設的關卡開始劇情圖片
+  createDefaultIntroImage(level) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+    const ctx = canvas.getContext('2d');
+    
+    // 背景漸層
+    const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(1, '#16213e');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 800, 600);
+    
+    // 裝飾性邊框
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(50, 50, 700, 500);
+    
+    // 標題
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 56px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`第${level}關`, 400, 180);
+    
+    // 副標題
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '28px Arial';
+    ctx.fillText('準備開始冒險...', 400, 240);
+    
+    // 關卡描述
+    const levelConfig = levelConfigs[level];
+    if (levelConfig && levelConfig.description) {
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = '20px Arial';
+      ctx.fillText(levelConfig.description, 400, 280);
+    } else {
+      // 預設描述
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = '20px Arial';
+      ctx.fillText('準備開始新的挑戰...', 400, 280);
+    }
+    
+    // 提示文字背景
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 520, 800, 80);
+    
+    // 提示文字
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText('按空白鍵繼續', 400, 560);
+    
+    // 轉換為圖片
+    const img = new Image();
+    img.src = canvas.toDataURL();
+    return img;
+  },
+  
+  // 創建預設的關卡結束劇情圖片
+  createDefaultOutroImage(level) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+    const ctx = canvas.getContext('2d');
+    
+    // 背景漸層
+    const gradient = ctx.createLinearGradient(0, 0, 0, 600);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(1, '#0f3460');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 800, 600);
+    
+    // 裝飾性邊框
+    ctx.strokeStyle = '#00FF00';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(50, 50, 700, 500);
+    
+    // 標題
+    ctx.fillStyle = '#00FF00';
+    ctx.font = 'bold 56px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`第${level}關完成！`, 400, 180);
+    
+    // 副標題
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '28px Arial';
+    ctx.fillText('恭喜通過關卡！', 400, 240);
+    
+    // 統計信息
+    ctx.fillStyle = '#CCCCCC';
+    ctx.font = '20px Arial';
+    ctx.fillText(`擊殺數: ${gameStats.currentGame.killCount}`, 400, 280);
+    ctx.fillText(`完成時間: ${Math.ceil(gameStats.currentGame.completionTime / 1000)}秒`, 400, 310);
+    
+    // 提示文字背景
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 520, 800, 80);
+    
+    // 提示文字
+    ctx.fillStyle = '#00FF00';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText('按空白鍵繼續', 400, 560);
+    
+    // 轉換為圖片
+    const img = new Image();
+    img.src = canvas.toDataURL();
+    return img;
+  },
+  
+  // 顯示關卡開始劇情
+  showIntro(level) {
+    this.currentImage = this.introImages[level];
+    this.imageLoaded = true;
+    gameState = 'storyIntro';
+    console.log(`顯示第${level}關開始劇情`);
+  },
+  
+  // 顯示關卡結束劇情
+  showOutro(level) {
+    this.currentImage = this.outroImages[level];
+    this.imageLoaded = true;
+    gameState = 'storyOutro';
+    console.log(`顯示第${level}關結束劇情`);
+  },
+  
+  // 繪製劇情圖片
+  draw(ctx) {
+    if (!this.currentImage || !this.imageLoaded) return;
+    
+    // 清空畫布
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    // 計算圖片縮放和位置
+    const imgAspect = this.currentImage.width / this.currentImage.height;
+    const canvasAspect = ctx.canvas.width / ctx.canvas.height;
+    
+    let drawWidth, drawHeight, drawX, drawY;
+    
+    if (imgAspect > canvasAspect) {
+      // 圖片較寬，以寬度為準
+      drawWidth = ctx.canvas.width;
+      drawHeight = ctx.canvas.width / imgAspect;
+      drawX = 0;
+      drawY = (ctx.canvas.height - drawHeight) / 2;
+    } else {
+      // 圖片較高，以高度為準
+      drawHeight = ctx.canvas.height;
+      drawWidth = ctx.canvas.height * imgAspect;
+      drawX = (ctx.canvas.width - drawWidth) / 2;
+      drawY = 0;
+    }
+    
+    // 繪製圖片
+    ctx.drawImage(this.currentImage, drawX, drawY, drawWidth, drawHeight);
+  }
+};
 
 // 關卡設定（將從外部檔案載入）
 let levelConfigs = {};
@@ -703,9 +923,35 @@ window.addEventListener('keydown', (e) => {
   if (e.code in keys) {
     keys[e.code] = true;
     if (e.code === 'Space') {
-      // 只有在正常遊戲狀態下才執行動作
-      if (!gameOver && !gameWon) {
-        // 執行動作：打招呼
+      // 處理劇情狀態下的空白鍵
+      if (gameState === 'storyIntro') {
+        // 關卡開始劇情結束，開始遊戲
+        gameState = 'playing';
+        restartGame();
+        console.log('關卡開始劇情結束，開始遊戲');
+      } else if (gameState === 'storyOutro') {
+        // 關卡結束劇情結束，進入下一關或返回大廳
+        const completedLevel = currentLevel;
+        if (completedLevel < MAX_LEVEL) {
+          // 還有下一關，進入下一關
+          console.log(`進入第${completedLevel + 1}關`);
+          currentLevel = completedLevel + 1;
+          
+          // 更新關卡配置並顯示下一關劇情
+          updateLevelConfig().then(() => {
+            storySystem.showIntro(currentLevel);
+          }).catch(error => {
+            console.error('更新關卡配置失敗:', error);
+            // 即使失敗也要顯示劇情
+            storySystem.showIntro(currentLevel);
+          });
+        } else {
+          // 最後一關通關，回到大廳
+          gameWon = true;
+          returnToLobby();
+        }
+      } else if (gameState === 'playing' && !gameOver && !gameWon) {
+        // 正常遊戲狀態下的動作
         if (!player.isActioning) {
           console.log('哈囉！');
           player.isActioning = true;
@@ -817,23 +1063,10 @@ window.addEventListener('keyup', (e) => {
         const completedLevel = currentLevel;
         completeLevel(completedLevel);
         
-        if (completedLevel < MAX_LEVEL) {
-          // 還有下一關，直接進入下一關
-          console.log(`恭喜通過第${completedLevel}關！進入第${completedLevel + 1}關`);
-          currentLevel = completedLevel + 1;
-          loadLevel(); // 只載入進度，不更新配置
-          // 等待關卡配置更新完成後再重新開始遊戲
-          updateLevelConfig().then(() => {
-            restartGame();
-          }).catch(error => {
-            console.error('關卡配置更新失敗:', error);
-            restartGame(); // 即使失敗也要重新開始遊戲
-          });
-        } else {
-          // 最後一關通關，回到大廳
-          gameWon = true;
-          console.log('恭喜通關所有關卡！');
-        }
+        // 顯示關卡結束劇情
+        storySystem.showOutro(completedLevel);
+        
+        console.log(`恭喜通過第${completedLevel}關！`);
       } else if (isPlayerNearExit()) {
         // 玩家在出口附近但條件未滿足，顯示提示
         showExitConditionHint();
@@ -847,7 +1080,9 @@ function setCookie(name, value, days) {
   try {
     const expires = new Date();
     expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-    document.cookie = name + "=" + value + ";expires=" + expires.toUTCString();
+    
+    // 設定Cookie時包含path，確保在HTTP伺服器環境下也能正常工作
+    document.cookie = name + "=" + value + ";expires=" + expires.toUTCString() + ";path=/";
     console.log(`設定Cookie: ${name}=${value}, 過期時間: ${expires.toUTCString()}`);
     
     // 同時保存到localStorage作為備用
@@ -892,7 +1127,7 @@ function getCookie(name) {
 function loadLevel() {
   // 讀取最高解鎖關卡
   const savedHighestLevel = getCookie('highestUnlockedLevel');
-  if (savedHighestLevel && savedHighestLevel >= 1 && savedHighestLevel <= MAX_LEVEL) {
+  if (savedHighestLevel && savedHighestLevel >= 1 && (!MAX_LEVEL || savedHighestLevel <= MAX_LEVEL)) {
     highestUnlockedLevel = parseInt(savedHighestLevel);
   } else {
     highestUnlockedLevel = 1;
@@ -2909,7 +3144,11 @@ function gameLoop() {
     particleSystem.update();
   }
   
-  if (gameState === 'playing') {
+  // 繪製不同狀態的內容
+  if (gameState === 'storyIntro' || gameState === 'storyOutro') {
+    // 繪製劇情圖片
+    storySystem.draw(ctx);
+  } else if (gameState === 'playing') {
     const { offsetX, offsetY } = getCameraOffset();
     clearScreen();
     drawMap(offsetX, offsetY);
@@ -3289,10 +3528,24 @@ async function loadLevelConfig() {
 
 // 遊戲大廳管理函數
 async function initLobby() {
-  await loadLevelConfig();
-  loadLevel();
-  updateLobbyDisplay();
-  showLobby();
+  try {
+    console.log('開始初始化大廳...');
+    await loadLevelConfig();
+    console.log('關卡配置載入完成');
+    
+    loadLevel();
+    console.log('關卡進度載入完成');
+    
+    updateLobbyDisplay();
+    console.log('大廳顯示更新完成');
+    
+    showLobby();
+    console.log('大廳顯示完成');
+  } catch (error) {
+    console.error('初始化大廳失敗:', error);
+    // 即使失敗也要顯示大廳
+    showLobby();
+  }
 }
 
 function showLobby() {
@@ -3317,6 +3570,10 @@ function updateLobbyDisplay() {
   const progressInfo = document.getElementById('progressInfo');
   const levelGrid = document.getElementById('levelGrid');
   
+  console.log('更新大廳顯示 - 最高解鎖關卡:', highestUnlockedLevel);
+  console.log('更新大廳顯示 - 已完成關卡:', completedLevels);
+  console.log('更新大廳顯示 - MAX_LEVEL:', MAX_LEVEL);
+  
   // 更新進度信息
   if (completedLevels.length === MAX_LEVEL) {
     progressInfo.textContent = '進度：完全通關';
@@ -3339,7 +3596,9 @@ function updateLobbyDisplay() {
       button.innerHTML = `第 ${level} 關<br><span class="level-info">已完成</span>`;
     } else if (level <= highestUnlockedLevel) {
       button.classList.add('unlocked');
-      button.innerHTML = `第 ${level} 關<br><span class="level-info">${levelConfigs[level].name}</span>`;
+      const levelConfig = levelConfigs[level];
+      const levelName = levelConfig && levelConfig.name ? levelConfig.name : `第${level}關`;
+      button.innerHTML = `第 ${level} 關<br><span class="level-info">${levelName}</span>`;
     } else {
       button.classList.add('locked');
       button.innerHTML = `第 ${level} 關<br><span class="level-info">未解鎖</span>`;
@@ -3361,8 +3620,10 @@ async function startLevel(level) {
   currentLevel = level;
   loadLevel(); // 只載入進度，不更新配置
   await updateLevelConfig(); // 更新關卡配置
-  restartGame();
   hideLobby();
+  
+  // 顯示關卡開始劇情
+  storySystem.showIntro(level);
   
   // 確保只有一個遊戲循環在運行
   if (!gameLoopRunning) {
@@ -3452,7 +3713,11 @@ async function initGame() {
   // 初始化音效系統
   audioSystem.init();
   
+  // 先載入關卡配置
   await initLobby();
+  
+  // 再載入劇情圖片（確保MAX_LEVEL已經設定）
+  await storySystem.loadStoryImages();
   
   // 添加重置進度按鈕事件監聽器
   const resetButton = document.getElementById('resetProgressBtn');
