@@ -925,6 +925,21 @@ function debounceResize() {
 // 視窗大小改變事件
 window.addEventListener('resize', debounceResize);
 
+// 視窗大小改變時更新手機操作按鈕顯示狀態
+window.addEventListener('resize', () => {
+  const mobileControls = document.getElementById('mobileControls');
+  const actionButtons = document.querySelector('.action-buttons');
+  if (mobileControls && actionButtons && gameState === 'playing') {
+    if (window.innerWidth <= 768) {
+      mobileControls.style.display = 'flex';
+      actionButtons.style.display = 'flex';
+    } else {
+      mobileControls.style.display = 'none';
+      actionButtons.style.display = 'none';
+    }
+  }
+});
+
 // 鍵盤事件
 window.addEventListener('keydown', (e) => {
   // 檢查是否有元素被focus，如果有且不是canvas，則不處理遊戲按鍵
@@ -3583,6 +3598,17 @@ function initLobby() {
 function showLobby() {
   document.getElementById('gameLobby').classList.remove('hidden');
   document.getElementById('gameContainer').classList.add('hidden');
+  
+  // 隱藏手機操作按鈕
+  const mobileControls = document.getElementById('mobileControls');
+  const actionButtons = document.querySelector('.action-buttons');
+  if (mobileControls) {
+    mobileControls.style.display = 'none';
+  }
+  if (actionButtons) {
+    actionButtons.style.display = 'none';
+  }
+  
   gameState = 'lobby';
 }
 
@@ -3594,6 +3620,20 @@ function hideLobby() {
   setTimeout(() => {
     resizeCanvas();
   }, 100); // 稍微延遲，確保容器已經顯示
+  
+  // 顯示手機操作按鈕（只在手機上）
+  const mobileControls = document.getElementById('mobileControls');
+  const actionButtons = document.querySelector('.action-buttons');
+  if (mobileControls && actionButtons) {
+    // 檢查是否為手機螢幕
+    if (window.innerWidth <= 768) {
+      mobileControls.style.display = 'flex';
+      actionButtons.style.display = 'flex';
+    } else {
+      mobileControls.style.display = 'none';
+      actionButtons.style.display = 'none';
+    }
+  }
   
   gameState = 'playing';
 }

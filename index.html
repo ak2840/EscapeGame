@@ -346,7 +346,12 @@
       
       /* 手機操作按鈕在小螢幕上顯示 */
       .mobile-controls {
-        display: flex;
+        display: flex !important;
+      }
+      
+      /* 動作按鈕在小螢幕上顯示 */
+      .action-buttons {
+        display: flex !important;
       }
       
       /* 調整按鈕大小適應手機螢幕 */
@@ -379,6 +384,10 @@
       .mobile-controls {
         bottom: 30px;
       }
+      
+      .action-buttons {
+        bottom: 30px;
+      }
     }
     
     /* 在大螢幕上隱藏手機操作按鈕 */
@@ -393,13 +402,13 @@
     }
     
     /* 添加動畫效果，與遊戲的動態感一致 */
-    @keyframes glow {
+    @keyframes lobbyGlow {
       0%, 100% { box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); }
       50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); }
     }
     
     .lobby-container {
-      animation: glow 3s ease-in-out infinite;
+      animation: lobbyGlow 3s ease-in-out infinite;
     }
     
     /* 手機操作按鈕的脈動動畫 */
@@ -412,12 +421,8 @@
       }
     }
     
-    .mobile-controls {
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
     /* 手機操作按鈕的發光效果 */
-    @keyframes glow {
+    @keyframes buttonGlow {
       0%, 100% { 
         filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.3));
       }
@@ -425,22 +430,18 @@
         filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
       }
     }
-    
-    .mobile-controls .control-btn {
-      animation: glow 3s ease-in-out infinite;
-    }
 
     /* 手機操作按鈕樣式 */
     .mobile-controls {
-      position: absolute;
+      position: fixed;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 20px;
       display: none; /* 預設隱藏 */
       flex-direction: column;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       z-index: 1002;
+      animation: pulse 2s ease-in-out infinite;
     }
 
     .direction-pad {
@@ -475,6 +476,7 @@
       -webkit-tap-highlight-color: transparent;
       backdrop-filter: blur(5px);
       touch-action: manipulation;
+      animation: buttonGlow 3s ease-in-out infinite;
     }
 
     .control-btn:hover {
@@ -500,8 +502,12 @@
     }
 
     .action-buttons {
-      display: flex;
+      display: none; /* 預設隱藏 */
       gap: 10px;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1002;
     }
 
     .action-btn {
@@ -594,37 +600,37 @@
   
   <div id="gameContainer" class="hidden">
     <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
-    
-    <!-- 手機操作按鈕 -->
-    <div id="mobileControls" class="mobile-controls">
-      <!-- 方向鍵區域 -->
-      <div class="direction-pad">
-        <button class="control-btn direction-btn" id="upBtn" data-direction="up" title="向上移動">
-          <span>↑</span>
+  </div>
+  
+  <!-- 手機操作按鈕 -->
+  <div id="mobileControls" class="mobile-controls">
+    <!-- 方向鍵區域 -->
+    <div class="direction-pad">
+      <button class="control-btn direction-btn" id="upBtn" data-direction="up" title="向上移動">
+        <span>↑</span>
+      </button>
+      <div class="direction-row">
+        <button class="control-btn direction-btn" id="leftBtn" data-direction="left" title="向左移動">
+          <span>←</span>
         </button>
-        <div class="direction-row">
-          <button class="control-btn direction-btn" id="leftBtn" data-direction="left" title="向左移動">
-            <span>←</span>
-          </button>
-          <button class="control-btn direction-btn" id="rightBtn" data-direction="right" title="向右移動">
-            <span>→</span>
-          </button>
-        </div>
-        <button class="control-btn direction-btn" id="downBtn" data-direction="down" title="向下移動">
-          <span>↓</span>
+        <button class="control-btn direction-btn" id="rightBtn" data-direction="right" title="向右移動">
+          <span>→</span>
         </button>
       </div>
-      
-      <!-- 動作按鈕 -->
-      <div class="action-buttons">
-        <button class="control-btn action-btn" id="actionBtn" title="執行動作/通關">
-          <span>動作</span>
-        </button>
-        <button class="control-btn action-btn" id="escapeBtn" title="返回大廳">
-          <span>ESC</span>
-        </button>
-      </div>
+      <button class="control-btn direction-btn" id="downBtn" data-direction="down" title="向下移動">
+        <span>↓</span>
+      </button>
     </div>
+  </div>
+  
+  <!-- 動作按鈕 -->
+  <div class="action-buttons">
+    <button class="control-btn action-btn" id="actionBtn" title="執行動作/通關">
+      <span>動作</span>
+    </button>
+    <button class="control-btn action-btn" id="escapeBtn" title="返回大廳">
+      <span>ESC</span>
+    </button>
   </div>
   
   <!-- 音效元素 -->
