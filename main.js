@@ -2627,6 +2627,10 @@ function drawMap(offsetX, offsetY) {
   const gridSize = 100;
   const config = levelConfigs[currentLevel];
   
+  // 啟用像素完美對齊
+  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingQuality = 'high';
+  
   // 調試信息
   if (!config) {
     console.log('錯誤: 沒有找到關卡配置');
@@ -2665,8 +2669,9 @@ function drawMap(offsetX, offsetY) {
   // 繪製地圖瓦片
   for (let x = startX; x < endX; x += gridSize) {
     for (let y = startY; y < endY; y += gridSize) {
-      const drawX = x - offsetX;
-      const drawY = y - offsetY;
+      // 使用 Math.round 來避免浮點數精度問題
+      const drawX = Math.round(x - offsetX);
+      const drawY = Math.round(y - offsetY);
       
       // 計算網格位置
       const gridCol = Math.floor(x / gridSize);
@@ -2681,18 +2686,19 @@ function drawMap(offsetX, offsetY) {
         const tileImage = currentMapTiles[tileIndex];
         
         if (tileImage && tileImage.complete) {
-          ctx.drawImage(tileImage, drawX, drawY, gridSize, gridSize);
+          // 使用整數座標並稍微擴大繪製範圍以避免縫隙
+          ctx.drawImage(tileImage, drawX, drawY, gridSize + 1, gridSize + 1);
           tilesDrawn++;
         } else {
           // 如果圖片未載入，使用顏色方塊作為備用
           ctx.fillStyle = '#8B4513'; // 棕色
-          ctx.fillRect(drawX, drawY, gridSize, gridSize);
+          ctx.fillRect(drawX, drawY, gridSize + 1, gridSize + 1);
           tilesFailed++;
         }
       } else {
         // 超出地圖範圍，使用預設顏色
         ctx.fillStyle = '#8B4513'; // 棕色
-        ctx.fillRect(drawX, drawY, gridSize, gridSize);
+        ctx.fillRect(drawX, drawY, gridSize + 1, gridSize + 1);
       }
     }
   }
@@ -2701,11 +2707,14 @@ function drawMap(offsetX, offsetY) {
   if (Math.random() < 0.01) { // 1% 機率輸出
     console.log(`地圖繪製: 成功${tilesDrawn}格, 失敗${tilesFailed}格, 總共${currentMapTiles.length}張圖片`);
   }
+  
+  // 恢復預設的圖像平滑設定
+  ctx.imageSmoothingEnabled = true;
 }
 
 function drawGrid(offsetX, offsetY) {
   const gridSize = 100;
-  ctx.strokeStyle = '#666666';
+  ctx.strokeStyle = 'transparent';
   ctx.lineWidth = 1;
   
   // 計算網格線的起始和結束位置
