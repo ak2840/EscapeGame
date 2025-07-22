@@ -6,10 +6,9 @@ const GAME_CONFIG = {
     description: "末日環境中的ESG小尖兵冒險遊戲",
     instructions: [
       "使用方向鍵移動角色",
+      "按空白鍵執行動作",
       "停止時自動攻擊怪物",
-      "在安全區域內無敵",
-      "收集足夠道具後找到出口通關",
-      "按空白鍵執行動作"
+      "收集足夠道具後通關"
     ],
     uiText: {
       continue: "按空白鍵繼續",
@@ -241,7 +240,7 @@ const GAME_CONFIG = {
       description: "面對強大的砲塔",
       unlockRequirement: 3,
       mapItemA: 0,
-      mapItemB: 20,
+      mapItemB: 0,
       exitCondition: {
           monsterItemB: 1
       },

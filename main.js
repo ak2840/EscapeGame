@@ -1555,6 +1555,10 @@ function spawnMonsters() {
       attackCooldown: settings.attackCooldown || 500, // 攻擊間隔
       attackRange: settings.attackRange || 250, // 攻擊範圍
       attackCount: 0, // 攻擊計數器
+      // 循環射擊模式相關屬性
+      currentAttackMode: 0, // 當前攻擊模式 (0-3)
+      attackModeCount: 0, // 當前模式攻擊次數
+      maxAttacksPerMode: 5, // 每種模式攻擊5次後切換
       // 動畫相關屬性（砲塔也會有動畫，雖然不移動）
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -1669,6 +1673,8 @@ function getMonsterMaxHp(type) {
       return 2;
   }
 }
+
+
 
 function updatePlayer() {
   player.moving = false;
@@ -1950,7 +1956,7 @@ function updateMonsters() {
         }
       }
     } else if (m.type === 'turret') {
-      // 砲塔怪物：不會移動，但會發射攻擊
+      // 砲塔怪物：循環射擊模式
       // 持續攻擊，不受玩家位置或安全區域影響
       const px = player.x + player.width / 2;
       const py = player.y + player.height / 2;
@@ -1974,52 +1980,92 @@ function updateMonsters() {
         // 發射攻擊彈幕
         if (dist > 0) {
           m.attackCount++; // 增加攻擊計數
+          m.attackModeCount++; // 增加當前模式攻擊次數
           
-          // 檢查是否為第10次攻擊（特殊攻擊模式）
-          if (m.attackCount % 10 === 0) {
-            // 特殊攻擊：全方位射擊18發子彈
-            for (let i = 0; i < 18; i++) {
-              // 計算360度全方位角度，每20度一發
-              const angle = (i * 20) * (Math.PI / 180); // 轉換為弧度
+          // 檢查是否需要切換攻擊模式
+          if (m.attackModeCount >= m.maxAttacksPerMode) {
+            m.currentAttackMode = (m.currentAttackMode + 1) % 3; // 循環切換 0-2
+            m.attackModeCount = 0;
+            console.log(`砲塔切換到攻擊模式: ${m.currentAttackMode}`);
+          }
+          
+          // 根據當前攻擊模式執行不同的射擊方式
+          switch (m.currentAttackMode) {
+            case 0: // 模式1：精準狙擊（單發高速子彈，瞄準玩家）
+              // 瞄準角色位置中心加上小幅隨機偏移（-50到+50像素）
+              const offsetX1 = (Math.random() - 0.5) * 100; // -50到+50
+              const offsetY1 = (Math.random() - 0.5) * 100; // -50到+50
               
-              // 計算攻擊速度向量（全方位，速度為一般的一半）
-              const targetVx = Math.cos(angle) * (MONSTER_PROJECTILE_SPEED * 0.5);
-              const targetVy = Math.sin(angle) * (MONSTER_PROJECTILE_SPEED * 0.5);
+              const targetX1 = px + offsetX1;
+              const targetY1 = py + offsetY1;
+              
+              const targetDx1 = targetX1 - mx;
+              const targetDy1 = targetY1 - my;
+              const targetDist1 = Math.sqrt(targetDx1 * targetDx1 + targetDy1 * targetDy1);
+              
+              // 高速子彈（1.5倍速度）
+              const targetVx1 = (targetDx1 / targetDist1) * (MONSTER_PROJECTILE_SPEED * 1.5);
+              const targetVy1 = (targetDy1 / targetDist1) * (MONSTER_PROJECTILE_SPEED * 1.5);
               
               monsterProjectiles.push({
                 x: mx,
                 y: my,
-                vx: targetVx,
-                vy: targetVy,
+                vx: targetVx1,
+                vy: targetVy1,
                 targetPlayer: true,
+                color: '#FF0000', // 紅色表示高速子彈
+                size: MONSTER_PROJECTILE_SIZE * 1.2 // 稍大一點
               });
-            }
-          } else if (m.attackCount % 10 !== 1 && m.attackCount % 10 !== 2) {
-            // 普通攻擊：發射1顆子彈（排除特殊攻擊後的冷卻期）
-            // 瞄準角色位置中心加上隨機偏移（-100到+100像素）
-            const offsetX = (Math.random() - 0.5) * 200; // -100到+100
-            const offsetY = (Math.random() - 0.5) * 200; // -100到+100
-            
-            // 計算瞄準目標位置（角色中心 + 隨機偏移）
-            const targetX = px + offsetX;
-            const targetY = py + offsetY;
-            
-            // 計算從砲塔到目標的方向向量
-            const targetDx = targetX - mx;
-            const targetDy = targetY - my;
-            const targetDist = Math.sqrt(targetDx * targetDx + targetDy * targetDy);
-            
-            // 計算攻擊速度向量
-            const targetVx = (targetDx / targetDist) * MONSTER_PROJECTILE_SPEED;
-            const targetVy = (targetDy / targetDist) * MONSTER_PROJECTILE_SPEED;
-            
-            monsterProjectiles.push({
-              x: mx,
-              y: my,
-              vx: targetVx,
-              vy: targetVy,
-              targetPlayer: true,
-            });
+              break;
+              
+            case 1: // 模式2：三連發（連續發射3發子彈，間隔短）
+              for (let i = 0; i < 3; i++) {
+                // 每發子彈有不同的小偏移
+                const offsetX2 = (Math.random() - 0.5) * 150; // -75到+75
+                const offsetY2 = (Math.random() - 0.5) * 150; // -75到+75
+                
+                const targetX2 = px + offsetX2;
+                const targetY2 = py + offsetY2;
+                
+                const targetDx2 = targetX2 - mx;
+                const targetDy2 = targetY2 - my;
+                const targetDist2 = Math.sqrt(targetDx2 * targetDx2 + targetDy2 * targetDy2);
+                
+                const targetVx2 = (targetDx2 / targetDist2) * MONSTER_PROJECTILE_SPEED;
+                const targetVy2 = (targetDy2 / targetDist2) * MONSTER_PROJECTILE_SPEED;
+                
+                monsterProjectiles.push({
+                  x: mx,
+                  y: my,
+                  vx: targetVx2,
+                  vy: targetVy2,
+                  targetPlayer: true,
+                  color: '#FF8800', // 橙色表示三連發
+                  size: MONSTER_PROJECTILE_SIZE
+                });
+              }
+              break;
+              
+            case 2: // 模式3：全方位（18發子彈360度發射）
+              for (let i = 0; i < 18; i++) {
+                // 計算360度全方位角度，每20度一發
+                const angle = (i * 20) * (Math.PI / 180); // 轉換為弧度
+                
+                // 計算攻擊速度向量（全方位，速度為一般的一半）
+                const targetVx4 = Math.cos(angle) * (MONSTER_PROJECTILE_SPEED * 0.5);
+                const targetVy4 = Math.sin(angle) * (MONSTER_PROJECTILE_SPEED * 0.5);
+                
+                monsterProjectiles.push({
+                  x: mx,
+                  y: my,
+                  vx: targetVx4,
+                  vy: targetVy4,
+                  targetPlayer: true,
+                  color: '#FF00FF', // 紫色表示全方位
+                  size: MONSTER_PROJECTILE_SIZE * 0.6 // 更小一點
+                });
+              }
+              break;
           }
           
           m.lastAttackTime = currentTime;
@@ -2325,10 +2371,32 @@ function drawProjectiles(offsetX, offsetY) {
 
 // 繪製單個怪物彈幕
 function drawSingleMonsterProjectile(projectile, offsetX, offsetY) {
-  ctx.fillStyle = '#FF0000'; // 紅色怪物攻擊彈幕
+  // 使用子彈的自定義顏色，如果沒有則使用預設紅色
+  const color = projectile.color || '#FF0000';
+  const size = projectile.size || MONSTER_PROJECTILE_SIZE;
+  
+  ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.arc(projectile.x - offsetX, projectile.y - offsetY, MONSTER_PROJECTILE_SIZE, 0, 2 * Math.PI);
+  ctx.arc(projectile.x - offsetX, projectile.y - offsetY, size, 0, 2 * Math.PI);
   ctx.fill();
+  
+  // 為不同類型的子彈添加發光效果
+  if (color === '#FF0000') { // 精準狙擊 - 紅色光暈
+    ctx.shadowColor = '#FF0000';
+    ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  } else if (color === '#FF8800') { // 三連發 - 橙色光暈
+    ctx.shadowColor = '#FF8800';
+    ctx.shadowBlur = 6;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  } else if (color === '#FF00FF') { // 全方位 - 紫色光暈
+    ctx.shadowColor = '#FF00FF';
+    ctx.shadowBlur = 3;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
 }
 
 function drawMonsterProjectiles(offsetX, offsetY) {
