@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>焦土中的信號 Signal - 遊戲大廳</title>
+  <title id="pageTitle">焦土中的信號 Signal - 遊戲大廳</title>
   <style>
     body { 
       margin: 0; 
@@ -365,8 +365,8 @@
 
   <div id="gameLobby">
     <div class="lobby-container">
-      <h1 class="game-title">焦土中的信號 Signal</h1>
-              <p class="subtitle">在廢墟中尋找希望的生存冒險</p>
+      <h1 class="game-title" id="gameTitle">焦土中的信號 Signal</h1>
+              <p class="subtitle" id="gameSubtitle">在廢墟中尋找希望的生存冒險</p>
       
       <div class="progress-info" id="progressInfo">
         進度：第 1 關
@@ -393,12 +393,8 @@
       
       <div class="instructions">
         <strong>遊戲說明：</strong>
-        <ul>
-          <li>使用方向鍵移動角色</li>
-          <li>停止時自動攻擊怪物</li>
-          <li>在安全區域內無敵</li>
-          <li>收集足夠道具後找到出口通關</li>
-          <li>按空白鍵執行動作</li>
+        <ul id="gameInstructions">
+          <!-- 遊戲說明將由JavaScript動態生成 -->
         </ul>
       </div>
       
@@ -430,6 +426,7 @@
     <source src="assets/audio/button-click.mp3" type="audio/mpeg">
   </audio>
   
+  <script src="gameConfig.js"></script>
   <script src="main.js"></script>
 </body>
 </html> 

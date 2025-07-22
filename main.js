@@ -572,7 +572,7 @@ function selectWeightedTileIndex(seed) {
 // 生成固定的地圖佈局
 function generateMapLayout() {
   const gridSize = 100;
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   
   if (!config || !config.mapTiles || currentMapTiles.length === 0) {
     console.log('無法生成地圖佈局：缺少配置或圖片');
@@ -607,7 +607,7 @@ function generateMapLayout() {
 // 遊戲狀態管理
 let gameState = 'lobby'; // 'lobby', 'playing', 'gameOver', 'victory', 'storyIntro', 'storyOutro'
 let currentLevel = 1;
-let MAX_LEVEL = 4; // 將從設定檔讀取
+let MAX_LEVEL = GAME_CONFIG.maxLevel; // 將從設定檔讀取
 let highestUnlockedLevel = 1; // 最高解鎖關卡
 let completedLevels = []; // 已完成的關卡
 let gameLoopRunning = false; // 控制遊戲循環是否正在運行
@@ -702,10 +702,10 @@ const storySystem = {
     // 副標題
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '28px Arial';
-    ctx.fillText('準備開始冒險...', 400, 240);
+    ctx.fillText(GAME_CONFIG.gameInfo.storyText.prepareAdventure, 400, 240);
     
     // 關卡描述
-    const levelConfig = levelConfigs[level];
+    const levelConfig = GAME_CONFIG.levels[level];
     if (levelConfig && levelConfig.description) {
       ctx.fillStyle = '#CCCCCC';
       ctx.font = '20px Arial';
@@ -714,7 +714,7 @@ const storySystem = {
       // 預設描述
       ctx.fillStyle = '#CCCCCC';
       ctx.font = '20px Arial';
-      ctx.fillText('準備開始新的挑戰...', 400, 280);
+      ctx.fillText(GAME_CONFIG.gameInfo.storyText.prepareNewChallenge, 400, 280);
     }
     
     // 提示文字背景
@@ -724,7 +724,7 @@ const storySystem = {
     // 提示文字
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 24px Arial';
-    ctx.fillText('按空白鍵繼續', 400, 560);
+    ctx.fillText(GAME_CONFIG.gameInfo.uiText.continue, 400, 560);
     
     // 轉換為圖片
     const img = new Image();
@@ -765,7 +765,7 @@ const storySystem = {
     // 統計信息
     ctx.fillStyle = '#CCCCCC';
     ctx.font = '20px Arial';
-    ctx.fillText(`擊殺數: ${gameStats.currentGame.killCount}`, 400, 280);
+    ctx.fillText(`${GAME_CONFIG.gameInfo.uiText.killCount}: ${gameStats.currentGame.killCount}`, 400, 280);
     ctx.fillText(`完成時間: ${Math.ceil(gameStats.currentGame.completionTime / 1000)}秒`, 400, 310);
     
     // 提示文字背景
@@ -775,7 +775,7 @@ const storySystem = {
     // 提示文字
     ctx.fillStyle = '#00FF00';
     ctx.font = 'bold 24px Arial';
-    ctx.fillText('按空白鍵繼續', 400, 560);
+    ctx.fillText(GAME_CONFIG.gameInfo.uiText.continue, 400, 560);
     
     // 轉換為圖片
     const img = new Image();
@@ -832,11 +832,11 @@ const storySystem = {
   }
 };
 
-// 關卡設定（將從外部檔案載入）
-let levelConfigs = {};
-let monsterSettings = {};
-let defaultSettings = {};
-let itemSettings = {};
+// 關卡設定（使用內建配置）
+const levelConfigs = GAME_CONFIG.levels;
+const monsterSettings = GAME_CONFIG.monsterSettings;
+const defaultSettings = GAME_CONFIG.defaultSettings;
+const itemSettings = GAME_CONFIG.itemSettings;
 
 // 道具系統變數
 let items = [];
@@ -1010,7 +1010,7 @@ canvas.addEventListener('click', (e) => {
   const debugY = startY;
   if (x >= debugX && x <= debugX + buttonSize && y >= debugY && y <= debugY + buttonSize) {
     // Debug功能：收集足夠道具
-    const config = levelConfigs[currentLevel];
+    const config = GAME_CONFIG.levels[currentLevel];
     if (config && config.exitCondition) {
       // 將所有道具數量設定為通關要求
       for (const [itemType, requiredCount] of Object.entries(config.exitCondition)) {
@@ -1191,7 +1191,7 @@ function completeLevel(level) {
 }
 
 async function updateLevelConfig() {
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
 
   // 載入地圖圖片
   loadMapImages(config);
@@ -1228,19 +1228,19 @@ async function updateLevelConfig() {
   GAME_TIME = config.gameTime;
   
   // 更新預設遊戲參數
-  ATTACK_COOLDOWN = defaultSettings.attackCooldown || 300;
-  SAFE_ZONE_SIZE = defaultSettings.safeZoneSize || 200;
-  PROJECTILE_SPEED = (defaultSettings.projectileSpeed || 8); // 保持固定速度
-  PROJECTILE_SIZE = defaultSettings.projectileSize || 4;
-  MONSTER_PROJECTILE_SPEED = (defaultSettings.monsterProjectileSpeed || 6); // 保持固定速度
-  MONSTER_PROJECTILE_SIZE = defaultSettings.monsterProjectileSize || 6;
+  ATTACK_COOLDOWN = defaultSettings.attackCooldown;
+  SAFE_ZONE_SIZE = defaultSettings.safeZoneSize;
+  PROJECTILE_SPEED = defaultSettings.projectileSpeed; // 保持固定速度
+  PROJECTILE_SIZE = defaultSettings.projectileSize;
+  MONSTER_PROJECTILE_SPEED = defaultSettings.monsterProjectileSpeed; // 保持固定速度
+  MONSTER_PROJECTILE_SIZE = defaultSettings.monsterProjectileSize;
   
   // 更新玩家設定
-  player.baseSpeed = defaultSettings.playerSpeed || 4;
+  player.baseSpeed = defaultSettings.playerSpeed;
   player.speed = player.baseSpeed;
-  player.hp = defaultSettings.playerHp || 10;
-  player.maxHp = defaultSettings.playerHp || 10;
-  player.invulnerableDuration = defaultSettings.invulnerableDuration || 1000;
+  player.hp = defaultSettings.playerHp;
+  player.maxHp = defaultSettings.playerHp;
+  player.invulnerableDuration = defaultSettings.invulnerableDuration;
 
   // 更新安全區域位置（確保在地圖中心）
   SAFE_ZONE_CENTER_X = MAP_WIDTH / 2;
@@ -2130,7 +2130,7 @@ function checkExit() {
 }
 
 function checkExitConditions() {
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   if (!config || !config.exitCondition) {
     // 如果沒有設定通關條件，直接允許通關
     return true;
@@ -2163,13 +2163,13 @@ function isPlayerNearExit() {
 }
 
 function showExitConditionHint() {
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   if (!config || !config.exitCondition) {
     return;
   }
   
   // 顯示提示訊息
-  console.log('通關條件未滿足！');
+      console.log(GAME_CONFIG.gameInfo.uiText.exitConditionNotMet);
   
   // 創建提示粒子效果
   const exitCenterX = exit.x + exit.width / 2;
@@ -2199,7 +2199,7 @@ function drawExit(offsetX, offsetY) {
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '10px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('需要收集道具', exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
+    ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
   }
 }
 
@@ -2438,11 +2438,11 @@ function drawGameOver() {
   ctx.fillStyle = '#FF0000';
   ctx.font = 'bold 56px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('遊戲結束！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.gameOver, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
   
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 28px Arial';
-  ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.returnToLobbySpace, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
   
   // 遊戲結束時停止背景音樂
   audioSystem.stopGameMusic();
@@ -2455,7 +2455,7 @@ function updateTimer() {
     
     if (remainingTime <= 0) {
       gameOver = true;
-      console.log('時間到！遊戲結束！');
+      console.log(GAME_CONFIG.gameInfo.uiText.timeUp);
     }
   }
 }
@@ -2493,7 +2493,7 @@ function drawKillCount() {
   ctx.fillStyle = '#00FF00';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`擊殺: ${killCount}`, VIEW_WIDTH - 65, 90);
+  ctx.fillText(`${GAME_CONFIG.gameInfo.uiText.killCount}: ${killCount}`, VIEW_WIDTH - 65, 90);
 }
 
 function drawLevelInfo() {
@@ -2506,7 +2506,7 @@ function drawLevelInfo() {
   ctx.lineWidth = 2;
   ctx.strokeRect(VIEW_WIDTH - 120, 160, 110, 40);
   
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 20px Arial';
   ctx.textAlign = 'center';
@@ -2619,7 +2619,7 @@ function drawGameTitle() {
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'left';
-          ctx.fillText('焦土中的信號 Signal', 20, VIEW_HEIGHT - 25);
+  ctx.fillText(GAME_CONFIG.gameInfo.name, 20, VIEW_HEIGHT - 25);
   
   // 返回大廳按鈕
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -2632,7 +2632,7 @@ function drawGameTitle() {
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 16px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('返回大廳 (ESC)', VIEW_WIDTH - 65, VIEW_HEIGHT - 25);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.returnToLobby, VIEW_WIDTH - 65, VIEW_HEIGHT - 25);
 }
 
 function drawPlayerHealth() {
@@ -2789,17 +2789,13 @@ function drawGameInstructions() {
   ctx.lineWidth = 2;
   ctx.strokeRect(10, 10, 220, 380);
   
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   const instructions = [
     '【操作】',
-    '方向鍵：移動',
-    '空白鍵：執行動作',
+    ...GAME_CONFIG.gameInfo.controls.slice(0, 2),
     '',
     '【規則】',
-    '• 停止時自動攻擊',
-    '• 找到綠色出口通關',
-    '• 安全區域內無敵',
-    '• 血量耗盡遊戲結束',
+    ...GAME_CONFIG.gameInfo.controls.slice(2),
     '',
     '【關卡】',
     `• 當前：${config.name}`,
@@ -2807,10 +2803,7 @@ function drawGameInstructions() {
     `• 怪物：${config.normalAMonsters + config.normalBMonsters + config.normalCMonsters + config.trackerAMonsters + config.trackerBMonsters + config.turretMonsters}隻`,
     '',
     '【怪物】',
-    '• 紅色：普通怪物',
-    '• 粉色：追蹤怪物',
-    '• 深紅：砲塔怪物',
-    '• 玩家在安全區時不攻擊'
+    ...GAME_CONFIG.gameInfo.monsterDescriptions
   ];
   
   instructions.forEach((text, index) => {
@@ -2846,21 +2839,21 @@ function drawVictory() {
   ctx.fillStyle = '#00FF00';
   ctx.font = 'bold 56px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('恭喜通關所有關卡！', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.congratulations, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
   
   // 顯示遊戲統計
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 20px Arial';
-  ctx.fillText(`擊殺數: ${killCount}`, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 20);
+  ctx.fillText(`${GAME_CONFIG.gameInfo.uiText.killCount}: ${killCount}`, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 20);
   
   ctx.fillStyle = '#FFFFFF';
   ctx.font = 'bold 28px Arial';
-  ctx.fillText('按空白鍵返回大廳', VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.returnToLobbySpace, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
 }
 
 function drawMap(offsetX, offsetY) {
   const gridSize = 100;
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   
   // 啟用像素完美對齊
   ctx.imageSmoothingEnabled = false;
@@ -3178,359 +3171,57 @@ function gameLoop() {
   }
 }
 
-// 載入關卡設定檔
-async function loadLevelConfig() {
-  try {
-    console.log('開始載入 levelConfig.json...');
-    const response = await fetch('levelConfig.json');
-    console.log('Fetch 回應狀態:', response.status, response.statusText);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-    }
-    
-    const config = await response.json();
-    console.log('成功解析 JSON:', config);
-    
+// 載入關卡設定檔（已簡化為直接使用內建配置）
+function loadLevelConfig() {
+  console.log('使用內建遊戲配置...');
+  
+  // 設定最大關卡數
+  MAX_LEVEL = GAME_CONFIG.maxLevel;
+  
+  // 更新頁面標題和遊戲標題
+  updatePageTitles();
+  
+  console.log('遊戲配置載入成功');
+  console.log('最大關卡數:', MAX_LEVEL);
+  console.log('關卡配置:', GAME_CONFIG.levels);
+  console.log('道具配置:', GAME_CONFIG.itemSettings);
+  return true;
+}
 
-    
-    // 設定最大關卡數
-    MAX_LEVEL = config.maxLevel;
-    
-    // 設定關卡配置
-    levelConfigs = config.levels;
-    
-    // 設定怪物屬性配置
-    monsterSettings = config.monsterSettings;
-    
-    // 設定預設遊戲參數
-    defaultSettings = config.defaultSettings;
-    
-    // 設定道具配置
-    itemSettings = config.itemSettings || {};
-    
-    console.log('關卡設定載入成功:', config);
-    console.log('最大關卡數:', MAX_LEVEL);
-    console.log('關卡配置:', levelConfigs);
-    console.log('道具配置:', itemSettings);
-    return true;
-  } catch (error) {
-    console.error('載入關卡設定失敗:', error);
-    console.error('錯誤詳情:', error.message);
-    console.error('錯誤堆疊:', error.stack);
-    
-    // 如果載入失敗，使用預設設定
-    MAX_LEVEL = 4;
-    
-    // 預設道具設定
-    itemSettings = {
-      "mapItemA": {
-        "name": "OPEE",
-        "description": "一個機器人",
-        "color": "#FF4444",
-        "size": 80,
-        "image": "assets/items/item-map-a.png"
-      },
-      "mapItemB": {
-        "name": "共感頻率器",
-        "description": "大喇叭",
-        "color": "#44FF44",
-        "size": 50,
-        "image": "assets/items/item-map-b.png"
-      },
-      "monsterItemA": {
-        "name": "綠能聚合晶體",
-        "description": "綠色的石頭",
-        "color": "#FFAA00",
-        "size": 35,
-        "image": "assets/items/item-monster-a.png"
-      },
-      "monsterItemB": {
-        "name": "動能核心",
-        "description": "有電的東西",
-        "color": "#4444FF",
-        "size": 45,
-        "image": "assets/items/item-monster-b.png"
-      }
-    };
-    
-    // 預設遊戲參數
-    defaultSettings = {
-      playerSpeed: 4,
-      playerHp: 10,
-      safeZoneSize: 200,
-      projectileSpeed: 8,
-      projectileSize: 4,
-      monsterProjectileSpeed: 6,
-      monsterProjectileSize: 6,
-      attackCooldown: 300,
-      invulnerableDuration: 1000
-    };
-    
-    // 預設怪物設定
-    monsterSettings = {
-      normalA: {
-        hp: 5,
-        speed: 0.8,
-        color: "#FF8800"
-      },
-      normalB: {
-        hp: 5,
-        speed: 0.8,
-        color: "#8844FF"
-      },
-      normalC: {
-        hp: 5,
-        speed: 0.8,
-        color: "#44FF44"
-      },
-      trackerA: {
-        hp: 2,
-        speed: 1.5,
-        color: "#FF0088",
-        size: 120
-      },
-      trackerB: {
-        hp: 2,
-        speed: 1.5,
-        color: "#FF0088",
-        size: 120
-      },
-      turret: {
-        hp: 30,
-        speed: 0,
-        color: "#8B0000",
-        attackCooldown: 500,
-        attackRange: 250,
-        size: 300
-      }
-    };
-    
-    levelConfigs = {
-      1: {
-        name: "新手關卡",
-        mapWidth: 1200,
-        mapHeight: 600,
-        normalAMonsters: 0,
-        normalBMonsters: 0,
-        normalCMonsters: 0,
-        trackerAMonsters: 0,
-        trackerBMonsters: 0,
-        turretMonsters: 0,
-        gameTime: 10000,
-        description: "熟悉基本操作",
-        exitCondition: {
-          mapItemA: 1
-        },
-        items: {
-          mapItems: {
-            mapItemA: 1
-          },
-          monsterDropRates: {
-            trackerA: {
-              monsterItemA: 1.0
-            },
-            trackerB: {
-              monsterItemA: 1.0
-            }
-          }
-        },
-        mapTiles: [
-          {
-            "path": "assets/maps/map-level1-1.png",
-            "weight": 10
-          },
-          {
-            "path": "assets/maps/map-level1-2.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level1-3.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level1-4.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level1-5.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level1-6.png",
-            "weight": 1
-          }
-        ]
-      },
-      2: {
-        name: "進階關卡",
-        mapWidth: 3200,
-        mapHeight: 2400,
-        normalAMonsters: 0,
-        normalBMonsters: 0,
-        normalCMonsters: 0,
-        trackerAMonsters: 30,
-        trackerBMonsters: 30,
-        turretMonsters: 0,
-        gameTime: 100000,
-        description: "增加怪物數量",
-        exitCondition: {
-          monsterItemA: 10
-        },
-        items: {
-          mapItems: {},
-          monsterDropRates: {
-            trackerA: {
-              monsterItemA: 1.0
-            },
-            trackerB: {
-              monsterItemA: 1.0
-            }
-          }
-        },
-        mapTiles: [
-          {
-            "path": "assets/maps/map-level2-1.png",
-            "weight": 3
-          },
-          {
-            "path": "assets/maps/map-level2-2.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level2-3.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level2-4.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level2-5.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level2-6.png",
-            "weight": 1
-          }
-        ]
-      },
-      3: {
-        name: "挑戰關卡",
-        mapWidth: 4000,
-        mapHeight: 3000,
-        normalAMonsters: 15,
-        normalBMonsters: 15,
-        normalCMonsters: 15,
-        trackerAMonsters: 10,
-        trackerBMonsters: 10,
-        turretMonsters: 0,
-        gameTime: 100000,
-        description: "更大的地圖",
-        exitCondition: {
-          mapItemB: 15,
-          monsterItemA: 5
-        },
-        items: {
-          mapItems: {
-            mapItemB: 20
-          },
-          monsterDropRates: {
-            trackerA: {
-              monsterItemA: 1.0
-            },
-            trackerB: {
-              monsterItemA: 1.0
-            }
-          }
-        },
-        mapTiles: [
-          {
-            "path": "assets/maps/map-level3-1.png",
-            "weight": 30
-          },
-          {
-            "path": "assets/maps/map-level3-2.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level3-3.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level3-4.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level3-5.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level3-6.png",
-            "weight": 1
-          }
-        ]
-      },
-      4: {
-        name: "終極關卡",
-        mapWidth: 2400,
-        mapHeight: 1800,
-        normalAMonsters: 0,
-        normalBMonsters: 0,
-        normalCMonsters: 0,
-        trackerAMonsters: 0,
-        trackerBMonsters: 0,
-        turretMonsters: 1,
-        gameTime: 200000,
-        description: "最終挑戰",
-        exitCondition: {
-          monsterItemB: 1
-        },
-        items: {
-          mapItems: {},
-          monsterDropRates: {
-            turret: {
-              monsterItemB: 1.0
-            }
-          }
-        },
-        mapTiles: [
-          {
-            "path": "assets/maps/map-level4-1.png",
-            "weight": 3
-          },
-          {
-            "path": "assets/maps/map-level4-2.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level4-3.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level4-4.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level4-5.png",
-            "weight": 1
-          },
-          {
-            "path": "assets/maps/map-level4-6.png",
-            "weight": 1
-          }
-        ]
-      }
-    };
-    return false;
+// 更新頁面標題和遊戲標題
+function updatePageTitles() {
+  const pageTitle = document.getElementById('pageTitle');
+  const gameTitle = document.getElementById('gameTitle');
+  const gameSubtitle = document.getElementById('gameSubtitle');
+  const gameInstructions = document.getElementById('gameInstructions');
+  
+  if (pageTitle) {
+    pageTitle.textContent = `${GAME_CONFIG.gameInfo.name} - 遊戲大廳`;
+  }
+  
+  if (gameTitle) {
+    gameTitle.textContent = GAME_CONFIG.gameInfo.name;
+  }
+  
+  if (gameSubtitle) {
+    gameSubtitle.textContent = GAME_CONFIG.gameInfo.description;
+  }
+  
+  if (gameInstructions) {
+    gameInstructions.innerHTML = '';
+    GAME_CONFIG.gameInfo.instructions.forEach(instruction => {
+      const li = document.createElement('li');
+      li.textContent = instruction;
+      gameInstructions.appendChild(li);
+    });
   }
 }
 
 // 遊戲大廳管理函數
-async function initLobby() {
+function initLobby() {
   try {
     console.log('開始初始化大廳...');
-    await loadLevelConfig();
+    loadLevelConfig();
     console.log('關卡配置載入完成');
     
     loadLevel();
@@ -3596,7 +3287,7 @@ function updateLobbyDisplay() {
       button.innerHTML = `第 ${level} 關<br><span class="level-info">已完成</span>`;
     } else if (level <= highestUnlockedLevel) {
       button.classList.add('unlocked');
-      const levelConfig = levelConfigs[level];
+      const levelConfig = GAME_CONFIG.levels[level];
       const levelName = levelConfig && levelConfig.name ? levelConfig.name : `第${level}關`;
       button.innerHTML = `第 ${level} 關<br><span class="level-info">${levelName}</span>`;
     } else {
@@ -3853,7 +3544,7 @@ window.debugMapImages = function() {
   console.log('=== 地圖圖片調試 ===');
   console.log(`當前關卡: ${currentLevel}`);
   
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   if (config) {
     console.log('關卡配置:', config);
     console.log(`地圖圖片數量: ${config.mapTiles ? config.mapTiles.length : 0}`);
@@ -3960,9 +3651,9 @@ async function loadItemImages() {
 function spawnMapItems() {
   console.log('開始生成地圖道具...');
   console.log('當前關卡:', currentLevel);
-  console.log('關卡配置:', levelConfigs[currentLevel]);
+  console.log('關卡配置:', GAME_CONFIG.levels[currentLevel]);
   
-  const levelConfig = levelConfigs[currentLevel];
+  const levelConfig = GAME_CONFIG.levels[currentLevel];
   if (!levelConfig || !levelConfig.items || !levelConfig.items.mapItems) {
     console.log('當前關卡沒有地圖道具配置');
     console.log('levelConfig:', levelConfig);
@@ -4033,7 +3724,7 @@ function spawnMapItems() {
 
 // 怪物死亡時掉落道具
 function dropMonsterItem(monster) {
-  const levelConfig = levelConfigs[currentLevel];
+  const levelConfig = GAME_CONFIG.levels[currentLevel];
   if (!levelConfig || !levelConfig.items || !levelConfig.items.monsterDropRates) {
     return;
   }
@@ -4171,7 +3862,7 @@ function drawItemStats() {
   const spacing = 8;
   
   // 獲取當前關卡的通關條件
-  const config = levelConfigs[currentLevel];
+  const config = GAME_CONFIG.levels[currentLevel];
   const exitCondition = config ? config.exitCondition : null;
   
   // 只顯示當前關卡需要的道具
@@ -4194,7 +3885,7 @@ function drawItemStats() {
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 13px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText('通關道具', startX, startY);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.passItem, startX, startY);
   
   let y = startY + 18;
   
@@ -4202,7 +3893,7 @@ function drawItemStats() {
     // 如果沒有通關條件，顯示提示
     ctx.fillStyle = '#FFFF00';
     ctx.font = '11px Arial';
-    ctx.fillText('無道具要求', startX, y);
+    ctx.fillText(GAME_CONFIG.gameInfo.uiText.noItemRequirement, startX, y);
   } else {
     // 顯示需要的道具
     for (const itemType of requiredItems) {
