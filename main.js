@@ -1089,6 +1089,237 @@ window.addEventListener('keyup', (e) => {
   }
 });
 
+// 手機操作按鈕事件處理
+function initMobileControls() {
+  // 方向鍵按鈕
+  const directionButtons = document.querySelectorAll('.direction-btn');
+  
+  directionButtons.forEach(button => {
+    const direction = button.getAttribute('data-direction');
+    
+    // 按下事件
+    button.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDirectionPress(direction);
+      button.classList.add('active');
+    });
+    
+    button.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDirectionPress(direction);
+      button.classList.add('active');
+    });
+    
+    // 放開事件
+    button.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDirectionRelease(direction);
+      button.classList.remove('active');
+    });
+    
+    button.addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDirectionRelease(direction);
+      button.classList.remove('active');
+    });
+    
+    // 離開事件（防止按鈕卡住）
+    button.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDirectionRelease(direction);
+      button.classList.remove('active');
+    });
+    
+    button.addEventListener('mouseleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDirectionRelease(direction);
+      button.classList.remove('active');
+    });
+  });
+  
+  // 動作按鈕
+  const actionBtn = document.getElementById('actionBtn');
+  const escapeBtn = document.getElementById('escapeBtn');
+  
+  // 動作按鈕事件
+  actionBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleActionPress();
+    actionBtn.classList.add('active');
+  });
+  
+  actionBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleActionPress();
+    actionBtn.classList.add('active');
+  });
+  
+  actionBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleActionRelease();
+    actionBtn.classList.remove('active');
+  });
+  
+  actionBtn.addEventListener('mouseup', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleActionRelease();
+    actionBtn.classList.remove('active');
+  });
+  
+  // ESC按鈕事件
+  escapeBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleEscapePress();
+    escapeBtn.classList.add('active');
+  });
+  
+  escapeBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleEscapePress();
+    escapeBtn.classList.add('active');
+  });
+  
+  escapeBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    escapeBtn.classList.remove('active');
+  });
+  
+  escapeBtn.addEventListener('mouseup', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    escapeBtn.classList.remove('active');
+  });
+}
+
+// 處理方向鍵按下
+function handleDirectionPress(direction) {
+  switch(direction) {
+    case 'up':
+      keys.ArrowUp = true;
+      break;
+    case 'down':
+      keys.ArrowDown = true;
+      break;
+    case 'left':
+      keys.ArrowLeft = true;
+      break;
+    case 'right':
+      keys.ArrowRight = true;
+      break;
+  }
+}
+
+// 處理方向鍵放開
+function handleDirectionRelease(direction) {
+  switch(direction) {
+    case 'up':
+      keys.ArrowUp = false;
+      break;
+    case 'down':
+      keys.ArrowDown = false;
+      break;
+    case 'left':
+      keys.ArrowLeft = false;
+      break;
+    case 'right':
+      keys.ArrowRight = false;
+      break;
+  }
+}
+
+// 處理動作按鈕按下
+function handleActionPress() {
+  keys.Space = true;
+  
+  // 處理劇情狀態下的空白鍵
+  if (gameState === 'storyIntro') {
+    // 關卡開始劇情結束，開始遊戲
+    gameState = 'playing';
+    restartGame();
+    console.log('關卡開始劇情結束，開始遊戲');
+  } else if (gameState === 'storyOutro') {
+    // 關卡結束劇情結束，進入下一關或返回大廳
+    const completedLevel = currentLevel;
+    if (completedLevel < MAX_LEVEL) {
+      // 還有下一關，進入下一關
+      console.log(`進入第${completedLevel + 1}關`);
+      currentLevel = completedLevel + 1;
+      
+      // 更新關卡配置並顯示下一關劇情
+      updateLevelConfig().then(() => {
+        storySystem.showIntro(currentLevel);
+      }).catch(error => {
+        console.error('更新關卡配置失敗:', error);
+        // 即使失敗也要顯示劇情
+        storySystem.showIntro(currentLevel);
+      });
+    } else {
+      // 最後一關通關，回到大廳
+      gameWon = true;
+      returnToLobby();
+    }
+  } else if (gameState === 'playing' && !gameOver && !gameWon) {
+    // 正常遊戲狀態下的動作
+    if (!player.isActioning) {
+      console.log('哈囉！');
+      player.isActioning = true;
+      player.actionStartTime = Date.now();
+      player.actionAnimationTime = Date.now();
+      player.actionAnimationFrame = 1;
+    }
+  }
+}
+
+// 處理動作按鈕放開
+function handleActionRelease() {
+  keys.Space = false;
+  
+  // 空白鍵放開時停止動作
+  player.isActioning = false;
+  
+  // 檢查是否需要重新開始或通關
+  if (gameOver) {
+    // 遊戲結束時放開空白鍵回到大廳
+    returnToLobby();
+  } else if (gameWon) {
+    // 第四關通關時放開空白鍵回到大廳
+    returnToLobby();
+  } else if (checkExit()) {
+    // 在出口位置放開空白鍵通關
+    const completedLevel = currentLevel;
+    completeLevel(completedLevel);
+    
+    // 顯示關卡結束劇情
+    storySystem.showOutro(completedLevel);
+    
+    console.log(`恭喜通過第${completedLevel}關！`);
+  } else if (isPlayerNearExit()) {
+    // 玩家在出口附近但條件未滿足，顯示提示
+    showExitConditionHint();
+  }
+}
+
+// 處理ESC按鈕按下
+function handleEscapePress() {
+  if (gameState === 'playing') {
+    // ESC鍵返回大廳
+    returnToLobby();
+  }
+}
+
 // Cookie 操作函數
 function setCookie(name, value, days) {
   try {
@@ -3574,6 +3805,9 @@ async function initGame() {
       console.log('Debug: 已全通關！');
     });
   }
+  
+  // 初始化手機操作按鈕
+  initMobileControls();
   
   // 啟動遊戲循環（但只在需要時執行遊戲邏輯）
   gameLoopRunning = true;

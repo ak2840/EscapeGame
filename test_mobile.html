@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手機操作按鈕測試</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #444;
+      color: #FFFFFF;
+      font-family: Arial, sans-serif;
+    }
+    
+    .test-container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    
+    .status {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 2px solid #666;
+    }
+    
+    .key-status {
+      display: flex;
+      justify-content: space-around;
+      margin: 10px 0;
+    }
+    
+    .key {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      min-width: 60px;
+    }
+    
+    .key.active {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    /* 手機操作按鈕樣式 */
+    .mobile-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 1002;
+    }
+    
+    .direction-pad {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .direction-row {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      border: 2px solid #666;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.7);
+      color: #FFFFFF;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(5px);
+    }
+    
+    .control-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3);
+      border-color: #FFD700;
+    }
+    
+    .control-btn:active {
+      transform: translateY(0);
+    }
+    
+    .control-btn.active {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      border-color: #4CAF50;
+      transform: scale(0.95);
+      box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-btn {
+      width: 120px;
+      height: 60px;
+      border: 2px solid #666;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #FFFFFF;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(5px);
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3);
+      border-color: #FFD700;
+    }
+    
+    .action-btn:active {
+      transform: translateY(0);
+    }
+    
+    .action-btn.active {
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      border-color: #4CAF50;
+      transform: scale(0.95);
+      box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
+    }
+    
+    /* 響應式設計 */
+    @media (max-width: 768px) {
+      .control-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+      }
+      
+      .action-btn {
+        width: 100px;
+        height: 50px;
+        font-size: 16px;
+      }
+      
+      .direction-pad {
+        gap: 3px;
+      }
+      
+      .direction-row {
+        gap: 3px;
+      }
+      
+      .action-buttons {
+        gap: 8px;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      .mobile-controls {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>手機操作按鈕測試</h1>
+    
+    <div class="status">
+      <h3>按鍵狀態</h3>
+      <div class="key-status">
+        <div class="key" id="upKey">↑</div>
+        <div class="key" id="downKey">↓</div>
+        <div class="key" id="leftKey">←</div>
+        <div class="key" id="rightKey">→</div>
+        <div class="key" id="spaceKey">Space</div>
+        <div class="key" id="escapeKey">ESC</div>
+      </div>
+    </div>
+    
+    <div class="status">
+      <h3>操作說明</h3>
+      <p>在手機上，您應該能看到下方的操作按鈕</p>
+      <p>在電腦上，這些按鈕會隱藏，您可以使用鍵盤</p>
+      <p>點擊或按下按鈕時，上方的狀態會顯示為綠色</p>
+    </div>
+  </div>
+  
+  <!-- 手機操作按鈕 -->
+  <div class="mobile-controls">
+    <!-- 方向鍵區域 -->
+    <div class="direction-pad">
+      <button class="control-btn direction-btn" id="upBtn" data-direction="up">
+        <span>↑</span>
+      </button>
+      <div class="direction-row">
+        <button class="control-btn direction-btn" id="leftBtn" data-direction="left">
+          <span>←</span>
+        </button>
+        <button class="control-btn direction-btn" id="rightBtn" data-direction="right">
+          <span>→</span>
+        </button>
+      </div>
+      <button class="control-btn direction-btn" id="downBtn" data-direction="down">
+        <span>↓</span>
+      </button>
+    </div>
+    
+    <!-- 動作按鈕 -->
+    <div class="action-buttons">
+      <button class="control-btn action-btn" id="actionBtn">
+        <span>動作</span>
+      </button>
+      <button class="control-btn action-btn" id="escapeBtn">
+        <span>ESC</span>
+      </button>
+    </div>
+  </div>
+  
+  <script>
+    // 鍵盤狀態
+    const keys = {
+      ArrowUp: false,
+      ArrowDown: false,
+      ArrowLeft: false,
+      ArrowRight: false,
+      Space: false,
+      Escape: false,
+    };
+    
+    // 更新按鍵狀態顯示
+    function updateKeyDisplay() {
+      document.getElementById('upKey').classList.toggle('active', keys.ArrowUp);
+      document.getElementById('downKey').classList.toggle('active', keys.ArrowDown);
+      document.getElementById('leftKey').classList.toggle('active', keys.ArrowLeft);
+      document.getElementById('rightKey').classList.toggle('active', keys.ArrowRight);
+      document.getElementById('spaceKey').classList.toggle('active', keys.Space);
+      document.getElementById('escapeKey').classList.toggle('active', keys.Escape);
+    }
+    
+    // 鍵盤事件
+    window.addEventListener('keydown', (e) => {
+      if (e.code in keys) {
+        keys[e.code] = true;
+        updateKeyDisplay();
+      }
+    });
+    
+    window.addEventListener('keyup', (e) => {
+      if (e.code in keys) {
+        keys[e.code] = false;
+        updateKeyDisplay();
+      }
+    });
+    
+    // 手機操作按鈕事件處理
+    function initMobileControls() {
+      // 方向鍵按鈕
+      const directionButtons = document.querySelectorAll('.direction-btn');
+      
+      directionButtons.forEach(button => {
+        const direction = button.getAttribute('data-direction');
+        
+        // 按下事件
+        button.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          handleDirectionPress(direction);
+          button.classList.add('active');
+        });
+        
+        button.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          handleDirectionPress(direction);
+          button.classList.add('active');
+        });
+        
+        // 放開事件
+        button.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          handleDirectionRelease(direction);
+          button.classList.remove('active');
+        });
+        
+        button.addEventListener('mouseup', (e) => {
+          e.preventDefault();
+          handleDirectionRelease(direction);
+          button.classList.remove('active');
+        });
+        
+        // 離開事件（防止按鈕卡住）
+        button.addEventListener('touchcancel', (e) => {
+          e.preventDefault();
+          handleDirectionRelease(direction);
+          button.classList.remove('active');
+        });
+        
+        button.addEventListener('mouseleave', (e) => {
+          e.preventDefault();
+          handleDirectionRelease(direction);
+          button.classList.remove('active');
+        });
+      });
+      
+      // 動作按鈕
+      const actionBtn = document.getElementById('actionBtn');
+      const escapeBtn = document.getElementById('escapeBtn');
+      
+      // 動作按鈕事件
+      actionBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleActionPress();
+        actionBtn.classList.add('active');
+      });
+      
+      actionBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleActionPress();
+        actionBtn.classList.add('active');
+      });
+      
+      actionBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleActionRelease();
+        actionBtn.classList.remove('active');
+      });
+      
+      actionBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        handleActionRelease();
+        actionBtn.classList.remove('active');
+      });
+      
+      // ESC按鈕事件
+      escapeBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleEscapePress();
+        escapeBtn.classList.add('active');
+      });
+      
+      escapeBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        handleEscapePress();
+        escapeBtn.classList.add('active');
+      });
+      
+      escapeBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        escapeBtn.classList.remove('active');
+      });
+      
+      escapeBtn.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        escapeBtn.classList.remove('active');
+      });
+    }
+    
+    // 處理方向鍵按下
+    function handleDirectionPress(direction) {
+      switch(direction) {
+        case 'up':
+          keys.ArrowUp = true;
+          break;
+        case 'down':
+          keys.ArrowDown = true;
+          break;
+        case 'left':
+          keys.ArrowLeft = true;
+          break;
+        case 'right':
+          keys.ArrowRight = true;
+          break;
+      }
+      updateKeyDisplay();
+    }
+    
+    // 處理方向鍵放開
+    function handleDirectionRelease(direction) {
+      switch(direction) {
+        case 'up':
+          keys.ArrowUp = false;
+          break;
+        case 'down':
+          keys.ArrowDown = false;
+          break;
+        case 'left':
+          keys.ArrowLeft = false;
+          break;
+        case 'right':
+          keys.ArrowRight = false;
+          break;
+      }
+      updateKeyDisplay();
+    }
+    
+    // 處理動作按鈕按下
+    function handleActionPress() {
+      keys.Space = true;
+      updateKeyDisplay();
+    }
+    
+    // 處理動作按鈕放開
+    function handleActionRelease() {
+      keys.Space = false;
+      updateKeyDisplay();
+    }
+    
+    // 處理ESC按鈕按下
+    function handleEscapePress() {
+      keys.Escape = true;
+      updateKeyDisplay();
+    }
+    
+    // 初始化手機操作按鈕
+    initMobileControls();
+  </script>
+</body>
+</html> 
