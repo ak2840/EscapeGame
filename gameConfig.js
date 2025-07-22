@@ -3,7 +3,7 @@ const GAME_CONFIG = {
   gameInfo: {
     name: "焦土中的信號 Signal",
     version: "1.0.0",
-    description: "末日環境中的ESG小尖兵冒險遊戲",
+    description: "為什麼只有一格",
     instructions: [
       "使用方向鍵移動角色",
       "按空白鍵執行動作",
@@ -63,6 +63,12 @@ const GAME_CONFIG = {
     monsterProjectileSize: 6,
     attackCooldown: 300,
     invulnerableDuration: 1000
+  },
+  exitImages: {
+    level1: "assets/exit/exit_level1.png",
+    level2: "assets/exit/exit_level2.png",
+    level3: "assets/exit/exit_level3.png",
+    level4: "assets/exit/exit_level4.png"
   },
   itemSettings: {
     mapItemA: {

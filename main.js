@@ -450,6 +450,20 @@ uiImages.volumeOff.src = 'assets/ui/volume-off.svg';
 uiImages.soundOn.src = 'assets/ui/sound-on.svg';
 uiImages.soundOff.src = 'assets/ui/sound-off.svg';
 
+// 載入出口圖片
+const exitImages = {
+  level1: new Image(),
+  level2: new Image(),
+  level3: new Image(),
+  level4: new Image()
+};
+
+// 從配置文件中載入出口圖片路徑
+exitImages.level1.src = GAME_CONFIG.exitImages.level1;
+exitImages.level2.src = GAME_CONFIG.exitImages.level2;
+exitImages.level3.src = GAME_CONFIG.exitImages.level3;
+exitImages.level4.src = GAME_CONFIG.exitImages.level4;
+
 // 載入怪物圖片
 monsterImages.normalA.left1.src = 'assets/monsters/normalA-left-1.png';
 monsterImages.normalA.left2.src = 'assets/monsters/normalA-left-2.png';
@@ -1361,8 +1375,8 @@ let MONSTER_PROJECTILE_SIZE = 6; // 會在loadLevel()中更新
 const exit = {
   x: 0,
   y: 0,
-  width: 60,
-  height: 60,
+  width: 200,
+  height: 200,
 };
 
 function isInSafeZone(x, y, width, height) {
@@ -1401,11 +1415,11 @@ function getRandomPositionOutsideSafeZone(width, height) {
 }
 
 function spawnExit() {
-  // 終點固定在地圖正中間
+  // 終點固定在地圖正中間，但往上移動100像素
   exit.x = MAP_WIDTH / 2 - exit.width / 2;
-  exit.y = MAP_HEIGHT / 2 - exit.height / 2;
+  exit.y = MAP_HEIGHT / 2 - exit.height / 2 - 100;
   
-  console.log(`終點生成在地圖正中間: (${exit.x}, ${exit.y})`);
+  console.log(`終點生成在地圖正中間偏上: (${exit.x}, ${exit.y})`);
   console.log(`地圖中心: (${MAP_WIDTH / 2}, ${MAP_HEIGHT / 2})`);
   console.log(`安全區域中心: (${SAFE_ZONE_CENTER_X}, ${SAFE_ZONE_CENTER_Y})`);
   console.log(`玩家位置: (${player.x}, ${player.y})`);
@@ -2227,25 +2241,43 @@ function showExitConditionHint() {
 }
 
 function drawExit(offsetX, offsetY) {
-  // 根據通關條件狀態決定顏色
+  // 根據通關條件狀態決定是否顯示
   const canExit = checkExitConditions();
-  const exitColor = canExit ? '#00FF00' : '#FF0000'; // 綠色表示可以通關，紅色表示條件未滿足
   
-  ctx.fillStyle = exitColor;
-  ctx.fillRect(exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
+  // 獲取當前關卡的出口圖片
+  const exitImageKey = `level${currentLevel}`;
+  const exitImage = exitImages[exitImageKey];
   
-  // 畫一個 "EXIT" 文字
-  ctx.fillStyle = '#000000';
-  ctx.font = '12px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('EXIT', exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height / 2 + 4);
-  
-  // 如果條件未滿足，顯示提示文字
-  if (!canExit) {
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '10px Arial';
+  if (exitImage && exitImage.complete) {
+    // 使用圖片繪製出口
+    ctx.drawImage(exitImage, exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
+    
+    // 如果條件未滿足，只顯示提示文字（不添加遮罩）
+    if (!canExit) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
+    }
+  } else {
+    // 如果圖片未載入完成，使用原來的顏色方塊作為備用
+    const exitColor = canExit ? '#00FF00' : '#FF0000';
+    ctx.fillStyle = exitColor;
+    ctx.fillRect(exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
+    
+    // 畫一個 "EXIT" 文字
+    ctx.fillStyle = '#000000';
+    ctx.font = '12px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
+    ctx.fillText('EXIT', exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height / 2 + 4);
+    
+    // 如果條件未滿足，顯示提示文字
+    if (!canExit) {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
+    }
   }
 }
 
@@ -2322,10 +2354,20 @@ function updateMonsterProjectiles() {
         player.isInvulnerable = true;
         player.invulnerableTime = Date.now();
         
+        // 記錄傷害統計
+        gameStats.recordDamage();
+        
+        // 播放受傷音效
+        audioSystem.playHit();
+        
+        // 創建受傷粒子效果
+        particleSystem.createHitEffect(px, py, '#FF4444');
+        
         console.log(`玩家被怪物攻擊擊中！剩餘血量：${player.hp}`);
         
         if (player.hp <= 0) {
           gameOver = true;
+          audioSystem.playGameOver();
           console.log('遊戲結束！你的血量耗盡了！');
         }
       }
