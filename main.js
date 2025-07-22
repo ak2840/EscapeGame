@@ -3654,67 +3654,35 @@ function spawnMapItems() {
   console.log('關卡配置:', GAME_CONFIG.levels[currentLevel]);
   
   const levelConfig = GAME_CONFIG.levels[currentLevel];
-  if (!levelConfig || !levelConfig.items || !levelConfig.items.mapItems) {
-    console.log('當前關卡沒有地圖道具配置');
-    console.log('levelConfig:', levelConfig);
-    console.log('items:', levelConfig?.items);
-    console.log('mapItems:', levelConfig?.items?.mapItems);
+  if (!levelConfig) {
+    console.log('當前關卡配置不存在');
     return;
   }
   
-  const mapItems = levelConfig.items.mapItems;
-  console.log('地圖道具配置:', mapItems);
+  // 檢查地圖道具配置
+  const mapItemA = levelConfig.mapItemA || 0;
+  const mapItemB = levelConfig.mapItemB || 0;
   
-  for (const [itemType, count] of Object.entries(mapItems)) {
-    const itemConfig = itemSettings[itemType];
-    const itemSize = itemConfig ? itemConfig.size : 32; // 預設大小32
-    
-    for (let i = 0; i < count; i++) {
-      // 計算道具的有效生成範圍（離邊緣50像素）
-      const margin = 50;
-      const minX = margin + itemSize / 2;
-      const maxX = MAP_WIDTH - margin - itemSize / 2;
-      const minY = margin + itemSize / 2;
-      const maxY = MAP_HEIGHT - margin - itemSize / 2;
-      
-      // 確保有效範圍不為負數
-      if (minX >= maxX || minY >= maxY) {
-        console.warn(`道具 ${itemType} 無法生成：地圖太小或道具太大`);
-        continue;
-      }
-      
-      // 重試機制：最多嘗試10次找到不在安全區域的位置
-      let item = null;
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      while (attempts < maxAttempts) {
-        const testItem = {
-          type: itemType,
-          x: Math.random() * (maxX - minX) + minX,
-          y: Math.random() * (maxY - minY) + minY,
-          width: itemSize,
-          height: itemSize,
-          collected: false,
-          animationTime: 0,
-          floatOffset: Math.random() * Math.PI * 2 // 隨機浮動相位
-        };
-        
-        // 檢查是否不在安全區域內
-        if (!isInSafeZone(testItem.x, testItem.y, testItem.width, testItem.height)) {
-          item = testItem;
-          break;
-        }
-        
-        attempts++;
-      }
-      
-      // 如果找到合適位置，加入道具列表
+  console.log(`地圖道具配置: mapItemA=${mapItemA}, mapItemB=${mapItemB}`);
+  
+  // 生成 mapItemA
+  if (mapItemA > 0) {
+    for (let i = 0; i < mapItemA; i++) {
+      const item = createMapItem('mapItemA');
       if (item) {
         items.push(item);
-        console.log(`生成地圖道具: ${itemType} 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) 大小: ${itemSize} (嘗試${attempts + 1}次)`);
-      } else {
-        console.warn(`道具 ${itemType} 無法找到合適位置：嘗試${maxAttempts}次後仍在安全區域內`);
+        console.log(`生成地圖道具: mapItemA 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)})`);
+      }
+    }
+  }
+  
+  // 生成 mapItemB
+  if (mapItemB > 0) {
+    for (let i = 0; i < mapItemB; i++) {
+      const item = createMapItem('mapItemB');
+      if (item) {
+        items.push(item);
+        console.log(`生成地圖道具: mapItemB 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)})`);
       }
     }
   }
@@ -3722,38 +3690,98 @@ function spawnMapItems() {
   console.log(`地圖道具生成完成，總共 ${items.length} 個道具`);
 }
 
+// 創建地圖道具的輔助函數
+function createMapItem(itemType) {
+  const itemConfig = itemSettings[itemType];
+  const itemSize = itemConfig ? itemConfig.size : 32; // 預設大小32
+  
+  // 計算道具的有效生成範圍（離邊緣50像素）
+  const margin = 50;
+  const minX = margin + itemSize / 2;
+  const maxX = MAP_WIDTH - margin - itemSize / 2;
+  const minY = margin + itemSize / 2;
+  const maxY = MAP_HEIGHT - margin - itemSize / 2;
+  
+  // 確保有效範圍不為負數
+  if (minX >= maxX || minY >= maxY) {
+    console.warn(`道具 ${itemType} 無法生成：地圖太小或道具太大`);
+    return null;
+  }
+  
+  // 重試機制：最多嘗試10次找到不在安全區域的位置
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  while (attempts < maxAttempts) {
+    const testItem = {
+      type: itemType,
+      x: Math.random() * (maxX - minX) + minX,
+      y: Math.random() * (maxY - minY) + minY,
+      width: itemSize,
+      height: itemSize,
+      collected: false,
+      animationTime: 0,
+      floatOffset: Math.random() * Math.PI * 2 // 隨機浮動相位
+    };
+    
+    // 檢查是否不在安全區域內
+    if (!isInSafeZone(testItem.x, testItem.y, testItem.width, testItem.height)) {
+      return testItem;
+    }
+    
+    attempts++;
+  }
+  
+  console.warn(`道具 ${itemType} 無法找到合適位置：嘗試${maxAttempts}次後仍在安全區域內`);
+  return null;
+}
+
 // 怪物死亡時掉落道具
 function dropMonsterItem(monster) {
-  const levelConfig = GAME_CONFIG.levels[currentLevel];
-  if (!levelConfig || !levelConfig.items || !levelConfig.items.monsterDropRates) {
+  // 獲取怪物設定
+  const monsterConfig = GAME_CONFIG.monsterSettings[monster.type];
+  if (!monsterConfig) {
     return;
   }
   
-  const dropRates = levelConfig.items.monsterDropRates[monster.type];
-  if (!dropRates) {
-    return;
+  // 檢查掉落 monsterItemA
+  if (monsterConfig.dropItemA > 0 && Math.random() < monsterConfig.dropItemA) {
+    const itemConfig = itemSettings['monsterItemA'];
+    const itemSize = itemConfig ? itemConfig.size : 32;
+    
+    const item = {
+      type: 'monsterItemA',
+      x: monster.x + monster.width / 2 - itemSize / 2,
+      y: monster.y + monster.height / 2 - itemSize / 2,
+      width: itemSize,
+      height: itemSize,
+      collected: false,
+      animationTime: 0,
+      floatOffset: Math.random() * Math.PI * 2
+    };
+    
+    items.push(item);
+    console.log(`怪物掉落道具: monsterItemA 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) 大小: ${itemSize}`);
   }
   
-  // 檢查每種道具的掉落機率
-  for (const [itemType, rate] of Object.entries(dropRates)) {
-    if (Math.random() < rate) {
-      const itemConfig = itemSettings[itemType];
-      const itemSize = itemConfig ? itemConfig.size : 32; // 預設大小32
-      
-      const item = {
-        type: itemType,
-        x: monster.x + monster.width / 2 - itemSize / 2,
-        y: monster.y + monster.height / 2 - itemSize / 2,
-        width: itemSize,
-        height: itemSize,
-        collected: false,
-        animationTime: 0,
-        floatOffset: Math.random() * Math.PI * 2
-      };
-      
-      items.push(item);
-      console.log(`怪物掉落道具: ${itemType} 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) 大小: ${itemSize}`);
-    }
+  // 檢查掉落 monsterItemB
+  if (monsterConfig.dropItemB > 0 && Math.random() < monsterConfig.dropItemB) {
+    const itemConfig = itemSettings['monsterItemB'];
+    const itemSize = itemConfig ? itemConfig.size : 32;
+    
+    const item = {
+      type: 'monsterItemB',
+      x: monster.x + monster.width / 2 - itemSize / 2,
+      y: monster.y + monster.height / 2 - itemSize / 2,
+      width: itemSize,
+      height: itemSize,
+      collected: false,
+      animationTime: 0,
+      floatOffset: Math.random() * Math.PI * 2
+    };
+    
+    items.push(item);
+    console.log(`怪物掉落道具: monsterItemB 位置 (${item.x.toFixed(1)}, ${item.y.toFixed(1)}) 大小: ${itemSize}`);
   }
 }
 

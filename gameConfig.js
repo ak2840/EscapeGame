@@ -99,29 +99,39 @@ const GAME_CONFIG = {
     normalA: {
       hp: 5,
       speed: 0.8,
-      color: "#FF8800"
+      color: "#FF8800",
+      dropItemA: 0.0,
+      dropItemB: 0.0
     },
     normalB: {
       hp: 5,
       speed: 0.8,
-      color: "#8844FF"
+      color: "#8844FF",
+      dropItemA: 0.0,
+      dropItemB: 0.0
     },
     normalC: {
       hp: 5,
       speed: 0.8,
-      color: "#44FF44"
+      color: "#44FF44",
+      dropItemA: 0.0,
+      dropItemB: 0.0
     },
     trackerA: {
       hp: 2,
       speed: 1.5,
       color: "#FF0088",
-      size: 120
+      size: 120,
+      dropItemA: 1.0,
+      dropItemB: 0.0
     },
     trackerB: {
       hp: 2,
       speed: 1.5,
       color: "#FF0088",
-      size: 120
+      size: 120,
+      dropItemA: 1.0,
+      dropItemB: 0.0
     },
     turret: {
       hp: 30,
@@ -129,7 +139,9 @@ const GAME_CONFIG = {
       color: "#8B0000",
       attackCooldown: 500,
       attackRange: 250,
-      size: 300
+      size: 300,
+      dropItemA: 0.0,
+      dropItemB: 1.0
     }
   },
   levels: {
@@ -148,8 +160,6 @@ const GAME_CONFIG = {
       unlockRequirement: null,
       mapItemA: 1,
       mapItemB: 0,
-      monsterItemA: 1.0,
-      monsterItemB: 1.0,
       exitCondition: {
         mapItemA: 1
       },
@@ -177,8 +187,6 @@ const GAME_CONFIG = {
       unlockRequirement: 1,
       mapItemA: 0,
       mapItemB: 0,
-      monsterItemA: 10,
-      monsterItemB: 0,
       exitCondition: {
         monsterItemA: 10
       },
@@ -205,11 +213,9 @@ const GAME_CONFIG = {
       description: "各種敵人的混戰",
       unlockRequirement: 2,
       mapItemA: 0,
-      mapItemB: 15,
-      monsterItemA: 5,
-      monsterItemB: 0,
+      mapItemB: 20,
       exitCondition: {
-        mapItemB: 15,
+        mapItemB: 10,
         monsterItemA: 5
       },
       mapTiles: [
@@ -236,10 +242,8 @@ const GAME_CONFIG = {
       unlockRequirement: 3,
       mapItemA: 0,
       mapItemB: 20,
-      monsterItemA: 1.0,
-      monsterItemB: 1.0,
       exitCondition: {
-        mapItemB: 20
+          monsterItemB: 1
       },
       mapTiles: [
         { path: "assets/maps/map-level4-1.png", weight: 1 },
