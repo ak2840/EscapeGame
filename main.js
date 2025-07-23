@@ -928,7 +928,7 @@ window.addEventListener('resize', debounceResize);
 window.addEventListener('resize', () => {
   const mobileControls = document.getElementById('mobileControls');
   const actionButtons = document.querySelector('.action-buttons');
-  if (mobileControls && actionButtons && gameState === 'playing') {
+  if (mobileControls && actionButtons) {
     // 多重檢查是否為手機設備
     const isMobile = (
       window.innerWidth <= 768 || 
@@ -1004,6 +1004,8 @@ window.addEventListener('keydown', (e) => {
       // ESC鍵返回大廳
       returnToLobby();
     }
+    
+
   }
 });
 
@@ -1040,43 +1042,6 @@ canvas.addEventListener('click', (e) => {
   if (x >= sfxX && x <= sfxX + buttonSize && y >= sfxY && y <= sfxY + buttonSize) {
     audioSystem.toggleSFX();
     audioSystem.playButtonClick();
-    return;
-  }
-  
-  // 檢查點擊Debug按鈕
-  const debugX = startX - (buttonSize + buttonSpacing) * 2;
-  const debugY = startY;
-  if (x >= debugX && x <= debugX + buttonSize && y >= debugY && y <= debugY + buttonSize) {
-    // Debug功能：收集足夠道具
-    const config = GAME_CONFIG.levels[currentLevel];
-    if (config && config.exitCondition) {
-      // 將所有道具數量設定為通關要求
-      for (const [itemType, requiredCount] of Object.entries(config.exitCondition)) {
-        itemCounts[itemType] = requiredCount;
-        console.log(`Debug: 設定道具 ${itemType} 數量為 ${requiredCount}`);
-      }
-      
-      // 播放按鈕音效
-      audioSystem.playButtonClick();
-      
-      // 創建收集特效
-      const playerCenterX = player.x + player.width / 2;
-      const playerCenterY = player.y + player.height / 2;
-      particleSystem.createExplosion(playerCenterX, playerCenterY, '#00FF00', 12);
-      
-      console.log('Debug: 已收集足夠道具，可以通關！');
-    } else {
-      // 如果沒有通關條件，設定全通關
-      highestCompletedLevel = MAX_LEVEL;
-      
-      // 更新Cookie
-      setCookie('highestCompletedLevel', MAX_LEVEL.toString(), 365);
-      
-      // 播放按鈕音效
-      audioSystem.playButtonClick();
-      
-      console.log('Debug: 已全通關！');
-    }
     return;
   }
 });
@@ -1168,6 +1133,7 @@ function initMobileControls() {
   // 動作按鈕
   const actionBtn = document.getElementById('actionBtn');
   const escapeBtn = document.getElementById('escapeBtn');
+  const debugBtn = document.getElementById('debugBtn');
   
   // 動作按鈕事件
   actionBtn.addEventListener('touchstart', (e) => {
@@ -1223,6 +1189,33 @@ function initMobileControls() {
     e.preventDefault();
     e.stopPropagation();
     escapeBtn.classList.remove('active');
+  });
+  
+  // Debug按鈕事件
+  debugBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    executeDebugFunction();
+    debugBtn.classList.add('active');
+  });
+  
+  debugBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    executeDebugFunction();
+    debugBtn.classList.add('active');
+  });
+  
+  debugBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    debugBtn.classList.remove('active');
+  });
+  
+  debugBtn.addEventListener('mouseup', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    debugBtn.classList.remove('active');
   });
 }
 
@@ -3083,29 +3076,58 @@ function drawSoundControls() {
     ctx.textBaseline = 'middle';
     ctx.fillText('🔊', sfxX + buttonSize/2, sfxY + buttonSize/2);
   }
-  
-  // Debug按鈕
-  const debugX = startX - (buttonSize + buttonSpacing) * 2;
-  const debugY = startY;
-  
-  // 按鈕背景（漸層效果）
-  const gradient = ctx.createLinearGradient(debugX, debugY, debugX + buttonSize, debugY + buttonSize);
-  gradient.addColorStop(0, 'rgba(255, 107, 107, 0.8)');
-  gradient.addColorStop(1, 'rgba(255, 142, 83, 0.8)');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(debugX, debugY, buttonSize, buttonSize);
-  
-  // 按鈕邊框
-  ctx.strokeStyle = '#FF6B6B';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(debugX, debugY, buttonSize, buttonSize);
-  
-  // Debug文字
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 10px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('DEBUG', debugX + buttonSize/2, debugY + buttonSize/2);
+}
+
+
+
+// Debug功能函數
+function executeDebugFunction() {
+  if (gameState === 'playing') {
+    // 遊戲中：收集足夠道具
+    const config = GAME_CONFIG.levels[currentLevel];
+    if (config && config.exitCondition) {
+      // 將所有道具數量設定為通關要求
+      for (const [itemType, requiredCount] of Object.entries(config.exitCondition)) {
+        itemCounts[itemType] = requiredCount;
+        console.log(`Debug: 設定道具 ${itemType} 數量為 ${requiredCount}`);
+      }
+      
+      // 播放按鈕音效
+      audioSystem.playButtonClick();
+      
+      // 創建收集特效
+      const playerCenterX = player.x + player.width / 2;
+      const playerCenterY = player.y + player.height / 2;
+      particleSystem.createExplosion(playerCenterX, playerCenterY, '#00FF00', 12);
+      
+      console.log('Debug: 已收集足夠道具，可以通關！');
+    } else {
+      // 如果沒有通關條件，設定全通關
+      highestCompletedLevel = MAX_LEVEL;
+      
+      // 更新Cookie
+      setCookie('highestCompletedLevel', MAX_LEVEL.toString(), 365);
+      
+      // 播放按鈕音效
+      audioSystem.playButtonClick();
+      
+      console.log('Debug: 已全通關！');
+    }
+  } else if (gameState === 'lobby') {
+    // 大廳中：全通關功能
+    highestCompletedLevel = MAX_LEVEL;
+    
+    // 更新Cookie
+    setCookie('highestCompletedLevel', MAX_LEVEL.toString(), 365);
+    
+    // 播放按鈕音效
+    audioSystem.playButtonClick();
+    
+    // 更新大廳顯示
+    updateLobbyDisplay();
+    
+    console.log('Debug: 已全通關！');
+  }
 }
 
 // 新增：繪製左上角ESC離開按鈕
@@ -3590,14 +3612,27 @@ function showLobby() {
   document.getElementById('gameLobby').classList.remove('hidden');
   document.getElementById('gameContainer').classList.add('hidden');
   
-  // 隱藏手機操作按鈕
+  // 顯示手機操作按鈕（只在手機上）
   const mobileControls = document.getElementById('mobileControls');
   const actionButtons = document.querySelector('.action-buttons');
-  if (mobileControls) {
-    mobileControls.style.display = 'none';
-  }
-  if (actionButtons) {
-    actionButtons.style.display = 'none';
+  if (mobileControls && actionButtons) {
+    // 多重檢查是否為手機設備
+    const isMobile = (
+      window.innerWidth <= 768 || 
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0)
+    );
+    
+    if (isMobile) {
+      mobileControls.style.display = 'flex';
+      actionButtons.style.display = 'flex';
+      console.log('手機操作按鈕已顯示 - 大廳中檢測到手機設備');
+    } else {
+      mobileControls.style.display = 'none';
+      actionButtons.style.display = 'none';
+      console.log('手機操作按鈕已隱藏 - 大廳中桌面設備');
+    }
   }
   
   gameState = 'lobby';
@@ -3821,27 +3856,6 @@ async function initGame() {
   // 初始化大廳音效按鈕狀態
   updateLobbyAudioButtons();
   
-  // 添加debug按鈕事件監聽器
-  const debugBtn = document.getElementById('debugBtn');
-  if (debugBtn) {
-    debugBtn.addEventListener('click', () => {
-      // 全通關功能
-      // 設定已通關最高關卡為最大關卡數
-      highestCompletedLevel = MAX_LEVEL;
-      
-      // 更新Cookie
-      setCookie('highestCompletedLevel', MAX_LEVEL.toString(), 365);
-      
-      // 播放按鈕音效
-      audioSystem.playButtonClick();
-      
-      // 更新大廳顯示
-      updateLobbyDisplay();
-      
-      console.log('Debug: 已全通關！');
-    });
-  }
-  
   // 初始化手機操作按鈕
   initMobileControls();
   
@@ -3871,10 +3885,14 @@ async function initGame() {
         isMobile: isMobile
       });
       
-      if (isMobile && gameState === 'playing') {
+      if (isMobile) {
         mobileControls.style.display = 'flex';
         actionButtons.style.display = 'flex';
         console.log('手機操作按鈕已顯示 - 頁面載入檢測');
+      } else {
+        mobileControls.style.display = 'none';
+        actionButtons.style.display = 'none';
+        console.log('手機操作按鈕已隱藏 - 頁面載入檢測');
       }
     }
   }, 1000);
