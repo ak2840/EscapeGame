@@ -344,15 +344,26 @@
         font-size: 16px;
       }
       
-      /* 手機操作按鈕在小螢幕上顯示 */
+          /* 手機操作按鈕在小螢幕上顯示 */
+    .mobile-controls {
+      display: flex !important;
+    }
+    
+    /* 動作按鈕在小螢幕上顯示 */
+    .action-buttons {
+      display: flex !important;
+    }
+    
+    /* 額外的手機檢測 */
+    @media (hover: none) and (pointer: coarse) {
       .mobile-controls {
         display: flex !important;
       }
       
-      /* 動作按鈕在小螢幕上顯示 */
       .action-buttons {
         display: flex !important;
       }
+    }
       
       /* 調整按鈕大小適應手機螢幕 */
       .control-btn {

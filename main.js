@@ -930,12 +930,22 @@ window.addEventListener('resize', () => {
   const mobileControls = document.getElementById('mobileControls');
   const actionButtons = document.querySelector('.action-buttons');
   if (mobileControls && actionButtons && gameState === 'playing') {
-    if (window.innerWidth <= 768) {
+    // 多重檢查是否為手機設備
+    const isMobile = (
+      window.innerWidth <= 768 || 
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0)
+    );
+    
+    if (isMobile) {
       mobileControls.style.display = 'flex';
       actionButtons.style.display = 'flex';
+      console.log('手機操作按鈕已顯示 - 視窗大小改變');
     } else {
       mobileControls.style.display = 'none';
       actionButtons.style.display = 'none';
+      console.log('手機操作按鈕已隱藏 - 視窗大小改變');
     }
   }
 });
@@ -3625,13 +3635,22 @@ function hideLobby() {
   const mobileControls = document.getElementById('mobileControls');
   const actionButtons = document.querySelector('.action-buttons');
   if (mobileControls && actionButtons) {
-    // 檢查是否為手機螢幕
-    if (window.innerWidth <= 768) {
+    // 多重檢查是否為手機設備
+    const isMobile = (
+      window.innerWidth <= 768 || 
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0)
+    );
+    
+    if (isMobile) {
       mobileControls.style.display = 'flex';
       actionButtons.style.display = 'flex';
+      console.log('手機操作按鈕已顯示 - 檢測到手機設備');
     } else {
       mobileControls.style.display = 'none';
       actionButtons.style.display = 'none';
+      console.log('手機操作按鈕已隱藏 - 桌面設備');
     }
   }
   
@@ -3852,6 +3871,36 @@ async function initGame() {
   // 啟動遊戲循環（但只在需要時執行遊戲邏輯）
   gameLoopRunning = true;
   gameLoop();
+  
+  // 頁面載入後檢查手機設備
+  setTimeout(() => {
+    const mobileControls = document.getElementById('mobileControls');
+    const actionButtons = document.querySelector('.action-buttons');
+    if (mobileControls && actionButtons) {
+      // 多重檢查是否為手機設備
+      const isMobile = (
+        window.innerWidth <= 768 || 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        ('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0)
+      );
+      
+      console.log('設備檢測結果:', {
+        screenWidth: screen.width,
+        windowWidth: window.innerWidth,
+        userAgent: navigator.userAgent,
+        touchSupport: 'ontouchstart' in window,
+        maxTouchPoints: navigator.maxTouchPoints,
+        isMobile: isMobile
+      });
+      
+      if (isMobile && gameState === 'playing') {
+        mobileControls.style.display = 'flex';
+        actionButtons.style.display = 'flex';
+        console.log('手機操作按鈕已顯示 - 頁面載入檢測');
+      }
+    }
+  }, 1000);
 }
 
 // 開始初始化
