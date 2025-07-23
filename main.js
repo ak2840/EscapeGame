@@ -4253,15 +4253,6 @@ function drawSingleItem(item, offsetX, offsetY) {
     ctx.lineWidth = 2;
     ctx.strokeRect(x, floatY, item.width, item.height);
   }
-  
-  // 添加發光效果
-  ctx.shadowColor = itemConfig.color;
-  ctx.shadowBlur = 10;
-  ctx.fillStyle = itemConfig.color;
-  ctx.globalAlpha = 0.3;
-  ctx.fillRect(x - 5, floatY - 5, item.width + 10, item.height + 10);
-  ctx.globalAlpha = 1.0;
-  ctx.shadowBlur = 0;
 }
 
 // 繪製道具（保留原函數以維持相容性）
@@ -4273,7 +4264,7 @@ function drawItems(offsetX, offsetY) {
 
 // 繪製道具統計
 function drawItemStats() {
-  const startX = 20; // 移到左側，與血量面板對齊
+  const startX = 22; // 移到左側，與血量面板對齊
   const startY = 110; // 血量面板下方 (60 + 35 + 5)
   const baseItemSize = 18;
   const spacing = 8;
@@ -4302,9 +4293,9 @@ function drawItemStats() {
   ctx.fillStyle = '#FFD700';
   ctx.font = 'bold 13px Arial';
   ctx.textAlign = 'left';
-  ctx.fillText(GAME_CONFIG.gameInfo.uiText.passItem, startX, startY);
+  ctx.fillText(GAME_CONFIG.gameInfo.uiText.passItem, startX, startY + 10);
   
-  let y = startY + 18;
+  let y = startY + 30;
   
   if (requiredItems.length === 0) {
     // 如果沒有通關條件，顯示提示
@@ -4326,10 +4317,6 @@ function drawItemStats() {
       // 繪製道具圖示背景（圓角矩形）
       const iconX = startX;
       const iconY = y - 2;
-      
-      // 道具圖示背景
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-      ctx.fillRect(iconX - 2, iconY - 2, displaySize + 4, displaySize + 4);
       
       // 繪製道具圖示
       if (itemImages[itemType]) {
