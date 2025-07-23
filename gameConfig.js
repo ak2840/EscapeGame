@@ -6,9 +6,9 @@ const GAME_CONFIG = {
     description: "為什麼只有一格",
     instructions: [
       "使用方向鍵移動角色",
-      "按空白鍵執行動作",
-      "停止時自動攻擊怪物",
-      "收集足夠道具後通關"
+      "按空白鍵跳過劇情、完成通關條件",
+      "停止時會自動攻擊怪物",
+      "收集足夠道具後可通關"
     ],
     uiText: {
       continue: "按空白鍵繼續",
@@ -153,7 +153,7 @@ const GAME_CONFIG = {
     1: {
       name: "新手關卡",
       mapWidth: 1200,
-      mapHeight: 600,
+      mapHeight: 1000,
       normalAMonsters: 0,
       normalBMonsters: 0,
       normalCMonsters: 0,

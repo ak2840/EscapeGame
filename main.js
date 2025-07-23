@@ -737,7 +737,7 @@ const storySystem = {
     // 提示文字
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 24px Arial';
-    ctx.fillText(GAME_CONFIG.gameInfo.uiText.continue, 400, 560);
+    ctx.fillText('按任意鍵繼續', 400, 560);
     
     // 轉換為圖片
     const img = new Image();
@@ -788,7 +788,7 @@ const storySystem = {
     // 提示文字
     ctx.fillStyle = '#00FF00';
     ctx.font = 'bold 24px Arial';
-    ctx.fillText(GAME_CONFIG.gameInfo.uiText.continue, 400, 560);
+    ctx.fillText('按任意鍵繼續', 400, 560);
     
     // 轉換為圖片
     const img = new Image();
@@ -801,6 +801,12 @@ const storySystem = {
     this.currentImage = this.introImages[level];
     this.imageLoaded = true;
     gameState = 'storyIntro';
+    // 立即重新調整Canvas大小以適應視窗
+    resizeCanvas();
+    // 延遲再次調整以確保完全適應
+    setTimeout(() => {
+      resizeCanvas();
+    }, 100);
     console.log(`顯示第${level}關開始劇情`);
   },
   
@@ -809,6 +815,12 @@ const storySystem = {
     this.currentImage = this.outroImages[level];
     this.imageLoaded = true;
     gameState = 'storyOutro';
+    // 立即重新調整Canvas大小以適應視窗
+    resizeCanvas();
+    // 延遲再次調整以確保完全適應
+    setTimeout(() => {
+      resizeCanvas();
+    }, 100);
     console.log(`顯示第${level}關結束劇情`);
   },
   
@@ -842,6 +854,209 @@ const storySystem = {
     
     // 繪製圖片
     ctx.drawImage(this.currentImage, drawX, drawY, drawWidth, drawHeight);
+  }
+};
+
+// 關於系統
+const aboutSystem = {
+  storyImages: {}, // 劇情圖片
+  imageLoaded: false, // 圖片是否已載入
+  
+  // 載入劇情圖片
+  async loadStoryImages() {
+    console.log('開始載入關於頁面的劇情圖片...');
+    
+    if (!MAX_LEVEL || MAX_LEVEL <= 0) {
+      console.error('MAX_LEVEL 未正確設定，使用預設值 4');
+      MAX_LEVEL = 4;
+    }
+    
+    // 載入關卡劇情圖片（每個關卡有開始和結束兩張圖片）
+    for (let level = 1; level <= MAX_LEVEL; level++) {
+      // 載入關卡開始圖片
+      try {
+        const introImg = new Image();
+        introImg.src = `assets/story/story_${level}_before.jpg`;
+        await new Promise((resolve, reject) => {
+          introImg.onload = resolve;
+          introImg.onerror = () => {
+            console.warn(`關卡${level}開始劇情圖片載入失敗，使用預設圖片`);
+            reject();
+          };
+        });
+        this.storyImages[`${level}_before`] = introImg;
+        console.log(`關卡${level}開始劇情圖片載入成功`);
+      } catch (error) {
+        // 如果載入失敗，創建一個預設的劇情圖片
+        this.storyImages[`${level}_before`] = this.createDefaultStoryImage(level, 'before');
+        console.log(`關卡${level}使用預設開始劇情圖片`);
+      }
+      
+      // 載入關卡結束圖片
+      try {
+        const outroImg = new Image();
+        outroImg.src = `assets/story/story_${level}_after.jpg`;
+        await new Promise((resolve, reject) => {
+          outroImg.onload = resolve;
+          outroImg.onerror = () => {
+            console.warn(`關卡${level}結束劇情圖片載入失敗，使用預設圖片`);
+            reject();
+          };
+        });
+        this.storyImages[`${level}_after`] = outroImg;
+        console.log(`關卡${level}結束劇情圖片載入成功`);
+      } catch (error) {
+        // 如果載入失敗，創建一個預設的劇情圖片
+        this.storyImages[`${level}_after`] = this.createDefaultStoryImage(level, 'after');
+        console.log(`關卡${level}使用預設結束劇情圖片`);
+      }
+    }
+    
+    console.log('關於頁面劇情圖片載入完成');
+  },
+  
+  // 創建預設的劇情圖片
+  createDefaultStoryImage(level, type = 'before') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    
+    // 背景漸層
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    if (type === 'before') {
+      gradient.addColorStop(0, '#1a1a2e');
+      gradient.addColorStop(1, '#16213e');
+    } else {
+      gradient.addColorStop(0, '#1a1a2e');
+      gradient.addColorStop(1, '#0f3460');
+    }
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 300, 200);
+    
+    // 裝飾性邊框
+    ctx.strokeStyle = type === 'before' ? '#FFD700' : '#00FF00';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(10, 10, 280, 180);
+    
+    // 標題
+    ctx.fillStyle = type === 'before' ? '#FFD700' : '#00FF00';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`第${level}關${type === 'before' ? '' : '完成'}`, 150, 80);
+    
+    // 副標題
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '16px Arial';
+    ctx.fillText(type === 'before' ? '開始劇情' : '結束劇情', 150, 110);
+    
+    // 關卡描述
+    const levelConfig = GAME_CONFIG.levels[level];
+    if (levelConfig && levelConfig.description) {
+      ctx.fillStyle = '#CCCCCC';
+      ctx.font = '14px Arial';
+      ctx.fillText(levelConfig.description, 150, 140);
+    }
+    
+    // 轉換為圖片
+    const img = new Image();
+    img.src = canvas.toDataURL();
+    return img;
+  },
+  
+  // 顯示關於頁面
+  showAboutPage() {
+    const aboutPage = document.getElementById('aboutPage');
+    if (aboutPage) {
+      aboutPage.classList.remove('hidden');
+      this.updateGallery();
+    }
+  },
+  
+  // 隱藏關於頁面
+  hideAboutPage() {
+    const aboutPage = document.getElementById('aboutPage');
+    if (aboutPage) {
+      aboutPage.classList.add('hidden');
+    }
+  },
+  
+  // 更新美術圖列表
+  updateGallery() {
+    const galleryGrid = document.getElementById('galleryGrid');
+    if (!galleryGrid) return;
+    
+    galleryGrid.innerHTML = '';
+    
+    // 顯示八張美術圖（每個關卡的開始和結束圖片）
+    for (let level = 1; level <= MAX_LEVEL; level++) {
+      const isUnlocked = level <= highestCompletedLevel;
+      const levelConfig = GAME_CONFIG.levels[level];
+      const levelName = levelConfig && levelConfig.name ? levelConfig.name : `第${level}關`;
+      
+      // 開始劇情圖片
+      const beforeItem = this.createGalleryItem(level, 'before', isUnlocked, levelName, levelConfig);
+      galleryGrid.appendChild(beforeItem);
+      
+      // 結束劇情圖片
+      const afterItem = this.createGalleryItem(level, 'after', isUnlocked, levelName, levelConfig);
+      galleryGrid.appendChild(afterItem);
+    }
+  },
+  
+  // 創建美術圖項目
+  createGalleryItem(level, type, isUnlocked, levelName, levelConfig) {
+    const galleryItem = document.createElement('div');
+    galleryItem.className = `gallery-item ${isUnlocked ? '' : 'locked'}`;
+    
+    const image = document.createElement('img');
+    image.className = 'gallery-image';
+    image.alt = `${levelName} ${type === 'before' ? '開始' : '結束'}劇情`;
+    
+    if (isUnlocked && this.storyImages[`${level}_${type}`]) {
+      image.src = this.storyImages[`${level}_${type}`].src;
+    } else {
+      // 未解鎖或圖片未載入時顯示問號
+      image.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7vv6M8L3RleHQ+PC9zdmc+';
+    }
+    
+    if (!isUnlocked) {
+      const lockIcon = document.createElement('div');
+      lockIcon.className = 'lock-icon';
+      lockIcon.innerHTML = '🔒';
+      galleryItem.appendChild(lockIcon);
+    }
+    
+    galleryItem.appendChild(image);
+    
+    // 添加點擊事件來顯示滿版大圖
+    if (isUnlocked) {
+      galleryItem.addEventListener('click', () => {
+        this.showFullscreenImage(image.src, `${levelName} ${type === 'before' ? '開始' : '結束'}劇情`);
+      });
+    }
+    
+    return galleryItem;
+  },
+  
+  // 顯示滿版大圖
+  showFullscreenImage(imageSrc, title) {
+    const fullscreenImage = document.getElementById('fullscreenImage');
+    const fullscreenImageSrc = document.getElementById('fullscreenImageSrc');
+    
+    if (fullscreenImage && fullscreenImageSrc) {
+      fullscreenImageSrc.src = imageSrc;
+      fullscreenImageSrc.alt = title;
+      fullscreenImage.classList.remove('hidden');
+    }
+  },
+  
+  // 隱藏滿版大圖
+  hideFullscreenImage() {
+    const fullscreenImage = document.getElementById('fullscreenImage');
+    if (fullscreenImage) {
+      fullscreenImage.classList.add('hidden');
+    }
   }
 };
 
@@ -915,7 +1130,8 @@ let resizeTimeout;
 function debounceResize() {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
-    if (gameState === 'playing') {
+    // 在遊戲狀態、劇情模式或大廳狀態下都重新調整Canvas大小
+    if (gameState === 'playing' || gameState === 'storyIntro' || gameState === 'storyOutro' || gameState === 'lobby') {
       resizeCanvas();
     }
   }, 150); // 150ms 延遲
@@ -960,36 +1176,29 @@ window.addEventListener('keydown', (e) => {
   
   if (e.code in keys) {
     keys[e.code] = true;
-    if (e.code === 'Space') {
-      // 處理劇情狀態下的空白鍵
-      if (gameState === 'storyIntro') {
-        // 關卡開始劇情結束，開始遊戲
-        gameState = 'playing';
-        restartGame();
-        console.log('關卡開始劇情結束，開始遊戲');
-      } else if (gameState === 'storyOutro') {
-        // 關卡結束劇情結束，進入下一關或返回大廳
-        const completedLevel = currentLevel;
-        if (completedLevel < MAX_LEVEL) {
-          // 還有下一關，進入下一關
-          console.log(`進入第${completedLevel + 1}關`);
-          currentLevel = completedLevel + 1;
-          
-          // 更新關卡配置並顯示下一關劇情
-          updateLevelConfig().then(() => {
-            storySystem.showIntro(currentLevel);
-          }).catch(error => {
-            console.error('更新關卡配置失敗:', error);
-            // 即使失敗也要顯示劇情
-            storySystem.showIntro(currentLevel);
-          });
+    if (e.code === 'Escape') {
+      // ESC鍵處理
+      if (gameState === 'playing') {
+        // 遊戲中按ESC返回大廳
+        returnToLobby();
+      } else {
+        // 檢查是否在滿版大圖模式
+        const fullscreenImage = document.getElementById('fullscreenImage');
+        if (fullscreenImage && !fullscreenImage.classList.contains('hidden')) {
+          aboutSystem.hideFullscreenImage();
+          audioSystem.playButtonClick();
         } else {
-          // 最後一關通關，回到大廳
-          gameWon = true;
-          returnToLobby();
+          // 其他狀態下關閉關於頁面
+          const aboutPage = document.getElementById('aboutPage');
+          if (aboutPage && !aboutPage.classList.contains('hidden')) {
+            aboutSystem.hideAboutPage();
+            audioSystem.playButtonClick();
+          }
         }
-      } else if (gameState === 'playing' && !gameOver && !gameWon) {
-        // 正常遊戲狀態下的動作
+      }
+    } else if (e.code === 'Space') {
+      // 正常遊戲狀態下的空白鍵動作
+      if (gameState === 'playing' && !gameOver && !gameWon) {
         if (!player.isActioning) {
           console.log('哈囉！');
           player.isActioning = true;
@@ -1000,9 +1209,33 @@ window.addEventListener('keydown', (e) => {
       }
     }
     
-    if (e.code === 'Escape' && gameState === 'playing') {
-      // ESC鍵返回大廳
-      returnToLobby();
+    // 處理劇情狀態下的任意鍵
+    if (gameState === 'storyIntro') {
+      // 關卡開始劇情結束，開始遊戲
+      gameState = 'playing';
+      restartGame();
+      console.log('關卡開始劇情結束，開始遊戲');
+    } else if (gameState === 'storyOutro') {
+      // 關卡結束劇情結束，進入下一關或返回大廳
+      const completedLevel = currentLevel;
+      if (completedLevel < MAX_LEVEL) {
+        // 還有下一關，進入下一關
+        console.log(`進入第${completedLevel + 1}關`);
+        currentLevel = completedLevel + 1;
+        
+        // 更新關卡配置並顯示下一關劇情
+        updateLevelConfig().then(() => {
+          storySystem.showIntro(currentLevel);
+        }).catch(error => {
+          console.error('更新關卡配置失敗:', error);
+          // 即使失敗也要顯示劇情
+          storySystem.showIntro(currentLevel);
+        });
+      } else {
+        // 最後一關通關，回到大廳
+        gameWon = true;
+        returnToLobby();
+      }
     }
     
 
@@ -3825,10 +4058,53 @@ async function initGame() {
   // 再載入劇情圖片（確保MAX_LEVEL已經設定）
   await storySystem.loadStoryImages();
   
+  // 載入關於頁面的劇情圖片
+  await aboutSystem.loadStoryImages();
+  
   // 添加重置進度按鈕事件監聽器
   const resetButton = document.getElementById('resetProgressBtn');
   if (resetButton) {
     resetButton.addEventListener('click', resetProgress);
+  }
+  
+  // 添加關於按鈕事件監聽器
+  const aboutButton = document.getElementById('aboutBtn');
+  const closeAboutButton = document.getElementById('closeAboutBtn');
+  
+  if (aboutButton) {
+    aboutButton.addEventListener('click', () => {
+      aboutSystem.showAboutPage();
+      audioSystem.playButtonClick();
+    });
+  }
+  
+  if (closeAboutButton) {
+    closeAboutButton.addEventListener('click', () => {
+      aboutSystem.hideAboutPage();
+      audioSystem.playButtonClick();
+    });
+  }
+  
+  // 點擊背景關閉關於頁面
+  const aboutPage = document.getElementById('aboutPage');
+  if (aboutPage) {
+    aboutPage.addEventListener('click', (e) => {
+      if (e.target === aboutPage) {
+        aboutSystem.hideAboutPage();
+        audioSystem.playButtonClick();
+      }
+    });
+  }
+  
+  // 添加滿版大圖關閉功能
+  const fullscreenImage = document.getElementById('fullscreenImage');
+  
+  if (fullscreenImage) {
+    fullscreenImage.addEventListener('click', (e) => {
+      // 點擊任何地方都關閉滿版大圖
+      aboutSystem.hideFullscreenImage();
+      audioSystem.playButtonClick();
+    });
   }
   
   // 添加音效控制按鈕事件監聽器
@@ -4391,3 +4667,5 @@ function resetItems() {
   totalItemsCollected = 0;
   console.log('道具系統已重置，道具數量:', items.length);
 } 
+
+
