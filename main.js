@@ -622,8 +622,7 @@ function generateMapLayout() {
 let gameState = 'lobby'; // 'lobby', 'playing', 'gameOver', 'victory', 'storyIntro', 'storyOutro'
 let currentLevel = 1;
 let MAX_LEVEL = GAME_CONFIG.maxLevel; // 將從設定檔讀取
-let highestUnlockedLevel = 1; // 最高解鎖關卡
-let completedLevels = []; // 已完成的關卡
+let highestCompletedLevel = 0; // 已通關的最高關卡 (0-4)
 let gameLoopRunning = false; // 控制遊戲循環是否正在運行
 
 // 劇情系統
@@ -1068,12 +1067,10 @@ canvas.addEventListener('click', (e) => {
       console.log('Debug: 已收集足夠道具，可以通關！');
     } else {
       // 如果沒有通關條件，設定全通關
-      highestUnlockedLevel = MAX_LEVEL;
-      completedLevels = Array.from({length: MAX_LEVEL}, (_, i) => i + 1);
+      highestCompletedLevel = MAX_LEVEL;
       
       // 更新Cookie
-      setCookie('highestUnlockedLevel', MAX_LEVEL.toString(), 365);
-      setCookie('completedLevels', JSON.stringify(completedLevels), 365);
+      setCookie('highestCompletedLevel', MAX_LEVEL.toString(), 365);
       
       // 播放按鈕音效
       audioSystem.playButtonClick();
@@ -1395,53 +1392,37 @@ function getCookie(name) {
 
 // 關卡管理函數
 function loadLevel() {
-  // 讀取最高解鎖關卡
-  const savedHighestLevel = getCookie('highestUnlockedLevel');
-  if (savedHighestLevel && savedHighestLevel >= 1 && (!MAX_LEVEL || savedHighestLevel <= MAX_LEVEL)) {
-    highestUnlockedLevel = parseInt(savedHighestLevel);
-  } else {
-    highestUnlockedLevel = 1;
-  }
-  
-  // 讀取已完成關卡
-  const savedCompletedLevels = getCookie('completedLevels');
-  if (savedCompletedLevels) {
-    try {
-      completedLevels = JSON.parse(savedCompletedLevels);
-    } catch (e) {
-      completedLevels = [];
+  // 讀取已通關的最高關卡
+  const savedLevel = getCookie('highestCompletedLevel');
+  if (savedLevel !== null && savedLevel !== undefined) {
+    highestCompletedLevel = parseInt(savedLevel);
+    // 確保數值在有效範圍內
+    if (highestCompletedLevel < 0 || highestCompletedLevel > MAX_LEVEL) {
+      highestCompletedLevel = 0;
     }
   } else {
-    completedLevels = [];
+    highestCompletedLevel = 0;
   }
   
-  console.log(`最高解鎖關卡: ${highestUnlockedLevel}`);
-  console.log(`已完成關卡: ${completedLevels.join(', ')}`);
+  console.log(`已通關最高關卡: ${highestCompletedLevel}`);
   
   // 注意：updateLevelConfig() 會在需要時由外部呼叫
 }
 
 function saveProgress() {
-  setCookie('highestUnlockedLevel', highestUnlockedLevel, 365);
-  setCookie('completedLevels', JSON.stringify(completedLevels), 365);
-  console.log(`保存進度 - 最高解鎖關卡: ${highestUnlockedLevel}, 已完成關卡: ${completedLevels.join(', ')}`);
+  setCookie('highestCompletedLevel', highestCompletedLevel.toString(), 365);
+  console.log(`保存進度 - 已通關最高關卡: ${highestCompletedLevel}`);
 }
 
 function completeLevel(level) {
-  // 標記關卡為已完成
-  if (!completedLevels.includes(level)) {
-    completedLevels.push(level);
-  }
-  
-  // 解鎖下一關
-  if (level >= highestUnlockedLevel && level < MAX_LEVEL) {
-    highestUnlockedLevel = level + 1;
+  // 更新已通關的最高關卡
+  if (level > highestCompletedLevel) {
+    highestCompletedLevel = level;
   }
   
   // 記錄完成統計
   gameStats.recordCompletion();
   gameStats.currentGame.level = level;
-  gameStats.currentGame.completedLevels = completedLevels.length;
   
   // 播放勝利音效
   audioSystem.playVictory();
@@ -1453,7 +1434,7 @@ function completeLevel(level) {
   saveProgress();
   
   console.log(`完成第${level}關！`);
-  console.log(`已解鎖到第${highestUnlockedLevel}關`);
+  console.log(`已通關最高關卡: ${highestCompletedLevel}`);
   console.log(`擊殺數: ${gameStats.currentGame.killCount}`);
   console.log(`完成時間: ${gameStats.currentGame.completionTime}ms`);
   
@@ -3661,15 +3642,16 @@ function updateLobbyDisplay() {
   const progressInfo = document.getElementById('progressInfo');
   const levelGrid = document.getElementById('levelGrid');
   
-  console.log('更新大廳顯示 - 最高解鎖關卡:', highestUnlockedLevel);
-  console.log('更新大廳顯示 - 已完成關卡:', completedLevels);
+  console.log('更新大廳顯示 - 已通關最高關卡:', highestCompletedLevel);
   console.log('更新大廳顯示 - MAX_LEVEL:', MAX_LEVEL);
   
   // 更新進度信息
-  if (completedLevels.length === MAX_LEVEL) {
+  if (highestCompletedLevel === MAX_LEVEL) {
     progressInfo.textContent = '進度：完全通關';
+  } else if (highestCompletedLevel === 0) {
+    progressInfo.textContent = '進度：尚未通關';
   } else {
-    progressInfo.textContent = `進度：第 ${highestUnlockedLevel} 關`;
+    progressInfo.textContent = `進度：第 ${highestCompletedLevel} 關`;
   }
   
   // 清空關卡網格
@@ -3682,10 +3664,10 @@ function updateLobbyDisplay() {
     button.textContent = `第 ${level} 關`;
     
     // 設置按鈕狀態
-    if (completedLevels.includes(level)) {
+    if (level <= highestCompletedLevel) {
       button.classList.add('completed');
       button.innerHTML = `第 ${level} 關<br><span class="level-info">已完成</span>`;
-    } else if (level <= highestUnlockedLevel) {
+    } else if (level <= highestCompletedLevel + 1) {
       button.classList.add('unlocked');
       const levelConfig = GAME_CONFIG.levels[level];
       const levelName = levelConfig && levelConfig.name ? levelConfig.name : `第${level}關`;
@@ -3697,7 +3679,7 @@ function updateLobbyDisplay() {
     
     // 添加點擊事件
     button.onclick = () => {
-      if (level <= highestUnlockedLevel) {
+      if (level <= highestCompletedLevel + 1) {
         audioSystem.playButtonClick();
         startLevel(level);
       }
@@ -3735,12 +3717,10 @@ function resetProgress() {
   // 確認對話框
   if (confirm('確定要重置所有通關進度嗎？此操作無法復原。')) {
     // 重置進度變數
-    highestUnlockedLevel = 1;
-    completedLevels = [];
+    highestCompletedLevel = 0;
     
     // 清除Cookie
-    setCookie('highestUnlockedLevel', 1, 365);
-    setCookie('completedLevels', JSON.stringify([]), 365);
+    setCookie('highestCompletedLevel', '0', 365);
     
     // 播放按鈕音效
     audioSystem.playButtonClick();
@@ -3846,14 +3826,11 @@ async function initGame() {
   if (debugBtn) {
     debugBtn.addEventListener('click', () => {
       // 全通關功能
-      // 設定最高解鎖關卡為最大關卡數
-      highestUnlockedLevel = MAX_LEVEL;
-      // 設定所有關卡為已完成
-      completedLevels = Array.from({length: MAX_LEVEL}, (_, i) => i + 1);
+      // 設定已通關最高關卡為最大關卡數
+      highestCompletedLevel = MAX_LEVEL;
       
       // 更新Cookie
-      setCookie('highestUnlockedLevel', MAX_LEVEL.toString(), 365);
-      setCookie('completedLevels', JSON.stringify(completedLevels), 365);
+      setCookie('highestCompletedLevel', MAX_LEVEL.toString(), 365);
       
       // 播放按鈕音效
       audioSystem.playButtonClick();
@@ -3920,28 +3897,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-// 添加測試函數到全域範圍
-window.testCookie = function() {
-  console.log('=== Cookie 測試 ===');
-  console.log('當前所有Cookie:', document.cookie);
-  console.log('測試設定Cookie...');
-  setCookie('testCookie', 'testValue', 1);
-  console.log('測試讀取Cookie...');
-  const testValue = getCookie('testCookie');
-  console.log('讀取結果:', testValue);
-  console.log('測試完成');
-};
 
-window.forceSaveLevel = function(level) {
-  console.log(`強制保存關卡: ${level}`);
-  setCookie('gameLevel', level, 365);
-  console.log('保存完成，請重新載入頁面測試');
-};
-
-window.checkCurrentLevel = function() {
-  console.log(`當前關卡: ${currentLevel}`);
-  console.log(`保存的關卡: ${getCookie('gameLevel')}`);
-};
 
 // 添加Canvas尺寸調試函數
 window.debugCanvasSize = function() {
