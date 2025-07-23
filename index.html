@@ -27,7 +27,8 @@
     }
     
     .lobby-container {
-      background: rgba(0, 0, 0, 0.7); /* 與遊戲UI面板相同的透明度 */
+      background: url('assets/ui/lobby-background.png') no-repeat top center;
+      background-size: 100% auto;
       border-radius: 10px;
       padding: 40px;
       text-align: center;
@@ -35,6 +36,20 @@
       border: 2px solid #666; /* 添加邊框，與遊戲網格線顏色一致 */
       max-width: 600px;
       width: 90%;
+      position: relative;
+    }
+    
+    /* 為了確保文字在背景圖片上清晰可見，添加一個半透明遮罩 */
+    .lobby-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      z-index: -1;
     }
     
     .game-title {
