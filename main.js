@@ -1979,6 +1979,9 @@ function spawnMonsters() {
       type: 'trackerA',
       baseSpeed: settings.speed || 1.5, // 基礎速度
       speed: (settings.speed || 1.5), // 保持固定速度
+      // 起始座標（用於返回行為）
+      startX: position.x,
+      startY: position.y,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -2003,6 +2006,9 @@ function spawnMonsters() {
       type: 'trackerB',
       baseSpeed: settings.speed || 1.5, // 基礎速度
       speed: (settings.speed || 1.5), // 保持固定速度
+      // 起始座標（用於返回行為）
+      startX: position.x,
+      startY: position.y,
       // 動畫相關屬性
       direction: 'right', // 預設朝右
       animationFrame: 1, // 動畫幀（1或2）
@@ -2156,31 +2162,40 @@ function getMonsterMaxHp(type) {
 function updatePlayer() {
   player.moving = false;
   
-  // 如果正在執行動作，禁止移動
-  if (player.isActioning) {
-    return;
-  }
-  
+  // 檢查方向鍵輸入（無論是否在蹲下狀態）
   if (keys.ArrowUp) {
-    player.y -= player.speed;
-    player.moving = true;
+    if (!player.isActioning) {
+      // 只有在非蹲下狀態才移動位置
+      player.y -= player.speed;
+      player.moving = true;
+    }
     player.direction = 'up';
   }
   if (keys.ArrowDown) {
-    player.y += player.speed;
-    player.moving = true;
+    if (!player.isActioning) {
+      // 只有在非蹲下狀態才移動位置
+      player.y += player.speed;
+      player.moving = true;
+    }
     player.direction = 'down';
   }
   if (keys.ArrowLeft) {
-    player.x -= player.speed;
-    player.moving = true;
+    if (!player.isActioning) {
+      // 只有在非蹲下狀態才移動位置
+      player.x -= player.speed;
+      player.moving = true;
+    }
     player.direction = 'left';
   }
   if (keys.ArrowRight) {
-    player.x += player.speed;
-    player.moving = true;
+    if (!player.isActioning) {
+      // 只有在非蹲下狀態才移動位置
+      player.x += player.speed;
+      player.moving = true;
+    }
     player.direction = 'right';
   }
+  
   // 邊界限制
   player.x = Math.max(0, Math.min(MAP_WIDTH - player.width, player.x));
   player.y = Math.max(0, Math.min(MAP_HEIGHT - player.height, player.y));
@@ -2313,81 +2328,93 @@ function distance(ax, ay, bx, by) {
 }
 
 function autoAttack() {
-  if (!player.moving && !player.isActioning) {
-    const currentTime = Date.now();
-    if (currentTime - lastAttackTime < ATTACK_COOLDOWN) {
-      return; // 還在冷卻中
-    }
+  const currentTime = Date.now();
+  
+  // 移動中：重置CD為25%
+  if (player.moving) {
+    lastAttackTime = currentTime - ATTACK_COOLDOWN * 0.75;
+    return;
+  }
+  
+  // 蹲下：重置CD為25%
+  if (player.isActioning) {
+    lastAttackTime = currentTime - ATTACK_COOLDOWN * 0.75;
+    return;
+  }
+  
+  // 靜止狀態：檢查CD並攻擊
+  if (currentTime - lastAttackTime < ATTACK_COOLDOWN) {
+    return; // 還在冷卻中
+  }
+  
+  // 檢查玩家是否在安全區域內，如果在安全區域內則不能攻擊
+  const isPlayerInSafeZone = isInSafeZone(player.x, player.y, player.width, player.height);
+  if (isPlayerInSafeZone) {
+    return; // 在安全區域內不能攻擊
+  }
+  
+  // 檢查所有怪物
+  for (let i = monsters.length - 1; i >= 0; i--) {
+    const m = monsters[i];
+    // 以玩家中心與怪物中心計算距離
+    const px = player.x + player.width / 2;
+    const py = player.y + player.height / 2;
+    const mx = m.x + m.width / 2;
+    const my = m.y + m.height / 2;
     
-    // 檢查玩家是否在安全區域內，如果在安全區域內則不能攻擊
-    const isPlayerInSafeZone = isInSafeZone(player.x, player.y, player.width, player.height);
-    if (isPlayerInSafeZone) {
-      return; // 在安全區域內不能攻擊
-    }
+    // 計算射擊距離，加上角色和怪物的寬度
+    const baseRange = 300; // 基礎射擊距離
+    const playerWidth = player.width;
+    const monsterWidth = m.width;
+    const totalRange = baseRange + playerWidth / 2 + monsterWidth / 2;
     
-    // 檢查所有怪物
-    for (let i = monsters.length - 1; i >= 0; i--) {
-      const m = monsters[i];
-      // 以玩家中心與怪物中心計算距離
-      const px = player.x + player.width / 2;
-      const py = player.y + player.height / 2;
-      const mx = m.x + m.width / 2;
-      const my = m.y + m.height / 2;
+    if (distance(px, py, mx, my) < totalRange) {
+      // 發射彈幕
+      const dx = mx - px;
+      const dy = my - py;
+      const dist = Math.sqrt(dx * dx + dy * dy);
       
-      // 計算射擊距離，加上角色和怪物的寬度
-      const baseRange = 300; // 基礎射擊距離
-      const playerWidth = player.width;
-      const monsterWidth = m.width;
-      const totalRange = baseRange + playerWidth / 2 + monsterWidth / 2;
-      
-      if (distance(px, py, mx, my) < totalRange) {
-        // 發射彈幕
-        const dx = mx - px;
-        const dy = my - py;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        // 根據攻擊方向更新角色朝向
-        if (Math.abs(dx) > Math.abs(dy)) {
-          // 水平方向為主
-          if (dx > 0) {
-            player.direction = 'right';
-          } else {
-            player.direction = 'left';
-          }
+      // 根據攻擊方向更新角色朝向
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // 水平方向為主
+        if (dx > 0) {
+          player.direction = 'right';
         } else {
-          // 垂直方向為主
-          if (dy > 0) {
-            player.direction = 'down';
-          } else {
-            player.direction = 'up';
-          }
+          player.direction = 'left';
         }
-        
-        projectiles.push({
-          x: px,
-          y: py,
-          vx: (dx / dist) * PROJECTILE_SPEED,
-          vy: (dy / dist) * PROJECTILE_SPEED,
-          targetMonster: i,
-        });
-        
-        // 設定攻擊動畫
-        player.isAttacking = true;
-        player.attackStartTime = currentTime;
-        player.attackAnimationTime = currentTime;
-        player.attackAnimationFrame = 1;
-        
-        lastAttackTime = currentTime;
-        
-        // 播放攻擊音效
-        audioSystem.playAttack();
-        
-        // 創建攻擊粒子效果
-        particleSystem.createTrail(px, py, '#FFFF00');
-        
-        // 一次只攻擊一隻
-        break;
+      } else {
+        // 垂直方向為主
+        if (dy > 0) {
+          player.direction = 'down';
+        } else {
+          player.direction = 'up';
+        }
       }
+      
+      projectiles.push({
+        x: px,
+        y: py,
+        vx: (dx / dist) * PROJECTILE_SPEED,
+        vy: (dy / dist) * PROJECTILE_SPEED,
+        targetMonster: i,
+      });
+      
+      // 設定攻擊動畫
+      player.isAttacking = true;
+      player.attackStartTime = currentTime;
+      player.attackAnimationTime = currentTime;
+      player.attackAnimationFrame = 1;
+      
+      lastAttackTime = currentTime;
+      
+      // 播放攻擊音效
+      audioSystem.playAttack();
+      
+      // 創建攻擊粒子效果
+      particleSystem.createTrail(px, py, '#FFFF00');
+      
+      // 一次只攻擊一隻
+      break;
     }
   }
 }
@@ -2410,8 +2437,8 @@ function updateMonsters() {
       const dy = py - my;
       const dist = Math.sqrt(dx * dx + dy * dy);
       
-      // 只有當玩家不在安全區域內時才追蹤
-      if (!isPlayerInSafeZone) {
+      // 只有當玩家不在安全區域內且沒有執行動作時才追蹤
+      if (!isPlayerInSafeZone && !player.isActioning) {
         if (dist <= 500) {
           // 500像素內：追蹤玩家
           if (dist > 0) {
@@ -2419,17 +2446,43 @@ function updateMonsters() {
             m.dy = (dy / dist) * m.speed;
           }
         } else {
-          // 500像素外：隨機移動
-          if (Math.random() < 0.02) { // 2% 機率改變方向
-            m.dx = (Math.random() - 0.5) * 2 * m.speed;
-            m.dy = (Math.random() - 0.5) * 2 * m.speed;
+          // 500像素外：回到起始座標附近
+          const startDx = m.startX - m.x;
+          const startDy = m.startY - m.y;
+          const startDist = Math.sqrt(startDx * startDx + startDy * startDy);
+          
+          if (startDist > 100) { // 如果距離起始點超過100像素
+            // 朝起始點移動
+            if (startDist > 0) {
+              m.dx = (startDx / startDist) * m.speed * 0.5; // 返回速度較慢
+              m.dy = (startDy / startDist) * m.speed * 0.5;
+            }
+          } else {
+            // 在起始點附近隨機移動
+            if (Math.random() < 0.02) { // 2% 機率改變方向
+              m.dx = (Math.random() - 0.5) * 2 * m.speed * 0.3; // 在起始點附近移動較慢
+              m.dy = (Math.random() - 0.5) * 2 * m.speed * 0.3;
+            }
           }
         }
       } else {
-        // 玩家在安全區域內：停止追蹤，改為隨機移動
-        if (Math.random() < 0.02) { // 2% 機率改變方向
-          m.dx = (Math.random() - 0.5) * 2 * m.speed;
-          m.dy = (Math.random() - 0.5) * 2 * m.speed;
+        // 玩家在安全區域內或正在執行動作：回到起始座標附近
+        const startDx = m.startX - m.x;
+        const startDy = m.startY - m.y;
+        const startDist = Math.sqrt(startDx * startDx + startDy * startDy);
+        
+        if (startDist > 100) { // 如果距離起始點超過100像素
+          // 朝起始點移動
+          if (startDist > 0) {
+            m.dx = (startDx / startDist) * m.speed * 0.5; // 返回速度較慢
+            m.dy = (startDy / startDist) * m.speed * 0.5;
+          }
+        } else {
+          // 在起始點附近隨機移動
+          if (Math.random() < 0.02) { // 2% 機率改變方向
+            m.dx = (Math.random() - 0.5) * 2 * m.speed * 0.3; // 在起始點附近移動較慢
+            m.dy = (Math.random() - 0.5) * 2 * m.speed * 0.3;
+          }
         }
       }
     } else if (m.type === 'turret') {
