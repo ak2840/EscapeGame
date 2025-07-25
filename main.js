@@ -235,6 +235,23 @@ const particleSystem = {
     this.addParticle(particle);
   },
   
+  createIceExplosion(x, y) {
+    // 創建冰凍爆炸效果
+    for (let i = 0; i < 20; i++) {
+      const angle = (Math.PI * 2 * i) / 20;
+      const speed = 1 + Math.random() * 2;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const particle = this.createParticle(
+        x, y, vx, vy, '#00FFFF', 
+        2 + Math.random() * 3, 
+        40 + Math.random() * 30,
+        'ice'
+      );
+      this.addParticle(particle);
+    }
+  },
+  
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
@@ -1173,6 +1190,7 @@ const player = {
   frozenStartTime: 0, // 冰凍開始時間
   frozenDuration: 5000, // 冰凍持續時間（5秒）
   frozenSpeedMultiplier: 0.2, // 冰凍時速度倍數（減緩80%）
+  frozenAttackCooldownMultiplier: 3.0, // 冰凍時攻擊冷卻倍數（攻擊速度減緩）
 };
 
 // 鍵盤狀態
@@ -2233,7 +2251,7 @@ function updatePlayer() {
       // 冰凍狀態結束
       player.isFrozen = false;
       player.speed = player.baseSpeed; // 恢復正常速度
-      console.log('冰凍狀態結束，恢復正常速度');
+      console.log('冰凍狀態結束，恢復正常速度和攻擊速度');
     }
   }
   
@@ -2429,20 +2447,26 @@ function distance(ax, ay, bx, by) {
 function autoAttack() {
   const currentTime = Date.now();
   
-  // 移動中：重置CD為25%
+  // 計算當前攻擊冷卻時間（考慮冰凍狀態）
+  let currentAttackCooldown = ATTACK_COOLDOWN;
+  if (player.isFrozen) {
+    currentAttackCooldown = ATTACK_COOLDOWN * player.frozenAttackCooldownMultiplier;
+  }
+  
+  // 移動中：重置CD為50%
   if (player.moving) {
-    lastAttackTime = currentTime - ATTACK_COOLDOWN * 0.75;
+    lastAttackTime = currentTime - currentAttackCooldown * 0.5;
     return;
   }
   
-  // 蹲下：重置CD為25%
+  // 蹲下：重新計算CD（從蹲下時刻開始計算新的冷卻時間）
   if (player.isActioning) {
-    lastAttackTime = currentTime - ATTACK_COOLDOWN * 0.75;
+    lastAttackTime = currentTime; // 重新開始計算冷卻時間
     return;
   }
   
   // 靜止狀態：檢查CD並攻擊
-  if (currentTime - lastAttackTime < ATTACK_COOLDOWN) {
+  if (currentTime - lastAttackTime < currentAttackCooldown) {
     return; // 還在冷卻中
   }
   
@@ -2770,7 +2794,7 @@ function checkCollision() {
         if (!player.isFrozen) {
           player.isFrozen = true;
           player.frozenStartTime = Date.now();
-          console.log(`玩家被${m.type}冰凍！移動速度減緩2秒`);
+          console.log(`玩家被${m.type}冰凍！移動速度和攻擊速度減緩5秒`);
           
           // 播放冰凍音效
           audioSystem.playHit();
@@ -2946,6 +2970,11 @@ function updateProjectiles() {
           // 創建爆炸粒子效果
           particleSystem.createExplosion(mx, my, '#FFD700', 12);
           
+          // 如果是普通怪物，產生擴散攻擊
+          if (deadMonster.type === 'normalA' || deadMonster.type === 'normalB' || deadMonster.type === 'normalC') {
+            createDeathExplosionAttack(mx, my, deadMonster.type);
+          }
+          
           // 掉落道具
           dropMonsterItem(deadMonster);
           
@@ -2978,6 +3007,7 @@ function updateMonsterProjectiles() {
     if (distance(p.x, p.y, px, py) < player.width / 2) {
       // 擊中玩家
       if (!player.isInvulnerable) {
+        // 普通攻擊：造成傷害
         player.hp--;
         player.isInvulnerable = true;
         player.invulnerableTime = Date.now();
@@ -3020,7 +3050,18 @@ function updateAttackEffects() {
     if (progress >= 1) {
       attackEffects.splice(i, 1);
     } else {
-      effect.radius = effect.maxRadius * progress;
+      // 根據特效類型更新半徑
+      if (effect.type === 'iceRange') {
+        // 冰凍範圍攻擊：快速擴展到最大半徑，然後保持
+        if (progress < 0.3) {
+          effect.radius = effect.maxRadius * (progress / 0.3);
+        } else {
+          effect.radius = effect.maxRadius;
+        }
+      } else {
+        // 普通攻擊特效：線性擴展
+        effect.radius = effect.maxRadius * progress;
+      }
     }
   }
 }
@@ -3045,6 +3086,7 @@ function drawSingleMonsterProjectile(projectile, offsetX, offsetY) {
   const color = projectile.color || '#FF0000';
   const size = projectile.size || MONSTER_PROJECTILE_SIZE;
   
+  // 普通攻擊的繪製
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(projectile.x - offsetX, projectile.y - offsetY, size, 0, 2 * Math.PI);
@@ -3078,17 +3120,42 @@ function drawMonsterProjectiles(offsetX, offsetY) {
 // 繪製單個攻擊特效
 function drawSingleAttackEffect(effect, offsetX, offsetY) {
   const alpha = 1 - ((Date.now() - effect.startTime) / effect.duration);
-  ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(
-    effect.x - offsetX,
-    effect.y - offsetY,
-    effect.radius,
-    0,
-    2 * Math.PI
-  );
-  ctx.stroke();
+  
+  if (effect.type === 'iceRange') {
+    // 冰凍範圍攻擊特效：半透明遮罩 + 發光效果
+    ctx.save();
+    
+    // 添加發光效果
+    ctx.shadowColor = '#00FFFF';
+    ctx.shadowBlur = 15;
+    
+    // 半透明遮罩
+    ctx.fillStyle = `rgba(0, 255, 255, ${alpha * 0.3})`;
+    ctx.beginPath();
+    ctx.arc(
+      effect.x - offsetX,
+      effect.y - offsetY,
+      effect.radius,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
+    
+    ctx.restore();
+  } else {
+    // 普通攻擊特效
+    ctx.strokeStyle = `rgba(255, 255, 0, ${alpha})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(
+      effect.x - offsetX,
+      effect.y - offsetY,
+      effect.radius,
+      0,
+      2 * Math.PI
+    );
+    ctx.stroke();
+  }
 }
 
 function drawAttackEffects(offsetX, offsetY) {
@@ -4593,6 +4660,57 @@ function createMapItem(itemType) {
   
   console.warn(`道具 ${itemType} 無法找到合適位置：嘗試${maxAttempts}次後仍在安全區域內`);
   return null;
+}
+
+// 創建範圍攻擊視覺效果
+function createRangeAttackEffect(x, y, radius, duration) {
+  attackEffects.push({
+    x: x,
+    y: y,
+    radius: 0,
+    maxRadius: radius,
+    startTime: Date.now(),
+    duration: duration,
+    color: '#00FFFF', // 青色表示冰凍範圍攻擊
+    type: 'iceRange'
+  });
+}
+
+// 創建死亡範圍攻擊
+function createDeathExplosionAttack(x, y, monsterType) {
+  // 範圍攻擊參數
+  const attackRadius = 400; // 攻擊範圍半徑（比玩家攻擊距離300像素更大）
+  const attackDuration = 500; // 攻擊持續時間（毫秒）
+  
+  // 檢查玩家是否在攻擊範圍內
+  const playerCenterX = player.x + player.width / 2;
+  const playerCenterY = player.y + player.height / 2;
+  const distanceToPlayer = Math.sqrt(
+    Math.pow(playerCenterX - x, 2) + Math.pow(playerCenterY - y, 2)
+  );
+  
+  // 如果玩家在範圍內，立即造成冰凍效果
+  if (distanceToPlayer <= attackRadius) {
+    if (!player.isFrozen) {
+      player.isFrozen = true;
+      player.frozenStartTime = Date.now();
+      console.log(`玩家被${monsterType}的死亡範圍攻擊冰凍！移動速度和攻擊速度減緩5秒`);
+      
+      // 播放冰凍音效
+      audioSystem.playHit();
+      
+      // 在玩家位置創建冰凍粒子效果
+      particleSystem.createIceExplosion(playerCenterX, playerCenterY);
+    }
+  }
+  
+  // 創建範圍攻擊視覺效果
+  createRangeAttackEffect(x, y, attackRadius, attackDuration);
+  
+  // 創建冰凍爆炸粒子效果
+  particleSystem.createIceExplosion(x, y);
+  
+  console.log(`${monsterType} 死亡時產生冰凍範圍攻擊！範圍：${attackRadius}像素`);
 }
 
 // 怪物死亡時掉落道具
