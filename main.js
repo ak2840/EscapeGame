@@ -80,8 +80,8 @@ const audioSystem = {
     this.bgmEnabled = !this.bgmEnabled;
     // 先暫停遊戲音樂
     this.stopGameMusic();
-    // 如果開啟且目前在遊戲中，播放遊戲音樂
-    if (this.bgmEnabled && gameState === 'playing') {
+    // 如果開啟且在遊戲相關狀態中，播放遊戲音樂
+    if (this.bgmEnabled && (gameState === 'playing' || gameState === 'storyIntro' || gameState === 'storyOutro')) {
       this.playGameMusic();
     }
     this.updateButtonStates();
@@ -883,9 +883,13 @@ const storySystem = {
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     
-    // 計算圖片縮放和位置
+    // 為音效控制按鈕留出空間（右上角區域）
+    const buttonAreaHeight = 60; // 音效按鈕區域高度
+    
+    // 計算圖片縮放和位置（考慮按鈕區域）
     const imgAspect = this.currentImage.width / this.currentImage.height;
-    const canvasAspect = ctx.canvas.width / ctx.canvas.height;
+    const availableHeight = ctx.canvas.height - buttonAreaHeight;
+    const canvasAspect = ctx.canvas.width / availableHeight;
     
     let drawWidth, drawHeight, drawX, drawY;
     
@@ -894,11 +898,11 @@ const storySystem = {
       drawWidth = ctx.canvas.width;
       drawHeight = ctx.canvas.width / imgAspect;
       drawX = 0;
-      drawY = (ctx.canvas.height - drawHeight) / 2;
+      drawY = (availableHeight - drawHeight) / 2;
     } else {
       // 圖片較高，以高度為準
-      drawHeight = ctx.canvas.height;
-      drawWidth = ctx.canvas.height * imgAspect;
+      drawHeight = availableHeight;
+      drawWidth = availableHeight * imgAspect;
       drawX = (ctx.canvas.width - drawWidth) / 2;
       drawY = 0;
     }
@@ -1300,7 +1304,7 @@ window.addEventListener('keydown', (e) => {
 
 // 滑鼠點擊事件處理遊戲內按鈕
 canvas.addEventListener('click', (e) => {
-  if (gameState !== 'playing') return;
+  if (gameState !== 'playing' && gameState !== 'storyIntro' && gameState !== 'storyOutro') return;
   
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
@@ -1709,8 +1713,8 @@ function completeLevel(level) {
   // 播放勝利音效
   audioSystem.playVictory();
   
-  // 停止遊戲背景音樂
-  audioSystem.stopGameMusic();
+  // 保持背景音樂播放（在劇情模式期間繼續播放）
+  // audioSystem.stopGameMusic(); // 移除這行，讓背景音樂繼續播放
   
   // 保存進度
   saveProgress();
@@ -3153,8 +3157,10 @@ function restartGame() {
   // 重新生成地圖道具
   spawnMapItems();
   
-  // 播放遊戲背景音樂
-  audioSystem.playGameMusic();
+  // 確保背景音樂繼續播放（如果已啟用）
+  if (audioSystem.bgmEnabled && audioSystem.gameMusic && audioSystem.gameMusic.paused) {
+    audioSystem.playGameMusic();
+  }
   
   console.log('遊戲重新開始！');
 }
@@ -3908,6 +3914,8 @@ function gameLoop() {
   if (gameState === 'storyIntro' || gameState === 'storyOutro') {
     // 繪製劇情圖片
     storySystem.draw(ctx);
+    // 在劇情模式期間也顯示音效控制按鈕
+    drawSoundControls();
   } else if (gameState === 'playing') {
     const { offsetX, offsetY } = getCameraOffset();
     clearScreen();
@@ -4127,6 +4135,9 @@ async function startLevel(level) {
   loadLevel(); // 只載入進度，不更新配置
   await updateLevelConfig(); // 更新關卡配置
   hideLobby();
+  
+  // 開始播放背景音樂（在劇情模式期間也播放）
+  audioSystem.playGameMusic();
   
   // 顯示關卡開始劇情
   storySystem.showIntro(level);
