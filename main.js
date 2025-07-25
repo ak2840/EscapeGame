@@ -261,6 +261,17 @@ const particleSystem = {
         case 'trail':
           particle.size *= 0.9;
           break;
+        case 'ice':
+          // 冰凍粒子：緩慢上升並逐漸消失，帶有旋轉效果
+          particle.vy -= 0.08; // 向上飄動
+          particle.vx *= 0.99; // 水平速度減緩
+          particle.size *= 0.995; // 逐漸變小
+          
+          // 添加旋轉屬性（如果還沒有的話）
+          if (!particle.rotation) particle.rotation = 0;
+          if (!particle.rotationSpeed) particle.rotationSpeed = (Math.random() - 0.5) * 0.2;
+          particle.rotation += particle.rotationSpeed;
+          break;
       }
       
       // 移除死亡粒子
@@ -277,16 +288,56 @@ const particleSystem = {
       const alpha = particle.life / particle.maxLife;
       ctx.globalAlpha = alpha;
       
-      ctx.fillStyle = particle.color;
-      ctx.beginPath();
-      ctx.arc(
-        particle.x - offsetX, 
-        particle.y - offsetY, 
-        particle.size, 
-        0, 
-        Math.PI * 2
-      );
-      ctx.fill();
+      if (particle.type === 'ice') {
+        // 冰凍粒子的特殊繪製
+        ctx.save();
+        ctx.translate(particle.x - offsetX, particle.y - offsetY);
+        if (particle.rotation) {
+          ctx.rotate(particle.rotation);
+        }
+        
+        // 繪製冰晶形狀
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.moveTo(0, -particle.size);
+        ctx.lineTo(particle.size * 0.3, -particle.size * 0.3);
+        ctx.lineTo(particle.size, 0);
+        ctx.lineTo(particle.size * 0.3, particle.size * 0.3);
+        ctx.lineTo(0, particle.size);
+        ctx.lineTo(-particle.size * 0.3, particle.size * 0.3);
+        ctx.lineTo(-particle.size, 0);
+        ctx.lineTo(-particle.size * 0.3, -particle.size * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 添加內部高光
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.beginPath();
+        ctx.moveTo(0, -particle.size * 0.5);
+        ctx.lineTo(particle.size * 0.15, -particle.size * 0.15);
+        ctx.lineTo(particle.size * 0.5, 0);
+        ctx.lineTo(particle.size * 0.15, particle.size * 0.15);
+        ctx.lineTo(0, particle.size * 0.5);
+        ctx.lineTo(-particle.size * 0.15, particle.size * 0.15);
+        ctx.lineTo(-particle.size * 0.5, 0);
+        ctx.lineTo(-particle.size * 0.15, -particle.size * 0.15);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.restore();
+      } else {
+        // 普通粒子的繪製
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(
+          particle.x - offsetX, 
+          particle.y - offsetY, 
+          particle.size, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.fill();
+      }
     }
     
     ctx.restore();
@@ -1113,6 +1164,11 @@ const player = {
   isInvulnerable: false, // 無敵狀態
   invulnerableTime: 0, // 無敵時間
   invulnerableDuration: 1000, // 無敵持續時間（1秒），會在loadLevel()中更新
+  // 冰凍狀態相關屬性
+  isFrozen: false, // 是否處於冰凍狀態
+  frozenStartTime: 0, // 冰凍開始時間
+  frozenDuration: 5000, // 冰凍持續時間（5秒）
+  frozenSpeedMultiplier: 0.2, // 冰凍時速度倍數（減緩80%）
 };
 
 // 鍵盤狀態
@@ -1718,6 +1774,10 @@ async function updateLevelConfig() {
   player.hp = defaultSettings.playerHp;
   player.maxHp = defaultSettings.playerHp;
   player.invulnerableDuration = defaultSettings.invulnerableDuration;
+  
+  // 重置冰凍狀態
+  player.isFrozen = false;
+  player.frozenStartTime = 0;
 
   // 更新安全區域位置（確保在地圖中心）
   SAFE_ZONE_CENTER_X = MAP_WIDTH / 2;
@@ -2162,11 +2222,28 @@ function getMonsterMaxHp(type) {
 function updatePlayer() {
   player.moving = false;
   
+  // 檢查冰凍狀態
+  if (player.isFrozen) {
+    const currentTime = Date.now();
+    if (currentTime - player.frozenStartTime >= player.frozenDuration) {
+      // 冰凍狀態結束
+      player.isFrozen = false;
+      player.speed = player.baseSpeed; // 恢復正常速度
+      console.log('冰凍狀態結束，恢復正常速度');
+    }
+  }
+  
+  // 計算當前移動速度（考慮冰凍狀態）
+  let currentSpeed = player.speed;
+  if (player.isFrozen) {
+    currentSpeed = player.baseSpeed * player.frozenSpeedMultiplier;
+  }
+  
   // 檢查方向鍵輸入（無論是否在蹲下狀態）
   if (keys.ArrowUp) {
     if (!player.isActioning) {
       // 只有在非蹲下狀態才移動位置
-      player.y -= player.speed;
+      player.y -= currentSpeed;
       player.moving = true;
     }
     player.direction = 'up';
@@ -2174,7 +2251,7 @@ function updatePlayer() {
   if (keys.ArrowDown) {
     if (!player.isActioning) {
       // 只有在非蹲下狀態才移動位置
-      player.y += player.speed;
+      player.y += currentSpeed;
       player.moving = true;
     }
     player.direction = 'down';
@@ -2182,7 +2259,7 @@ function updatePlayer() {
   if (keys.ArrowLeft) {
     if (!player.isActioning) {
       // 只有在非蹲下狀態才移動位置
-      player.x -= player.speed;
+      player.x -= currentSpeed;
       player.moving = true;
     }
     player.direction = 'left';
@@ -2190,7 +2267,7 @@ function updatePlayer() {
   if (keys.ArrowRight) {
     if (!player.isActioning) {
       // 只有在非蹲下狀態才移動位置
-      player.x += player.speed;
+      player.x += currentSpeed;
       player.moving = true;
     }
     player.direction = 'right';
@@ -2248,6 +2325,8 @@ function drawPlayer(offsetX, offsetY) {
   // 繪製角色圖片
   ctx.drawImage(imageToDraw, player.x - offsetX, player.y - offsetY, player.width, player.height);
   
+
+  
   // 繪製玩家血條
   drawPlayerHealthBar(offsetX, offsetY);
 }
@@ -2300,6 +2379,22 @@ function drawPlayerHealthBar(offsetX, offsetY) {
     if (Math.floor(currentTime / flashRate) % 2 === 0) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
       ctx.fillRect(barX, barY, barWidth, barHeight);
+    }
+  }
+  
+  // 如果處於冰凍狀態，在原本血條上添加藍色閃爍效果
+  if (player.isFrozen) {
+    const currentTime = Date.now();
+    const flashRate = 150; // 冰凍閃爍頻率（毫秒）
+    if (Math.floor(currentTime / flashRate) % 2 === 0) {
+      // 藍色半透明覆蓋層
+      ctx.fillStyle = 'rgba(135, 206, 235, 0.4)';
+      ctx.fillRect(barX, barY, barWidth, barHeight);
+      
+      // 藍色邊框閃爍
+      ctx.strokeStyle = '#00BFFF';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(barX, barY, barWidth, barHeight);
     }
   }
 }
@@ -2665,7 +2760,19 @@ function checkCollision() {
     
     // 如果距離小於兩個半徑之和，則發生碰撞
     if (distance < (playerRadius + monsterRadius)) {
-      // 玩家受到傷害
+      // 根據怪物類型處理不同的碰撞效果
+      if (m.type === 'normalA' || m.type === 'normalB' || m.type === 'normalC') {
+        // 普通怪物：觸發冰凍狀態
+        if (!player.isFrozen) {
+          player.isFrozen = true;
+          player.frozenStartTime = Date.now();
+          console.log(`玩家被${m.type}冰凍！移動速度減緩2秒`);
+          
+          // 播放冰凍音效
+          audioSystem.playHit();
+        }
+      } else {
+        // 其他怪物（追蹤怪物、砲塔怪物）：造成傷害
       player.hp--;
       player.isInvulnerable = true;
       player.invulnerableTime = Date.now();
@@ -2679,12 +2786,13 @@ function checkCollision() {
       // 創建受傷粒子效果
       particleSystem.createHitEffect(playerCenterX, playerCenterY, '#FF4444');
       
-      console.log(`玩家受到傷害！剩餘血量：${player.hp}`);
+        console.log(`玩家受到${m.type}傷害！剩餘血量：${player.hp}`);
       
       if (player.hp <= 0) {
         gameOver = true;
         audioSystem.playGameOver();
         console.log('遊戲結束！你的血量耗盡了！');
+        }
       }
       return;
     }
@@ -3021,6 +3129,10 @@ function restartGame() {
   player.hp = player.maxHp;
   player.isInvulnerable = false;
   player.invulnerableTime = 0;
+  
+  // 重置冰凍狀態
+  player.isFrozen = false;
+  player.frozenStartTime = 0;
   
   // 清空所有怪物和彈幕
   monsters.length = 0;
