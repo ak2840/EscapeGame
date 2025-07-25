@@ -1,0 +1,294 @@
+焦土中的信號 Signal - 完整圖片檔案清單
+==========================================
+
+遊戲概述
+--------
+「焦土中的信號 Signal」是一款末日環境中的ESG小尖兵冒險遊戲
+總計圖片檔案：108張
+
+==========================================
+1. 玩家角色圖片 (24張)
+==========================================
+
+用途：玩家角色的各種動作動畫
+規格：60x90像素，PNG格式，支援透明背景
+動畫：每種動作有2幀動畫
+
+移動動畫 (8張)：
+- assets/player/player-up-1.png      # 向上移動第1幀
+- assets/player/player-up-2.png      # 向上移動第2幀
+- assets/player/player-down-1.png    # 向下移動第1幀
+- assets/player/player-down-2.png    # 向下移動第2幀
+- assets/player/player-left-1.png    # 向左移動第1幀
+- assets/player/player-left-2.png    # 向左移動第2幀
+- assets/player/player-right-1.png   # 向右移動第1幀
+- assets/player/player-right-2.png   # 向右移動第2幀
+
+攻擊動畫 (8張)：
+- assets/player/player-attack-up-1.png      # 向上攻擊第1幀
+- assets/player/player-attack-up-2.png      # 向上攻擊第2幀
+- assets/player/player-attack-down-1.png    # 向下攻擊第1幀
+- assets/player/player-attack-down-2.png    # 向下攻擊第2幀
+- assets/player/player-attack-left-1.png    # 向左攻擊第1幀
+- assets/player/player-attack-left-2.png    # 向左攻擊第2幀
+- assets/player/player-attack-right-1.png   # 向右攻擊第1幀
+- assets/player/player-attack-right-2.png   # 向右攻擊第2幀
+
+動作動畫 (8張)：
+- assets/player/player-action-up-1.png      # 向上動作第1幀
+- assets/player/player-action-up-2.png      # 向上動作第2幀
+- assets/player/player-action-down-1.png    # 向下動作第1幀
+- assets/player/player-action-down-2.png    # 向下動作第2幀
+- assets/player/player-action-left-1.png    # 向左動作第1幀
+- assets/player/player-action-left-2.png    # 向左動作第2幀
+- assets/player/player-action-right-1.png   # 向右動作第1幀
+- assets/player/player-action-right-2.png   # 向右動作第2幀
+
+==========================================
+2. 怪物圖片 (28張)
+==========================================
+
+用途：各種敵人的動畫圖片
+規格：PNG格式，支援透明背景
+
+普通怪物A (4張) - 橙色怪物，60x60像素：
+- assets/monsters/normalA-left-1.png    # 向左移動第1幀
+- assets/monsters/normalA-left-2.png    # 向左移動第2幀
+- assets/monsters/normalA-right-1.png   # 向右移動第1幀
+- assets/monsters/normalA-right-2.png   # 向右移動第2幀
+
+普通怪物B (4張) - 紫色怪物，60x60像素：
+- assets/monsters/normalB-left-1.png    # 向左移動第1幀
+- assets/monsters/normalB-left-2.png    # 向左移動第2幀
+- assets/monsters/normalB-right-1.png   # 向右移動第1幀
+- assets/monsters/normalB-right-2.png   # 向右移動第2幀
+
+普通怪物C (4張) - 綠色怪物，60x60像素：
+- assets/monsters/normalC-left-1.png    # 向左移動第1幀
+- assets/monsters/normalC-left-2.png    # 向左移動第2幀
+- assets/monsters/normalC-right-1.png   # 向右移動第1幀
+- assets/monsters/normalC-right-2.png   # 向右移動第2幀
+
+追蹤怪物A (4張) - 粉色追蹤怪物，120x120像素：
+- assets/monsters/trackerA-left-1.png   # 向左移動第1幀
+- assets/monsters/trackerA-left-2.png   # 向左移動第2幀
+- assets/monsters/trackerA-right-1.png  # 向右移動第1幀
+- assets/monsters/trackerA-right-2.png  # 向右移動第2幀
+
+追蹤怪物B (4張) - 粉色追蹤怪物，120x120像素：
+- assets/monsters/trackerB-left-1.png   # 向左移動第1幀
+- assets/monsters/trackerB-left-2.png   # 向左移動第2幀
+- assets/monsters/trackerB-right-1.png  # 向右移動第1幀
+- assets/monsters/trackerB-right-2.png  # 向右移動第2幀
+
+砲塔怪物 (4張) - 深紅色砲塔，300x300像素：
+- assets/monsters/turret-left-1.png     # 向左攻擊第1幀
+- assets/monsters/turret-left-2.png     # 向左攻擊第2幀
+- assets/monsters/turret-right-1.png    # 向右攻擊第1幀
+- assets/monsters/turret-right-2.png    # 向右攻擊第2幀
+
+砲塔怪物靜態圖片 (1張)：
+- assets/monsters/turret-monster.png    # 砲塔怪物靜態圖片
+
+==========================================
+3. 地圖圖片 (24張)
+==========================================
+
+用途：地圖瓦片貼圖，隨機使用
+規格：100x100像素，PNG格式，支援透明背景
+
+第1關 - 新手關卡 (6張)：
+- assets/maps/map-level1-1.png    # 主要地圖瓦片 (權重10)
+- assets/maps/map-level1-2.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level1-3.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level1-4.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level1-5.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level1-6.png    # 次要地圖瓦片 (權重1)
+
+第2關 - 追蹤者挑戰 (6張)：
+- assets/maps/map-level2-1.png    # 主要地圖瓦片 (權重3)
+- assets/maps/map-level2-2.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level2-3.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level2-4.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level2-5.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level2-6.png    # 次要地圖瓦片 (權重1)
+
+第3關 - 混戰關卡 (6張)：
+- assets/maps/map-level3-1.png    # 主要地圖瓦片 (權重30)
+- assets/maps/map-level3-2.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level3-3.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level3-4.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level3-5.png    # 次要地圖瓦片 (權重1)
+- assets/maps/map-level3-6.png    # 次要地圖瓦片 (權重1)
+
+第4關 - 最終挑戰 (6張)：
+- assets/maps/map-level4-1.png    # 地圖瓦片 (權重1)
+- assets/maps/map-level4-2.png    # 地圖瓦片 (權重1)
+- assets/maps/map-level4-3.png    # 地圖瓦片 (權重1)
+- assets/maps/map-level4-4.png    # 地圖瓦片 (權重1)
+- assets/maps/map-level4-5.png    # 地圖瓦片 (權重1)
+- assets/maps/map-level4-6.png    # 地圖瓦片 (權重1)
+
+==========================================
+4. 道具圖片 (4張)
+==========================================
+
+用途：遊戲中的收集道具
+規格：PNG格式，支援透明背景
+
+地圖道具：
+- assets/items/item-map-a.png      # OPEE (機器人) - 80像素，紅色
+- assets/items/item-map-b.png      # 共感頻率器 (大喇叭) - 50像素，綠色
+
+怪物掉落道具：
+- assets/items/item-monster-a.png  # 綠能聚合晶體 (綠色石頭) - 35像素，橙色
+- assets/items/item-monster-b.png  # 動能核心 (有電的東西) - 45像素，藍色
+
+==========================================
+5. 出口圖片 (4張)
+==========================================
+
+用途：各關卡的出口標示
+規格：PNG格式，支援透明背景
+
+- assets/exit/exit_level1.png      # 第1關出口
+- assets/exit/exit_level2.png      # 第2關出口
+- assets/exit/exit_level3.png      # 第3關出口
+- assets/exit/exit_level4.png      # 第4關出口
+
+==========================================
+6. 劇情圖片 (8張)
+==========================================
+
+用途：關卡開始和結束的劇情展示
+規格：JPG格式
+
+關卡開始劇情：
+- assets/story/story_1_before.jpg   # 第1關開始劇情
+- assets/story/story_2_before.jpg   # 第2關開始劇情
+- assets/story/story_3_before.jpg   # 第3關開始劇情
+- assets/story/story_4_before.jpg   # 第4關開始劇情
+
+關卡結束劇情：
+- assets/story/story_1_after.jpg    # 第1關結束劇情
+- assets/story/story_2_after.jpg    # 第2關結束劇情
+- assets/story/story_3_after.jpg    # 第3關結束劇情
+- assets/story/story_4_after.jpg    # 第4關結束劇情
+
+==========================================
+7. UI介面圖片 (8張)
+==========================================
+
+用途：遊戲使用者介面元素
+規格：PNG/SVG格式
+
+背景圖片：
+- assets/ui/lobby-background.png    # 大廳背景圖片
+
+SVG圖示：
+- assets/ui/about.svg               # 關於按鈕圖示
+- assets/ui/reset.svg               # 重置按鈕圖示
+- assets/ui/sound-on.svg            # 音效開啟圖示
+- assets/ui/sound-off.svg           # 音效關閉圖示
+- assets/ui/volume-on.svg           # 音量開啟圖示
+- assets/ui/volume-off.svg          # 音量關閉圖示
+
+==========================================
+8. 音效檔案 (4個)
+==========================================
+
+用途：遊戲音效和背景音樂
+規格：MP3格式
+
+- assets/audio/background-music.mp3  # 背景音樂
+- assets/audio/attack.mp3            # 攻擊音效
+- assets/audio/hit.mp3               # 命中音效
+- assets/audio/button-click.mp3      # 按鈕點擊音效
+
+==========================================
+檔案結構總覽
+==========================================
+
+assets/
+├── player/                    # 玩家角色圖片 (24張)
+│   ├── player-*-1.png        # 各種動作第1幀
+│   └── player-*-2.png        # 各種動作第2幀
+├── monsters/                  # 怪物圖片 (28張)
+│   ├── normalA-*.png         # 普通怪物A
+│   ├── normalB-*.png         # 普通怪物B
+│   ├── normalC-*.png         # 普通怪物C
+│   ├── trackerA-*.png        # 追蹤怪物A
+│   ├── trackerB-*.png        # 追蹤怪物B
+│   └── turret-*.png          # 砲塔怪物
+├── maps/                      # 地圖圖片 (24張)
+│   ├── map-level1-*.png      # 第1關地圖
+│   ├── map-level2-*.png      # 第2關地圖
+│   ├── map-level3-*.png      # 第3關地圖
+│   └── map-level4-*.png      # 第4關地圖
+├── items/                     # 道具圖片 (4張)
+│   ├── item-map-*.png        # 地圖道具
+│   └── item-monster-*.png    # 怪物掉落道具
+├── exit/                      # 出口圖片 (4張)
+│   └── exit_level*.png       # 各關卡出口
+├── story/                     # 劇情圖片 (8張)
+│   ├── story_*_before.jpg    # 關卡開始劇情
+│   └── story_*_after.jpg     # 關卡結束劇情
+├── ui/                        # UI介面圖片 (8張)
+│   ├── lobby-background.png  # 大廳背景
+│   └── *.svg                 # UI圖示
+└── audio/                     # 音效檔案 (4個)
+    ├── background-music.mp3  # 背景音樂
+    └── *.mp3                 # 音效檔案
+
+==========================================
+圖片規格總結
+==========================================
+
+玩家角色：
+- 尺寸：60x90像素
+- 動畫：每種動作2幀
+- 總計：24張
+
+怪物：
+- 普通怪物：60x60像素
+- 追蹤怪物：120x120像素
+- 砲塔怪物：300x300像素
+- 動畫：每種方向2幀
+- 總計：28張
+
+地圖：
+- 尺寸：100x100像素
+- 每關6張，共4關
+- 總計：24張
+
+道具：
+- 尺寸：35-80像素不等
+- 總計：4張
+
+出口：
+- 各關卡專用
+- 總計：4張
+
+劇情：
+- JPG格式
+- 每關開始/結束各1張
+- 總計：8張
+
+UI介面：
+- PNG/SVG格式
+- 總計：8張
+
+音效：
+- MP3格式
+- 總計：4個檔案
+
+==========================================
+總計：108個圖片/音效檔案
+==========================================
+
+注意事項：
+1. 所有PNG圖片都支援透明背景
+2. 地圖圖片使用權重系統控制出現機率
+3. 劇情圖片如果載入失敗會自動生成預設圖片
+4. 音效檔案可選，不影響遊戲基本功能
+5. 所有圖片都可以自由替換，保持相同檔名即可 
