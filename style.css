@@ -1,11 +1,45 @@
 @charset "UTF-8";
+/* 清松手寫體1 */
+@font-face {
+  font-family: "JasonHW-Round";
+  src: url("assets/fonts/JasonHandwriting1.ttf") format("truetype");
+}
+/* 清松手寫體8 */
+@font-face {
+  font-family: "JasonHW-Free";
+  src: url("assets/fonts/JasonHandwriting8.ttf") format("truetype");
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #47532d;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #47532d;
+}
+
 body {
   margin: 0;
   overflow: hidden;
-  font-family: "Orbitron", sans-serif;
+  font-family: "JasonHW-Round", "Orbitron", sans-serif;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: bold;
   color: #ffffff;
   background: url(assets/ui/bg.jpg) no-repeat center center #444;
   background-size: cover;
+  letter-spacing: 2px;
 }
 
 #gameLobby {
@@ -52,7 +86,7 @@ body {
 .game-title {
   color: rgba(255, 215, 0, 0);
   font-size: 48px;
-  margin-bottom: 60px;
+  margin-bottom: 120px;
   font-weight: bold;
 }
 
@@ -71,11 +105,11 @@ body {
 }
 
 .level-button {
+  font-family: "JasonHW-Round", "Orbitron", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
   width: 150px;
   height: 100px;
-  border: 2px solid #666;
-  /* 與遊戲網格線顏色一致 */
-  border-radius: 10px;
+  border: 1px solid #8d6c3b;
+  border-radius: 15px;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
@@ -86,67 +120,62 @@ body {
   /* 與遊戲UI面板一致 */
 }
 .level-button.unlocked {
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  color: white;
-  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-  border-color: #4caf50;
+  background: linear-gradient(135deg, #dbab61, #8d6c3b);
+  color: #3a3a3a;
+  box-shadow: 0 4px 10px rgba(219, 171, 97, 0.5);
+  border-color: #534d35;
 }
 .level-button.unlocked:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-  border-color: #66bb6a;
+  box-shadow: 0 6px 15px rgba(141, 108, 59, 0.8);
+  border-color: #534d35;
 }
 .level-button.locked {
   background: rgba(0, 0, 0, 0.7);
   color: #999;
   cursor: not-allowed;
-  border-color: #444;
+  border-color: rgba(68, 68, 68, 0.5);
+}
+.level-button.locked .level-info {
+  color: #444;
 }
 .level-button.completed {
   background: linear-gradient(135deg, #ffd700, #ffa500);
   color: #333;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 4px 5px rgba(255, 215, 0, 0.3);
   border-color: #ffd700;
 }
 .level-button.completed:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 6px 10px rgba(255, 215, 0, 0.4);
   border-color: #ffa500;
 }
 
 .level-info {
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-  opacity: 0.8;
-  color: #ffffff;
+  color: #2b2b2b;
+  font-size: 20px;
 }
 
 .progress-info {
-  color: #00ff00;
-  /* 與遊戲中的綠色一致 */
-  font-size: 16px;
+  color: #d0cba5;
+  font-size: 18px;
   margin-bottom: 25px;
   font-weight: bold;
 }
 
 .instructions {
-  color: #cccccc;
-  /* 與遊戲說明文字顏色一致 */
-  font-size: 14px;
+  color: #637441;
+  font-size: 16px;
   max-width: 320px;
   line-height: 1.6;
   text-align: left;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 18px;
-  border-radius: 8px;
-  border: 1px solid #666;
+  padding: 9px 18px;
+  border-top: 1px solid #637441;
+  border-bottom: 1px solid #637441;
   margin: 0 auto;
 }
 .instructions strong {
-  color: #ffff00;
+  color: #637441;
   /* 與遊戲中的黃色標題一致 */
   font-size: 16px;
 }
@@ -155,7 +184,7 @@ body {
   padding-left: 20px;
 }
 .instructions li {
-  color: #00ffff;
+  color: #637441;
   /* 與遊戲中的青色項目符號一致 */
   margin-bottom: 8px;
 }
@@ -171,9 +200,9 @@ body {
 .control-button {
   width: 50px;
   height: 50px;
-  border: 2px solid #666;
+  border: 1px solid #47532d;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2c3e50, #34495e);
+  background: linear-gradient(135deg, #637441, #47532d);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -184,29 +213,33 @@ body {
 .control-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  border-color: #ffd700;
+  border-color: #637441;
 }
 .control-button:active {
   transform: translateY(0);
 }
 .control-button.active {
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  border-color: #4caf50;
+  background: linear-gradient(135deg, #637441, #47532d);
+  border-color: #47532d;
 }
 .control-button.muted {
-  background: linear-gradient(135deg, #f44336, #d32f2f);
-  border-color: #f44336;
+  background: linear-gradient(135deg, #663939, #532d2d);
+  border-color: #532d2d;
+}
+.control-button.cb-blue {
+  background: linear-gradient(135deg, #4b4b4b, #2b2b2b);
+  border-color: #4b4b4b;
 }
 
 .control-icon {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   filter: brightness(0) invert(1);
   transition: all 0.3s ease;
 }
 
 .control-button:hover .control-icon {
-  filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(45deg);
+  filter: brightness(0) invert(1) sepia(1) saturate(3.2) hue-rotate(35deg) brightness(1.1);
 }
 
 /* 音效控制按鈕 */
@@ -222,7 +255,7 @@ body {
 .sound-button {
   width: 40px;
   height: 40px;
-  border: 2px solid #666;
+  border: 1px solid #444;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.7);
   color: #ffffff;
@@ -296,7 +329,7 @@ body {
 }
 #gameCanvas {
   background: #444;
-  border: 2px solid #666;
+  border: 1px solid #444;
   /* 添加邊框，與大廳風格一致 */
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
@@ -583,13 +616,14 @@ body {
 }
 
 .about-container {
-  background: linear-gradient(135deg, #2a2a2a, #444);
-  border: 2px solid #ffd700;
+  background: url(assets/ui/bg.jpg) no-repeat center center;
+  background-size: cover;
+  border: 1px solid #47532d;
   border-radius: 15px;
   max-width: 900px;
   max-height: 80vh;
   width: 90%;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
   position: relative;
 }
@@ -599,25 +633,24 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px 30px;
-  border-bottom: 2px solid #ffd700;
-  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-bottom: 1px solid #47532d;
+  background: linear-gradient(135deg, #637441, #47532d);
 }
 
 .about-title {
-  color: #ffd700;
+  color: #d0cba5;
   font-size: 28px;
   font-weight: bold;
   margin: 0;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .close-button {
   background: none;
-  border: 2px solid #ffd700;
+  border: 1px solid #d0cba5;
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  color: #ffd700;
+  color: #d0cba5;
   font-size: 24px;
   font-weight: bold;
   cursor: pointer;
@@ -633,10 +666,12 @@ body {
 
 .about-content {
   padding: 30px;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 .section-title {
-  color: #ffd700;
+  color: #d0cba5;
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
@@ -678,7 +713,7 @@ body {
 
 .gallery-item {
   background: rgba(0, 0, 0, 0.5);
-  border: 2px solid #666;
+  border: 1px solid #47532d;
   border-radius: 10px;
   padding: 0;
   text-align: center;

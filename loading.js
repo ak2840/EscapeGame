@@ -29,7 +29,7 @@ class LoadingManager {
             align-items: center;
             z-index: 9999;
             color: white;
-            font-family: 'Arial', sans-serif;
+            font-family: "JasonHW-Round", "Orbitron", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
         `;
 
         const title = document.createElement('h1');
