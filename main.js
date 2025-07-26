@@ -14,13 +14,26 @@ const audioSystem = {
   gameOverSound: null,
   buttonClickSound: null,
   
-  init() {
+  async init() {
     this.gameMusic = document.getElementById('gameMusic');
     this.attackSound = document.getElementById('attackSound');
     this.hitSound = document.getElementById('hitSound');
     this.victorySound = document.getElementById('victorySound');
     this.gameOverSound = document.getElementById('gameOverSound');
     this.buttonClickSound = document.getElementById('buttonClickSound');
+    
+    // 使用載入管理器追蹤音訊載入
+    const audioPromises = [
+      window.loadingManager.trackAudioLoad('assets/audio/background-music.mp3'),
+      window.loadingManager.trackAudioLoad('assets/audio/attack.mp3'),
+      window.loadingManager.trackAudioLoad('assets/audio/hit.mp3'),
+      window.loadingManager.trackAudioLoad('assets/audio/victory.mp3'),
+      window.loadingManager.trackAudioLoad('assets/audio/game-over.mp3'),
+      window.loadingManager.trackAudioLoad('assets/audio/button-click.mp3')
+    ];
+    
+    // 等待音訊載入完成
+    await Promise.all(audioPromises);
     
     // 從 cookie 讀取音效設定
     this.loadAudioSettings();
@@ -567,7 +580,7 @@ monsterImages.turret.right1.src = 'assets/monsters/turret-right-1.png';
 monsterImages.turret.right2.src = 'assets/monsters/turret-right-2.png';
 
 // 載入地圖圖片
-function loadMapImages(levelConfig) {
+async function loadMapImages(levelConfig) {
   console.log('開始載入地圖圖片...');
   console.log('關卡配置:', levelConfig);
   
@@ -581,9 +594,14 @@ function loadMapImages(levelConfig) {
     return;
   }
   
+  // 清空之前的陣列
   currentMapTiles = [];
-  currentMapWeights = []; // 新增權重陣列
+  currentMapWeights = [];
   
+  const loadPromises = [];
+  const tilePaths = [];
+  
+  // 第一階段：準備載入所有圖片
   for (const tileConfig of levelConfig.mapTiles) {
     // 支援新的權重格式和舊的字串格式
     let tilePath, weight;
@@ -598,27 +616,50 @@ function loadMapImages(levelConfig) {
       continue;
     }
     
-    console.log(`載入圖片: ${tilePath}, 權重: ${weight}`);
-    if (!mapImages[tilePath]) {
-      mapImages[tilePath] = new Image();
-      mapImages[tilePath].src = tilePath;
-      
-      // 添加載入事件監聽器
-      mapImages[tilePath].onload = () => {
-        console.log(`圖片載入成功: ${tilePath}`);
-      };
-      
-      mapImages[tilePath].onerror = () => {
-        console.error(`圖片載入失敗: ${tilePath}`);
-      };
-    }
-    currentMapTiles.push(mapImages[tilePath]);
+    tilePaths.push(tilePath);
     currentMapWeights.push(weight);
+    
+    console.log(`準備載入圖片: ${tilePath}, 權重: ${weight}`);
+    
+    // 如果圖片還沒載入過，就載入它
+    if (!mapImages[tilePath]) {
+      const loadPromise = window.loadingManager.trackImageLoad(tilePath).then(img => {
+        if (img) {
+          mapImages[tilePath] = img;
+          console.log(`圖片載入成功: ${tilePath}`);
+        } else {
+          console.error(`圖片載入失敗: ${tilePath}`);
+        }
+      }).catch(error => {
+        console.error(`圖片載入錯誤: ${tilePath}`, error);
+      });
+      loadPromises.push(loadPromise);
+    }
   }
   
-  console.log(`載入關卡地圖圖片: ${levelConfig.mapTiles.length}張`);
-  console.log('當前地圖圖片陣列:', currentMapTiles);
-  console.log('當前地圖權重陣列:', currentMapWeights);
+  // 第二階段：等待所有圖片載入完成
+  if (loadPromises.length > 0) {
+    console.log(`等待 ${loadPromises.length} 張圖片載入完成...`);
+    await Promise.all(loadPromises);
+  }
+  
+  // 第三階段：建立 currentMapTiles 陣列
+  for (const tilePath of tilePaths) {
+    if (mapImages[tilePath] && mapImages[tilePath].complete) {
+      currentMapTiles.push(mapImages[tilePath]);
+      console.log(`圖片已加入陣列: ${tilePath}`);
+    } else {
+      console.error(`圖片未載入或未完成: ${tilePath}`);
+      // 如果圖片載入失敗，創建一個預設的圖片物件
+      const fallbackImg = new Image();
+      fallbackImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='; // 1x1 透明圖片
+      currentMapTiles.push(fallbackImg);
+    }
+  }
+  
+  console.log(`載入關卡地圖圖片完成: ${currentMapTiles.length}張`);
+  console.log('當前地圖圖片陣列長度:', currentMapTiles.length);
+  console.log('當前地圖權重陣列長度:', currentMapWeights.length);
 }
 
 // 根據權重隨機選擇圖片索引
@@ -1748,9 +1789,9 @@ function completeLevel(level) {
 async function updateLevelConfig() {
   const config = GAME_CONFIG.levels[currentLevel];
 
-  // 載入地圖圖片
-  loadMapImages(config);
-
+    // 載入地圖圖片
+  await loadMapImages(config);
+  
   // 載入道具圖片
   await loadItemImages();
 
@@ -4292,17 +4333,49 @@ function updateLobbyAudioButtons() {
 
 // 初始化遊戲
 async function initGame() {
+  console.log('開始初始化遊戲...');
+  
+  // 確保載入管理器已初始化
+  if (window.loadingManager && !window.loadingManager.isInitialized) {
+    window.loadingManager.init();
+  }
+  
+  // 更新載入進度
+  if (window.loadingManager) {
+    window.loadingManager.updateProgress(5, '初始化遊戲系統...');
+  }
+  
   // 初始化音效系統
-  audioSystem.init();
+  await audioSystem.init();
+  
+  // 更新載入進度
+  if (window.loadingManager) {
+    window.loadingManager.updateProgress(15, '音效系統初始化完成...');
+  }
   
   // 先載入關卡配置
   await initLobby();
   
+  // 更新載入進度
+  if (window.loadingManager) {
+    window.loadingManager.updateProgress(25, '關卡配置載入完成...');
+  }
+  
   // 再載入劇情圖片（確保MAX_LEVEL已經設定）
   await storySystem.loadStoryImages();
   
+  // 更新載入進度
+  if (window.loadingManager) {
+    window.loadingManager.updateProgress(35, '劇情圖片載入完成...');
+  }
+  
   // 載入關於頁面的劇情圖片
   await aboutSystem.loadStoryImages();
+  
+  // 更新載入進度
+  if (window.loadingManager) {
+    window.loadingManager.updateProgress(45, '關於頁面載入完成...');
+  }
   
   // 添加重置進度按鈕事件監聽器
   const resetButton = document.getElementById('resetProgressBtn');
@@ -4378,9 +4451,20 @@ async function initGame() {
   // 初始化手機操作按鈕
   initMobileControls();
   
+  // 更新載入進度
+  if (window.loadingManager) {
+    window.loadingManager.updateProgress(90, '遊戲初始化完成...');
+  }
+  
   // 啟動遊戲循環（但只在需要時執行遊戲邏輯）
   gameLoopRunning = true;
   gameLoop();
+  
+  // 完成載入
+  if (window.loadingManager) {
+    // 使用強制完成方法，確保進度條能夠真正跑完
+    window.loadingManager.forceComplete();
+  }
   
   // 頁面載入後檢查手機設備
   setTimeout(() => {
@@ -4547,28 +4631,27 @@ async function loadItemImages() {
   console.log('開始載入道具圖片...');
   
   const itemTypes = ['mapItemA', 'mapItemB', 'monsterItemA', 'monsterItemB'];
+  const loadPromises = [];
   
   for (const itemType of itemTypes) {
     const itemConfig = itemSettings[itemType];
     if (itemConfig && itemConfig.image) {
-      try {
-        const img = new Image();
-        img.src = itemConfig.image;
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = () => {
-            console.warn(`道具圖片載入失敗: ${itemConfig.image}，使用預設顏色`);
-            reject();
-          };
-        });
-        itemImages[itemType] = img;
-        console.log(`道具圖片載入成功: ${itemType} -> ${itemConfig.image}`);
-      } catch (error) {
-        console.warn(`道具圖片載入失敗: ${itemType}，使用預設顏色`);
-        itemImages[itemType] = null;
-      }
+      // 使用載入管理器追蹤圖片載入
+      const loadPromise = window.loadingManager.trackImageLoad(itemConfig.image).then(img => {
+        if (img) {
+          itemImages[itemType] = img;
+          console.log(`道具圖片載入成功: ${itemType} -> ${itemConfig.image}`);
+        } else {
+          console.warn(`道具圖片載入失敗: ${itemType}，使用預設顏色`);
+          itemImages[itemType] = null;
+        }
+      });
+      loadPromises.push(loadPromise);
     }
   }
+  
+  // 等待所有道具圖片載入完成
+  await Promise.all(loadPromises);
   
   console.log('道具圖片載入完成');
 }

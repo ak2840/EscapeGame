@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title id="pageTitle">焦土中的信號 Signal - 遊戲大廳</title>
+  
+  <!-- 關鍵資源預載入 -->
+  <link rel="preload" href="assets/ui/lobby-background.png" as="image">
+  <link rel="preload" href="main.js" as="script">
+  <link rel="preload" href="gameConfig.js" as="script">
+  
+  <!-- DNS 預解析 -->
+  <link rel="dns-prefetch" href="//github.com">
+  <link rel="dns-prefetch" href="//raw.githubusercontent.com">
+  
+  <!-- 資源提示 -->
+  <link rel="preconnect" href="//github.com">
+  <link rel="preconnect" href="//raw.githubusercontent.com">
+  
   <style>
     body { 
       margin: 0; 
@@ -960,26 +974,27 @@
     </button>
   </div>
   
-  <!-- 音效元素 -->
-  <audio id="gameMusic" loop>
+  <!-- 音效元素 - 延遲載入 -->
+  <audio id="gameMusic" loop preload="none">
     <source src="assets/audio/background-music.mp3" type="audio/mpeg">
   </audio>
-  <audio id="attackSound">
+  <audio id="attackSound" preload="none">
     <source src="assets/audio/attack.mp3" type="audio/mpeg">
   </audio>
-  <audio id="hitSound">
+  <audio id="hitSound" preload="none">
     <source src="assets/audio/hit.mp3" type="audio/mpeg">
   </audio>
-  <audio id="victorySound">
+  <audio id="victorySound" preload="none">
     <source src="assets/audio/victory.mp3" type="audio/mpeg">
   </audio>
-  <audio id="gameOverSound">
+  <audio id="gameOverSound" preload="none">
     <source src="assets/audio/game-over.mp3" type="audio/mpeg">
   </audio>
-  <audio id="buttonClickSound">
+  <audio id="buttonClickSound" preload="none">
     <source src="assets/audio/button-click.mp3" type="audio/mpeg">
   </audio>
   
+  <script src="loading.js"></script>
   <script src="gameConfig.js"></script>
   <script src="main.js"></script>
 </body>
