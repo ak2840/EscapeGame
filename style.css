@@ -2,10 +2,10 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #444;
-  /* 與遊戲畫面的背景色一致 */
-  font-family: "Arial", sans-serif;
-  color: #FFFFFF;
+  font-family: "Orbitron", sans-serif;
+  color: #ffffff;
+  background: url(assets/ui/bg.jpg) no-repeat center center #444;
+  background-size: cover;
 }
 
 #gameLobby {
@@ -19,8 +19,8 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  background: #444;
-  /* 與遊戲畫面背景一致 */
+  background: url(assets/ui/bg.jpg) no-repeat center center #444;
+  background-size: cover;
 }
 
 .lobby-container {
@@ -30,7 +30,7 @@ body {
   padding: 40px;
   text-align: center;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-  border: 2px solid #666;
+  border: 1px solid #1d1403;
   /* 添加邊框，與遊戲網格線顏色一致 */
   max-width: 600px;
   width: 90%;
@@ -50,18 +50,15 @@ body {
 
 /* 為了確保文字在背景圖片上清晰可見，添加一個半透明遮罩 */
 .game-title {
-  color: #FFD700;
-  /* 與遊戲中的金色一致 */
+  color: rgba(255, 215, 0, 0);
   font-size: 48px;
-  margin-bottom: 15px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  margin-bottom: 60px;
   font-weight: bold;
 }
 
 .subtitle {
-  color: #FFFFFF;
+  color: rgba(255, 255, 255, 0);
   font-size: 18px;
-  margin-bottom: 30px;
   opacity: 0.9;
 }
 
@@ -89,15 +86,15 @@ body {
   /* 與遊戲UI面板一致 */
 }
 .level-button.unlocked {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #4caf50, #45a049);
   color: white;
   box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-  border-color: #4CAF50;
+  border-color: #4caf50;
 }
 .level-button.unlocked:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-  border-color: #66BB6A;
+  border-color: #66bb6a;
 }
 .level-button.locked {
   background: rgba(0, 0, 0, 0.7);
@@ -106,15 +103,15 @@ body {
   border-color: #444;
 }
 .level-button.completed {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
+  background: linear-gradient(135deg, #ffd700, #ffa500);
   color: #333;
   box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-  border-color: #FFD700;
+  border-color: #ffd700;
 }
 .level-button.completed:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-  border-color: #FFA500;
+  border-color: #ffa500;
 }
 
 .level-info {
@@ -124,11 +121,11 @@ body {
   transform: translateX(-50%);
   font-size: 12px;
   opacity: 0.8;
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .progress-info {
-  color: #00FF00;
+  color: #00ff00;
   /* 與遊戲中的綠色一致 */
   font-size: 16px;
   margin-bottom: 25px;
@@ -136,7 +133,7 @@ body {
 }
 
 .instructions {
-  color: #CCCCCC;
+  color: #cccccc;
   /* 與遊戲說明文字顏色一致 */
   font-size: 14px;
   max-width: 320px;
@@ -149,7 +146,7 @@ body {
   margin: 0 auto;
 }
 .instructions strong {
-  color: #FFFF00;
+  color: #ffff00;
   /* 與遊戲中的黃色標題一致 */
   font-size: 16px;
 }
@@ -158,7 +155,7 @@ body {
   padding-left: 20px;
 }
 .instructions li {
-  color: #00FFFF;
+  color: #00ffff;
   /* 與遊戲中的青色項目符號一致 */
   margin-bottom: 8px;
 }
@@ -187,18 +184,18 @@ body {
 .control-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-  border-color: #FFD700;
+  border-color: #ffd700;
 }
 .control-button:active {
   transform: translateY(0);
 }
 .control-button.active {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  border-color: #4CAF50;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-color: #4caf50;
 }
 .control-button.muted {
-  background: linear-gradient(135deg, #F44336, #D32F2F);
-  border-color: #F44336;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border-color: #f44336;
 }
 
 .control-icon {
@@ -228,7 +225,7 @@ body {
   border: 2px solid #666;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.7);
-  color: #FFFFFF;
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -238,15 +235,15 @@ body {
 }
 .sound-button:hover {
   background: rgba(255, 215, 0, 0.3);
-  border-color: #FFD700;
+  border-color: #ffd700;
 }
 .sound-button.active {
   background: rgba(76, 175, 80, 0.3);
-  border-color: #4CAF50;
+  border-color: #4caf50;
 }
 .sound-button.muted {
   background: rgba(244, 67, 54, 0.3);
-  border-color: #F44336;
+  border-color: #f44336;
 }
 
 /* 音效圖標樣式 */
@@ -346,7 +343,8 @@ body {
     font-size: 16px;
   }
   /* 手機操作按鈕在小螢幕上顯示 */
-  .mobile-controls, .action-buttons {
+  .mobile-controls,
+  .action-buttons {
     display: flex !important;
   }
   /* 動作按鈕在小螢幕上顯示 */
@@ -356,7 +354,8 @@ body {
   /* 手機上的按鈕位置調整 */
 }
 @media (max-width: 768px) and (hover: none) and (pointer: coarse) {
-  .mobile-controls, .action-buttons {
+  .mobile-controls,
+  .action-buttons {
     display: flex !important;
   }
 }
@@ -365,17 +364,18 @@ body {
     width: 70px;
     height: 70px;
     font-size: 28px;
-    border: 4px solid #FFD700;
+    border: 4px solid #ffd700;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.3);
   }
   .action-btn {
     width: 140px;
     height: 70px;
     font-size: 22px;
-    border: 4px solid #4CAF50;
+    border: 4px solid #4caf50;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(76, 175, 80, 0.3);
   }
-  .direction-pad, .direction-row {
+  .direction-pad,
+  .direction-row {
     gap: 8px;
   }
   .action-buttons {
@@ -406,7 +406,7 @@ body {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   }
   50% {
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 30px rgba(221, 155, 79, 0.5);
   }
 }
 .lobby-container {
@@ -462,7 +462,7 @@ body {
   border: 3px solid #666;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.8);
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 24px;
   font-weight: bold;
   cursor: pointer;
@@ -484,20 +484,20 @@ body {
 .control-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3);
-  border-color: #FFD700;
+  border-color: #ffd700;
 }
 .control-btn:active {
   transform: translateY(0);
 }
 .control-btn.active {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  border-color: #4CAF50;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-color: #4caf50;
   transform: scale(0.95);
   box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
 }
 .control-btn.muted {
-  background: linear-gradient(135deg, #F44336, #D32F2F);
-  border-color: #F44336;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border-color: #f44336;
 }
 
 /* 手機上的觸控反饋 */
@@ -527,7 +527,7 @@ body {
   border: 3px solid #666;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.8);
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 18px;
   font-weight: bold;
   cursor: pointer;
@@ -548,20 +548,20 @@ body {
 .action-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.3);
-  border-color: #FFD700;
+  border-color: #ffd700;
 }
 .action-btn:active {
   transform: translateY(0);
 }
 .action-btn.active {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  border-color: #4CAF50;
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-color: #4caf50;
   transform: scale(0.95);
   box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
 }
 .action-btn.muted {
-  background: linear-gradient(135deg, #F44336, #D32F2F);
-  border-color: #F44336;
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  border-color: #f44336;
 }
 
 /* 關於頁面樣式 */
@@ -584,7 +584,7 @@ body {
 
 .about-container {
   background: linear-gradient(135deg, #2a2a2a, #444);
-  border: 2px solid #FFD700;
+  border: 2px solid #ffd700;
   border-radius: 15px;
   max-width: 900px;
   max-height: 80vh;
@@ -599,12 +599,12 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px 30px;
-  border-bottom: 2px solid #FFD700;
+  border-bottom: 2px solid #ffd700;
   background: linear-gradient(135deg, #1a1a2e, #16213e);
 }
 
 .about-title {
-  color: #FFD700;
+  color: #ffd700;
   font-size: 28px;
   font-weight: bold;
   margin: 0;
@@ -613,11 +613,11 @@ body {
 
 .close-button {
   background: none;
-  border: 2px solid #FFD700;
+  border: 2px solid #ffd700;
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  color: #FFD700;
+  color: #ffd700;
   font-size: 24px;
   font-weight: bold;
   cursor: pointer;
@@ -636,7 +636,7 @@ body {
 }
 
 .section-title {
-  color: #FFD700;
+  color: #ffd700;
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 20px;
@@ -658,7 +658,7 @@ body {
 }
 
 .team-member {
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 18px;
   font-weight: bold;
   text-align: center;
@@ -692,16 +692,16 @@ body {
   aspect-ratio: 16/9;
 }
 .gallery-item:hover {
-  border-color: #FFD700;
+  border-color: #ffd700;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
 }
 .gallery-item.locked {
-  border-color: #F44336;
+  border-color: #f44336;
   opacity: 0.7;
 }
 .gallery-item.locked:hover {
-  border-color: #F44336;
+  border-color: #f44336;
   transform: none;
   box-shadow: none;
 }
@@ -725,7 +725,7 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 24px;
-  color: #F44336;
+  color: #f44336;
   z-index: 2;
 }
 

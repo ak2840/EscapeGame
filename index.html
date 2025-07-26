@@ -1,169 +1,164 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
-  <title id="pageTitle">焦土中的信號 Signal - 遊戲大廳</title>
-  
-  <!-- 關鍵資源預載入 -->
-  <link rel="preload" href="assets/ui/lobby-background.png" as="image">
-  <link rel="preload" href="main.js" as="script">
-  <link rel="preload" href="gameConfig.js" as="script">
-  
-  <!-- DNS 預解析 -->
-  <link rel="dns-prefetch" href="//github.com">
-  <link rel="dns-prefetch" href="//raw.githubusercontent.com">
-  
-  <!-- 資源提示 -->
-  <link rel="preconnect" href="//github.com">
-  <link rel="preconnect" href="//raw.githubusercontent.com">
-  
-  <!-- CSS放這 -->
-  <link rel="stylesheet" href="style.css">
- 
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title id="pageTitle">焦土中的信號 Signal - 遊戲大廳</title>
 
+    <!-- 關鍵資源預載入 -->
+    <link rel="preload" href="assets/ui/lobby-background.png" as="image" />
+    <link rel="preload" href="main.js" as="script" />
+    <link rel="preload" href="gameConfig.js" as="script" />
 
-  <div id="gameLobby">
-    <div class="lobby-container">
-      <h1 class="game-title" id="gameTitle">焦土中的信號 Signal</h1>
-              <p class="subtitle" id="gameSubtitle">在廢墟中尋找希望的生存冒險</p>
-      
-      <div class="progress-info" id="progressInfo">
-        進度：第 1 關
-      </div>
-      
-      <div class="level-grid" id="levelGrid">
-        <!-- 關卡按鈕將由JavaScript動態生成 -->
-      </div>
-      
-      <div class="control-buttons">
-        <button class="control-button" id="resetProgressBtn" title="重置通關進度">
-          <img src="assets/ui/reset.svg" alt="重置" class="control-icon">
-        </button>
-        <button class="control-button" id="bgmToggleBtn" title="背景音樂">
-          <img src="assets/ui/volume-on.svg" alt="音量" class="control-icon" id="bgmIcon">
-        </button>
-        <button class="control-button" id="sfxToggleBtn" title="音效">
-          <img src="assets/ui/sound-on.svg" alt="音效" class="control-icon" id="sfxIcon">
-        </button>
-        <button class="control-button" id="aboutBtn" title="關於">
-          <img src="assets/ui/about.svg" alt="關於" class="control-icon">
-        </button>
-      </div>
-      
-      <div class="instructions">
-        <strong>遊戲說明：</strong>
-        <ul id="gameInstructions">
-          <!-- 遊戲說明將由JavaScript動態生成 -->
-        </ul>
-      </div>
-      
+    <!-- DNS 預解析 -->
+    <link rel="dns-prefetch" href="//github.com" />
+    <link rel="dns-prefetch" href="//raw.githubusercontent.com" />
 
-    </div>
-  </div>
-  
-  <!-- 關於頁面 -->
-  <div id="aboutPage" class="about-page hidden">
-    <div class="about-container">
-      <div class="about-header">
-        <h2 class="about-title">關於遊戲</h2>
-        <button class="close-button" id="closeAboutBtn" title="關閉">
-          <span>×</span>
-        </button>
-      </div>
-      
-      <div class="about-content">
-        <!-- 製作團隊區塊 -->
-        <div class="team-section">
-          <h3 class="section-title">製作團隊</h3>
-          <div class="team-list">
-            <div class="team-member">張小明</div>
-            <div class="team-member">李小華</div>
-            <div class="team-member">王美玲</div>
-            <div class="team-member">陳志強</div>
-            <div class="team-member">林雅婷</div>
-          </div>
+    <!-- 資源提示 -->
+    <link rel="preconnect" href="//github.com" />
+    <link rel="preconnect" href="//raw.githubusercontent.com" />
+
+    <!-- CSS/字型 -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="gameLobby">
+      <div class="lobby-container">
+        <h1 class="game-title" id="gameTitle">焦土中的信號 Signal</h1>
+        <p class="subtitle" id="gameSubtitle">在廢墟中尋找希望的生存冒險</p>
+
+        <div class="progress-info" id="progressInfo">進度：第 1 關</div>
+
+        <div class="level-grid" id="levelGrid">
+          <!-- 關卡按鈕將由JavaScript動態生成 -->
         </div>
-        
-        <!-- 美術圖列表區塊 -->
-        <div class="gallery-section">
-          <h3 class="section-title">美術圖列表</h3>
-          <div class="gallery-grid" id="galleryGrid">
-            <!-- 美術圖將由JavaScript動態生成 -->
+
+        <div class="control-buttons">
+          <button class="control-button" id="resetProgressBtn" title="重置通關進度">
+            <img src="assets/ui/reset.svg" alt="重置" class="control-icon" />
+          </button>
+          <button class="control-button" id="bgmToggleBtn" title="背景音樂">
+            <img src="assets/ui/volume-on.svg" alt="音量" class="control-icon" id="bgmIcon" />
+          </button>
+          <button class="control-button" id="sfxToggleBtn" title="音效">
+            <img src="assets/ui/sound-on.svg" alt="音效" class="control-icon" id="sfxIcon" />
+          </button>
+          <button class="control-button" id="aboutBtn" title="關於">
+            <img src="assets/ui/about.svg" alt="關於" class="control-icon" />
+          </button>
+        </div>
+
+        <div class="instructions">
+          <strong>遊戲說明：</strong>
+          <ul id="gameInstructions">
+            <!-- 遊戲說明將由JavaScript動態生成 -->
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 關於頁面 -->
+    <div id="aboutPage" class="about-page hidden">
+      <div class="about-container">
+        <div class="about-header">
+          <h2 class="about-title">關於遊戲</h2>
+          <button class="close-button" id="closeAboutBtn" title="關閉">
+            <span>×</span>
+          </button>
+        </div>
+
+        <div class="about-content">
+          <!-- 製作團隊區塊 -->
+          <div class="team-section">
+            <h3 class="section-title">製作團隊</h3>
+            <div class="team-list">
+              <div class="team-member">張小明</div>
+              <div class="team-member">李小華</div>
+              <div class="team-member">王美玲</div>
+              <div class="team-member">陳志強</div>
+              <div class="team-member">林雅婷</div>
+            </div>
+          </div>
+
+          <!-- 美術圖列表區塊 -->
+          <div class="gallery-section">
+            <h3 class="section-title">美術圖列表</h3>
+            <div class="gallery-grid" id="galleryGrid">
+              <!-- 美術圖將由JavaScript動態生成 -->
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  
-  <!-- 滿版大圖顯示 -->
-  <div id="fullscreenImage" class="fullscreen-image hidden">
-    <div class="fullscreen-overlay">
-      <img id="fullscreenImageSrc" src="" alt="美術圖">
+
+    <!-- 滿版大圖顯示 -->
+    <div id="fullscreenImage" class="fullscreen-image hidden">
+      <div class="fullscreen-overlay">
+        <img id="fullscreenImageSrc" src="" alt="美術圖" />
+      </div>
     </div>
-  </div>
-  
-  <div id="gameContainer" class="hidden">
-    <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
-  </div>
-  
-  <!-- 手機操作按鈕 -->
-  <div id="mobileControls" class="mobile-controls">
-    <!-- 方向鍵區域 -->
-    <div class="direction-pad">
-      <button class="control-btn direction-btn" id="upBtn" data-direction="up" title="向上移動">
-        <span>↑</span>
-      </button>
-      <div class="direction-row">
-        <button class="control-btn direction-btn" id="leftBtn" data-direction="left" title="向左移動">
-          <span>←</span>
+
+    <div id="gameContainer" class="hidden">
+      <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
+    </div>
+
+    <!-- 手機操作按鈕 -->
+    <div id="mobileControls" class="mobile-controls">
+      <!-- 方向鍵區域 -->
+      <div class="direction-pad">
+        <button class="control-btn direction-btn" id="upBtn" data-direction="up" title="向上移動">
+          <span>↑</span>
         </button>
-        <button class="control-btn direction-btn" id="rightBtn" data-direction="right" title="向右移動">
-          <span>→</span>
+        <div class="direction-row">
+          <button class="control-btn direction-btn" id="leftBtn" data-direction="left" title="向左移動">
+            <span>←</span>
+          </button>
+          <button class="control-btn direction-btn" id="rightBtn" data-direction="right" title="向右移動">
+            <span>→</span>
+          </button>
+        </div>
+        <button class="control-btn direction-btn" id="downBtn" data-direction="down" title="向下移動">
+          <span>↓</span>
         </button>
       </div>
-      <button class="control-btn direction-btn" id="downBtn" data-direction="down" title="向下移動">
-        <span>↓</span>
+    </div>
+
+    <!-- 動作按鈕 -->
+    <div class="action-buttons">
+      <button class="control-btn action-btn" id="debugBtn" title="Debug: 全通關" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53)">
+        <span style="color: white; font-weight: bold; font-size: 12px">DEBUG</span>
+      </button>
+      <button class="control-btn action-btn" id="escapeBtn" title="返回大廳">
+        <span>ESC</span>
+      </button>
+      <button class="control-btn action-btn" id="actionBtn" title="執行動作/通關">
+        <span>Space</span>
       </button>
     </div>
-  </div>
-  
-  <!-- 動作按鈕 -->
-  <div class="action-buttons">
-    <button class="control-btn action-btn" id="debugBtn" title="Debug: 全通關" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
-      <span style="color: white; font-weight: bold; font-size: 12px;">DEBUG</span>
-    </button>
-    <button class="control-btn action-btn" id="escapeBtn" title="返回大廳">
-      <span>ESC</span>
-    </button>
-    <button class="control-btn action-btn" id="actionBtn" title="執行動作/通關">
-      <span>Space</span>
-    </button>
-  </div>
-  
-  <!-- 音效元素 - 延遲載入 -->
-  <audio id="gameMusic" loop preload="none">
-    <source src="assets/audio/background-music.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="attackSound" preload="none">
-    <source src="assets/audio/attack.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="hitSound" preload="none">
-    <source src="assets/audio/hit.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="victorySound" preload="none">
-    <source src="assets/audio/victory.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="gameOverSound" preload="none">
-    <source src="assets/audio/game-over.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="buttonClickSound" preload="none">
-    <source src="assets/audio/button-click.mp3" type="audio/mpeg">
-  </audio>
-  
-  <script src="loading.js"></script>
-  <script src="gameConfig.js"></script>
-  <script src="main.js"></script>
-</body>
-</html> 
+
+    <!-- 音效元素 - 延遲載入 -->
+    <audio id="gameMusic" loop preload="none">
+      <source src="assets/audio/background-music.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="attackSound" preload="none">
+      <source src="assets/audio/attack.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="hitSound" preload="none">
+      <source src="assets/audio/hit.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="victorySound" preload="none">
+      <source src="assets/audio/victory.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="gameOverSound" preload="none">
+      <source src="assets/audio/game-over.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="buttonClickSound" preload="none">
+      <source src="assets/audio/button-click.mp3" type="audio/mpeg" />
+    </audio>
+
+    <script src="loading.js"></script>
+    <script src="gameConfig.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
