@@ -207,7 +207,7 @@ const particleSystem = {
     this.particles.push(particle);
   },
 
-  createExplosion(x, y, color = "#FFD700", count = 8) {
+  createExplosion(x, y, color = "#fed456", count = 8) {
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count;
       const speed = 2 + Math.random() * 3;
@@ -218,7 +218,7 @@ const particleSystem = {
     }
   },
 
-  createHitEffect(x, y, color = "#FF4444") {
+  createHitEffect(x, y, color = "#b13435") {
     for (let i = 0; i < 5; i++) {
       const vx = (Math.random() - 0.5) * 4;
       const vy = (Math.random() - 0.5) * 4;
@@ -783,31 +783,31 @@ const storySystem = {
     ctx.fillRect(0, 0, 800, 600);
 
     // 裝飾性邊框
-    ctx.strokeStyle = "#FFD700";
+    ctx.strokeStyle = "#fed456";
     ctx.lineWidth = 3;
     ctx.strokeRect(50, 50, 700, 500);
 
     // 標題
-    ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 56px Arial";
+    ctx.fillStyle = "#fed456";
+    ctx.font = "bold 56px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`第${level}關`, 400, 180);
 
     // 副標題
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "28px Arial";
+    ctx.font = "28px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText(GAME_CONFIG.gameInfo.storyText.prepareAdventure, 400, 240);
 
     // 關卡描述
     const levelConfig = GAME_CONFIG.levels[level];
     if (levelConfig && levelConfig.description) {
       ctx.fillStyle = "#CCCCCC";
-      ctx.font = "20px Arial";
+      ctx.font = "20px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(levelConfig.description, 400, 280);
     } else {
       // 預設描述
       ctx.fillStyle = "#CCCCCC";
-      ctx.font = "20px Arial";
+      ctx.font = "20px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(GAME_CONFIG.gameInfo.storyText.prepareNewChallenge, 400, 280);
     }
 
@@ -816,8 +816,8 @@ const storySystem = {
     ctx.fillRect(0, 520, 800, 80);
 
     // 提示文字
-    ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 24px Arial";
+    ctx.fillStyle = "#fed456";
+    ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText("按任意鍵繼續", 400, 560);
 
     // 轉換為圖片
@@ -841,24 +841,24 @@ const storySystem = {
     ctx.fillRect(0, 0, 800, 600);
 
     // 裝飾性邊框
-    ctx.strokeStyle = "#00FF00";
+    ctx.strokeStyle = "#456d1d";
     ctx.lineWidth = 3;
     ctx.strokeRect(50, 50, 700, 500);
 
     // 標題
-    ctx.fillStyle = "#00FF00";
-    ctx.font = "bold 56px Arial";
+    ctx.fillStyle = "#456d1d";
+    ctx.font = "bold 56px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`第${level}關完成！`, 400, 180);
 
     // 副標題
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "28px Arial";
+    ctx.font = "28px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText("恭喜通過關卡！", 400, 240);
 
     // 統計信息
     ctx.fillStyle = "#CCCCCC";
-    ctx.font = "20px Arial";
+    ctx.font = "20px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText(`${GAME_CONFIG.gameInfo.uiText.killCount}: ${gameStats.currentGame.killCount}`, 400, 280);
     ctx.fillText(`完成時間: ${Math.ceil(gameStats.currentGame.completionTime / 1000)}秒`, 400, 310);
 
@@ -867,8 +867,8 @@ const storySystem = {
     ctx.fillRect(0, 520, 800, 80);
 
     // 提示文字
-    ctx.fillStyle = "#00FF00";
-    ctx.font = "bold 24px Arial";
+    ctx.fillStyle = "#456d1d";
+    ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText("按任意鍵繼續", 400, 560);
 
     // 轉換為圖片
@@ -1020,26 +1020,26 @@ const aboutSystem = {
     ctx.fillRect(0, 0, 300, 200);
 
     // 裝飾性邊框
-    ctx.strokeStyle = type === "before" ? "#FFD700" : "#00FF00";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = type === "before" ? "#fed456" : "#456d1d";
+    ctx.lineWidth = 1;
     ctx.strokeRect(10, 10, 280, 180);
 
     // 標題
-    ctx.fillStyle = type === "before" ? "#FFD700" : "#00FF00";
-    ctx.font = "bold 24px Arial";
+    ctx.fillStyle = type === "before" ? "#fed456" : "#456d1d";
+    ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`第${level}關${type === "before" ? "" : "完成"}`, 150, 80);
 
     // 副標題
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "16px Arial";
+    ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText(type === "before" ? "開始劇情" : "結束劇情", 150, 110);
 
     // 關卡描述
     const levelConfig = GAME_CONFIG.levels[level];
     if (levelConfig && levelConfig.description) {
       ctx.fillStyle = "#CCCCCC";
-      ctx.font = "14px Arial";
+      ctx.font = "14px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(levelConfig.description, 150, 140);
     }
 
@@ -1177,7 +1177,7 @@ const player = {
   speed: 4, // 基礎速度，會在loadLevel()中更新
   baseSpeed: 4, // 新增：基礎速度，不受縮放影響
   moving: false,
-  color: "#FFD700",
+  color: "#fed456",
   direction: "down", // 預設朝下
   isAttacking: false,
   isActioning: false,
@@ -2187,7 +2187,7 @@ function drawMonsterHealthBar(monster, offsetX, offsetY) {
   // 血量顏色
   let healthColor;
   if (healthPercent >= 0.7) {
-    healthColor = "#00FF00"; // 綠色
+    healthColor = "#456d1d"; // 綠色
   } else if (healthPercent >= 0.4) {
     healthColor = "#FFFF00"; // 黃色
   } else {
@@ -2206,7 +2206,7 @@ function drawMonsterHealthBar(monster, offsetX, offsetY) {
   // 血量數字（只在血量不滿時顯示）
   if (monster.hp < getMonsterMaxHp(monster.type)) {
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "10px Arial";
+    ctx.font = "10px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`${monster.hp}/${getMonsterMaxHp(monster.type)}`, barX + barWidth / 2, barY + barHeight - 1);
   }
@@ -2362,7 +2362,7 @@ function drawPlayerHealthBar(offsetX, offsetY) {
   // 血量顏色
   let healthColor;
   if (healthPercent >= 0.7) {
-    healthColor = "#00FF00"; // 綠色
+    healthColor = "#456d1d"; // 綠色
   } else if (healthPercent >= 0.4) {
     healthColor = "#FFFF00"; // 黃色
   } else {
@@ -2375,13 +2375,13 @@ function drawPlayerHealthBar(offsetX, offsetY) {
 
   // 血條邊框
   ctx.strokeStyle = "#FFFFFF";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(barX, barY, barWidth, barHeight);
 
   // 血量數字（只在血量不滿時顯示）
   if (player.hp < player.maxHp) {
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 20px Arial";
+    ctx.font = "bold 20px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${player.hp}/${player.maxHp}`, 47.5, 77.5);
@@ -2407,7 +2407,7 @@ function drawPlayerHealthBar(offsetX, offsetY) {
       ctx.fillRect(barX, barY, barWidth, barHeight);
 
       // 藍色邊框閃爍
-      ctx.strokeStyle = "#00BFFF";
+      ctx.strokeStyle = "#3a5d66";
       ctx.lineWidth = 3;
       ctx.strokeRect(barX, barY, barWidth, barHeight);
     }
@@ -2663,7 +2663,7 @@ function updateMonsters() {
                 vx: targetVx1,
                 vy: targetVy1,
                 targetPlayer: true,
-                color: "#FF0000", // 紅色表示高速子彈
+                color: "#774e41", // 紅色表示高速子彈
                 size: MONSTER_PROJECTILE_SIZE * 1.2, // 稍大一點
               });
               break;
@@ -2690,7 +2690,7 @@ function updateMonsters() {
                   vx: targetVx2,
                   vy: targetVy2,
                   targetPlayer: true,
-                  color: "#FF8800", // 橙色表示三連發
+                  color: "#665f3a", // 橙色表示三連發
                   size: MONSTER_PROJECTILE_SIZE,
                 });
               }
@@ -2711,7 +2711,7 @@ function updateMonsters() {
                   vx: targetVx4,
                   vy: targetVy4,
                   targetPlayer: true,
-                  color: "#FF00FF", // 紫色表示全方位
+                  color: "#3a5d66", // 紫色表示全方位
                   size: MONSTER_PROJECTILE_SIZE * 0.6, // 更小一點
                 });
               }
@@ -2807,7 +2807,7 @@ function checkCollision() {
         audioSystem.playHit();
 
         // 創建受傷粒子效果
-        particleSystem.createHitEffect(playerCenterX, playerCenterY, "#FF4444");
+        particleSystem.createHitEffect(playerCenterX, playerCenterY, "#b13435");
 
         console.log(`玩家受到${m.type}傷害！剩餘血量：${player.hp}`);
 
@@ -2894,26 +2894,26 @@ function drawExit(offsetX, offsetY) {
     // 如果條件未滿足，只顯示提示文字（不添加遮罩）
     if (!canExit) {
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "10px Arial";
+      ctx.font = "10px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
     }
   } else {
     // 如果圖片未載入完成，使用原來的顏色方塊作為備用
-    const exitColor = canExit ? "#00FF00" : "#FF0000";
+    const exitColor = canExit ? "#456d1d" : "#FF0000";
     ctx.fillStyle = exitColor;
     ctx.fillRect(exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
 
     // 畫一個 "EXIT" 文字
     ctx.fillStyle = "#000000";
-    ctx.font = "12px Arial";
+    ctx.font = "12px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("EXIT", exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height / 2 + 4);
 
     // 如果條件未滿足，顯示提示文字
     if (!canExit) {
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "10px Arial";
+      ctx.font = "10px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
     }
@@ -2943,7 +2943,7 @@ function updateProjectiles() {
         audioSystem.playHit();
 
         // 創建擊中粒子效果
-        particleSystem.createHitEffect(mx, my, "#FF4444");
+        particleSystem.createHitEffect(mx, my, "#b13435");
 
         if (m.hp <= 0) {
           // 怪物死亡
@@ -2955,7 +2955,7 @@ function updateProjectiles() {
           gameStats.recordKill();
 
           // 創建爆炸粒子效果
-          particleSystem.createExplosion(mx, my, "#FFD700", 12);
+          particleSystem.createExplosion(mx, my, "#fed456", 12);
 
           // 如果是普通怪物，產生擴散攻擊
           if (deadMonster.type === "normalA" || deadMonster.type === "normalB" || deadMonster.type === "normalC") {
@@ -3006,7 +3006,7 @@ function updateMonsterProjectiles() {
         audioSystem.playHit();
 
         // 創建受傷粒子效果
-        particleSystem.createHitEffect(px, py, "#FF4444");
+        particleSystem.createHitEffect(px, py, "#b13435");
 
         console.log(`玩家被怪物攻擊擊中！剩餘血量：${player.hp}`);
 
@@ -3211,29 +3211,46 @@ function restartGame() {
 }
 
 function drawGameOver() {
+  const panelWidth = 500;
+  const panelHeight = 240;
+  const paddingTop = 10;
+
+  const panelX = VIEW_WIDTH / 2 - panelWidth / 2;
+  const panelY = VIEW_HEIGHT / 2 - panelHeight / 2;
+
   // 半透明背景
   ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
   ctx.fillRect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
 
   // 主面板背景
   ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
-  ctx.fillRect(VIEW_WIDTH / 2 - 250, VIEW_HEIGHT / 2 - 120, 500, 240);
+  ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
 
   // 面板邊框
-  ctx.strokeStyle = "#666";
-  ctx.lineWidth = 3;
-  ctx.strokeRect(VIEW_WIDTH / 2 - 250, VIEW_HEIGHT / 2 - 120, 500, 240);
+  ctx.strokeStyle = "#47532d";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
 
-  ctx.fillStyle = "#FF0000";
-  ctx.font = "bold 56px Arial";
+  // 主標題
+  ctx.fillStyle = "#ff0000";
+  ctx.font = "bold 56px 'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(GAME_CONFIG.gameInfo.uiText.gameOver, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
+  ctx.fillText(
+    GAME_CONFIG.gameInfo.uiText.gameOver,
+    VIEW_WIDTH / 2,
+    panelY + paddingTop + 76 // 字體高度 + padding
+  );
 
-  ctx.fillStyle = "#FFFFFF";
-  ctx.font = "bold 28px Arial";
-  ctx.fillText(GAME_CONFIG.gameInfo.uiText.returnToLobbySpace, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
+  // 副標提示
+  ctx.fillStyle = "#d0cba5";
+  ctx.font = "bold 28px 'JasonHW-Round', 'Orbitron', sans-serif";
+  ctx.fillText(
+    GAME_CONFIG.gameInfo.uiText.returnToLobbySpace,
+    VIEW_WIDTH / 2,
+    panelY + paddingTop + 56 + 80 // 標題底下留空
+  );
 
-  // 遊戲結束時停止背景音樂
+  // 停止背景音樂
   audioSystem.stopGameMusic();
 }
 
@@ -3251,7 +3268,7 @@ function updateTimer() {
 
 function drawTimer() {
   const seconds = Math.ceil(remainingTime / 1000);
-  const color = seconds <= 3 ? "#FF4444" : seconds <= 5 ? "#FFAA00" : "#FFFFFF";
+  const color = seconds <= 3 ? "#b13434" : seconds <= 5 ? "#fed456" : "#f2f2f2";
 
   // 面板背景
   ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
@@ -3263,7 +3280,7 @@ function drawTimer() {
   ctx.strokeRect(15, 15, 65, 36);
 
   ctx.fillStyle = color;
-  ctx.font = "bold 24px Arial";
+  ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(`${seconds}`, 47.5, 34);
@@ -3276,11 +3293,11 @@ function drawKillCount() {
 
   // 面板邊框
   ctx.strokeStyle = "#666";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(VIEW_WIDTH - 120, 60, 110, 40);
 
-  ctx.fillStyle = "#00FF00";
-  ctx.font = "bold 24px Arial";
+  ctx.fillStyle = "#456d1d";
+  ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(`${GAME_CONFIG.gameInfo.uiText.killCount}: ${killCount}`, VIEW_WIDTH - 65, 90);
 }
@@ -3292,17 +3309,17 @@ function drawLevelInfo() {
 
   // 面板邊框
   ctx.strokeStyle = "#666";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(VIEW_WIDTH - 120, 160, 110, 40);
 
   const config = GAME_CONFIG.levels[currentLevel];
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "bold 20px Arial";
+  ctx.fillStyle = "#fed456";
+  ctx.font = "bold 20px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(`關卡: ${currentLevel}`, VIEW_WIDTH - 65, 185);
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "14px Arial";
+  ctx.font = "14px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.fillText(config.name, VIEW_WIDTH - 65, 200);
 }
 
@@ -3314,26 +3331,26 @@ function drawMapAndPlayerInfo() {
 
   // 面板邊框
   ctx.strokeStyle = "#666";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(VIEW_WIDTH - 120, 210, 110, 80);
 
   // 地圖尺寸
   ctx.fillStyle = "#00FFFF";
-  ctx.font = "bold 14px Arial";
+  ctx.font = "bold 14px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("地圖尺寸", VIEW_WIDTH - 65, 230);
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "12px Arial";
+  ctx.font = "12px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.fillText(`${MAP_WIDTH} × ${MAP_HEIGHT}`, VIEW_WIDTH - 65, 245);
 
   // 角色座標
   ctx.fillStyle = "#00FFFF";
-  ctx.font = "bold 14px Arial";
+  ctx.font = "bold 14px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.fillText("角色座標", VIEW_WIDTH - 65, 265);
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "12px Arial";
+  ctx.font = "12px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.fillText(`X: ${Math.round(player.x)}`, VIEW_WIDTH - 65, 280);
   ctx.fillText(`Y: ${Math.round(player.y)}`, VIEW_WIDTH - 65, 295);
 }
@@ -3400,12 +3417,12 @@ function drawGameTitle() {
 
   // 標題面板邊框
   ctx.strokeStyle = "#666";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(10, VIEW_HEIGHT - 50, 400, 40);
 
   // 遊戲標題
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "bold 24px Arial";
+  ctx.fillStyle = "#fed456";
+  ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(GAME_CONFIG.gameInfo.name, 20, VIEW_HEIGHT - 25);
   // 返回大廳按鈕
@@ -3413,11 +3430,11 @@ function drawGameTitle() {
   ctx.fillRect(VIEW_WIDTH - 120, VIEW_HEIGHT - 50, 110, 40);
 
   ctx.strokeStyle = "#666";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(VIEW_WIDTH - 120, VIEW_HEIGHT - 50, 110, 40);
 
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "bold 16px Arial";
+  ctx.fillStyle = "#fed456";
+  ctx.font = "bold 16px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(GAME_CONFIG.gameInfo.uiText.returnToLobby, VIEW_WIDTH - 65, VIEW_HEIGHT - 25);
 }
@@ -3425,16 +3442,16 @@ function drawGameTitle() {
 function drawPlayerHealth() {
   // 血量顏色根據血量變化
   let healthColor;
-  if (player.hp >= 7) {
-    healthColor = "#44FF44"; // 綠色
-  } else if (player.hp >= 4) {
-    healthColor = "#FFAA00"; // 橙色
-  } else {
-    healthColor = "#FF4444"; // 紅色
-  }
+if (player.hp >= 7) {
+  healthColor = "#456d1d"; // 高血：綠
+} else if (player.hp >= 4) {
+  healthColor = "#fed456"; // 中血：黃
+} else {
+  healthColor = "#b13434"; // 低血：紅
+}
 
   // 面板背景
-  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
   ctx.fillRect(15, 60, 65, 35);
 
   // 面板邊框
@@ -3443,7 +3460,7 @@ function drawPlayerHealth() {
   ctx.strokeRect(15, 60, 65, 35);
 
   ctx.fillStyle = healthColor;
-  ctx.font = "bold 20px Arial";
+  ctx.font = "bold 20px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(`${player.hp}/${player.maxHp}`, 47.5, 77.5);
@@ -3471,12 +3488,12 @@ function drawSoundControls() {
   const bgmY = startY;
 
   // 按鈕背景
-  ctx.fillStyle = audioSystem.bgmEnabled ? "rgba(76, 175, 80, 0.3)" : "rgba(244, 67, 54, 0.3)";
+  ctx.fillStyle = audioSystem.bgmEnabled ? "#637441" : "#663939";
   ctx.fillRect(bgmX, bgmY, buttonSize, buttonSize);
 
   // 按鈕邊框
-  ctx.strokeStyle = audioSystem.bgmEnabled ? "#4CAF50" : "#F44336";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = audioSystem.bgmEnabled ? "#637441" : "#663939";
+  ctx.lineWidth = 1;
   ctx.strokeRect(bgmX, bgmY, buttonSize, buttonSize);
 
   // 音量圖標（使用SVG）
@@ -3489,7 +3506,7 @@ function drawSoundControls() {
   } else {
     // 如果SVG未載入，使用文字備用
     ctx.fillStyle = audioSystem.bgmEnabled ? "#4CAF50" : "#F44336";
-    ctx.font = "bold 16px Arial";
+    ctx.font = "bold 16px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("♪", bgmX + buttonSize / 2, bgmY + buttonSize / 2);
@@ -3500,12 +3517,12 @@ function drawSoundControls() {
   const sfxY = startY;
 
   // 按鈕背景
-  ctx.fillStyle = audioSystem.sfxEnabled ? "rgba(76, 175, 80, 0.3)" : "rgba(244, 67, 54, 0.3)";
+  ctx.fillStyle = audioSystem.sfxEnabled ? "#637441" : "#663939";
   ctx.fillRect(sfxX, sfxY, buttonSize, buttonSize);
 
   // 按鈕邊框
-  ctx.strokeStyle = audioSystem.sfxEnabled ? "#4CAF50" : "#F44336";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = audioSystem.sfxEnabled ? "#637441" : "#663939";
+  ctx.lineWidth = 1;
   ctx.strokeRect(sfxX, sfxY, buttonSize, buttonSize);
 
   // 音效圖標（使用SVG）
@@ -3517,8 +3534,8 @@ function drawSoundControls() {
     ctx.drawImage(soundIcon, iconX, iconY, iconSize, iconSize);
   } else {
     // 如果SVG未載入，使用文字備用
-    ctx.fillStyle = audioSystem.sfxEnabled ? "#4CAF50" : "#F44336";
-    ctx.font = "bold 16px Arial";
+    ctx.fillStyle = audioSystem.sfxEnabled ? "#637441" : "#663939";
+    ctx.font = "bold 16px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("🔊", sfxX + buttonSize / 2, sfxY + buttonSize / 2);
@@ -3543,7 +3560,7 @@ function executeDebugFunction() {
       // 創建收集特效
       const playerCenterX = player.x + player.width / 2;
       const playerCenterY = player.y + player.height / 2;
-      particleSystem.createExplosion(playerCenterX, playerCenterY, "#00FF00", 12);
+      particleSystem.createExplosion(playerCenterX, playerCenterY, "#456d1d", 12);
 
       console.log("Debug: 已收集足夠道具，可以通關！");
     } else {
@@ -3582,13 +3599,13 @@ function drawEscButton() {
   ctx.fillRect(15, 15, 65, 35);
 
   // 按鈕邊框
-  ctx.strokeStyle = "#FFD700";
+  ctx.strokeStyle = "#fed456";
   ctx.lineWidth = 1.5;
   ctx.strokeRect(15, 15, 65, 35);
 
   // 按鈕文字
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "bold 14px Arial";
+  ctx.fillStyle = "#fed456";
+  ctx.font = "bold 14px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("ESC 離開", 47.5, 33);
 }
@@ -3600,7 +3617,7 @@ function drawGameInstructions() {
 
   // 面板邊框
   ctx.strokeStyle = "#666";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
   ctx.strokeRect(10, 10, 220, 380);
 
   const config = GAME_CONFIG.levels[currentLevel];
@@ -3609,13 +3626,13 @@ function drawGameInstructions() {
   instructions.forEach((text, index) => {
     if (text.startsWith("【")) {
       ctx.fillStyle = "#FFFF00";
-      ctx.font = "bold 18px Arial";
+      ctx.font = "bold 18px  'JasonHW-Round', 'Orbitron', sans-serif";
     } else if (text.startsWith("•")) {
       ctx.fillStyle = "#00FFFF";
-      ctx.font = "16px Arial";
+      ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
     } else {
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "16px Arial";
+      ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
     }
     ctx.textAlign = "left";
     ctx.fillText(text, 20, 35 + index * 18);
@@ -3636,18 +3653,18 @@ function drawVictory() {
   ctx.lineWidth = 3;
   ctx.strokeRect(VIEW_WIDTH / 2 - 300, VIEW_HEIGHT / 2 - 120, 600, 240);
 
-  ctx.fillStyle = "#00FF00";
-  ctx.font = "bold 56px Arial";
+  ctx.fillStyle = "#456d1d";
+  ctx.font = "bold 56px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(GAME_CONFIG.gameInfo.uiText.congratulations, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 60);
 
   // 顯示遊戲統計
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "bold 20px Arial";
+  ctx.fillStyle = "#fed456";
+  ctx.font = "bold 20px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.fillText(`${GAME_CONFIG.gameInfo.uiText.killCount}: ${killCount}`, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 - 20);
 
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "bold 28px Arial";
+  ctx.font = "bold 28px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.fillText(GAME_CONFIG.gameInfo.uiText.returnToLobbySpace, VIEW_WIDTH / 2, VIEW_HEIGHT / 2 + 30);
 }
 
@@ -3767,8 +3784,8 @@ function drawGrid(offsetX, offsetY) {
   }
 
   // 繪製安全區域邊界（綠色）
-  ctx.strokeStyle = "rgba(0, 255, 0, 0.5)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+  ctx.lineWidth = 1;
   ctx.strokeRect(SAFE_ZONE_LEFT - offsetX, SAFE_ZONE_TOP - offsetY, SAFE_ZONE_SIZE, SAFE_ZONE_SIZE);
 }
 
@@ -3821,15 +3838,15 @@ function drawSafeZoneBorder(offsetX, offsetY) {
   }
 
   // 繪製明顯的綠色邊框
-  ctx.strokeStyle = "#00FF00"; // 亮綠色
+  ctx.strokeStyle = "#456d1d"; // 亮綠色
   ctx.lineWidth = 3; // 3像素寬的線條
   ctx.strokeRect(intersectX, intersectY, intersectWidth, intersectHeight);
 
   // 添加發光效果
-  ctx.shadowColor = "#00FF00";
+  ctx.shadowColor = "#456d1d";
   ctx.shadowBlur = 5;
-  ctx.strokeStyle = "#00FF00";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#456d1d";
+  ctx.lineWidth = 1;
   ctx.strokeRect(intersectX, intersectY, intersectWidth, intersectHeight);
 
   // 重置陰影效果
@@ -4810,7 +4827,7 @@ function drawSingleItem(item, offsetX, offsetY) {
 
     // 添加邊框
     ctx.strokeStyle = "#FFFFFF";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1;
     ctx.strokeRect(x, floatY, item.width, item.height);
   }
 }
@@ -4841,17 +4858,17 @@ function drawItemStats() {
   const backgroundHeight = 50 + itemCount * 22;
 
   // 繪製半透明背景，帶有圓角和邊框
-  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
   ctx.fillRect(startX - 8, startY - 8, 180, backgroundHeight);
 
   // 繪製邊框
-  ctx.strokeStyle = "#FFD700";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#fed456";
+  ctx.lineWidth = 1;
   ctx.strokeRect(startX - 8, startY - 8, 180, backgroundHeight);
 
   // 標題
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "bold 13px Arial";
+  ctx.fillStyle = "#fed456";
+  ctx.font = "bold 15px 'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(GAME_CONFIG.gameInfo.uiText.passItem, startX, startY + 10);
 
@@ -4860,7 +4877,7 @@ function drawItemStats() {
   if (requiredItems.length === 0) {
     // 如果沒有通關條件，顯示提示
     ctx.fillStyle = "#FFFF00";
-    ctx.font = "11px Arial";
+    ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.fillText(GAME_CONFIG.gameInfo.uiText.noItemRequirement, startX, y);
   } else {
     // 顯示需要的道具
@@ -4897,7 +4914,7 @@ function drawItemStats() {
 
       // 道具名稱
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "11px Arial";
+      ctx.font = "14px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(itemConfig.name, textX, textY);
 
       // 數量（帶顏色）
@@ -4906,12 +4923,12 @@ function drawItemStats() {
       const countX = startX + 160 - countWidth; // 右對齊（調整為新的面板寬度）
 
       if (count >= requiredCount) {
-        ctx.fillStyle = "#00FF00"; // 綠色表示已達到要求
+        ctx.fillStyle = "#456d1d"; // 綠色表示已達到要求
       } else {
-        ctx.fillStyle = "#FF6666"; // 較柔和的紅色表示未達到要求
+        ctx.fillStyle = "#b13434"; // 較柔和的紅色表示未達到要求
       }
 
-      ctx.font = "bold 11px Arial";
+      ctx.font = "bold 14px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(countText, countX, textY);
 
       y += 22;

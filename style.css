@@ -311,7 +311,8 @@ body {
   /* 與遊戲畫面背景一致 */
   z-index: 999;
   /* 添加與大廳一致的背景漸變 */
-  background: linear-gradient(135deg, #2a2a2a, #444);
+  background: url(assets/ui/bg_2.jpg) no-repeat center center #444;
+  background-size: cover;
   /* 添加淡入動畫效果 */
   animation: fadeIn 0.3s ease-in-out;
   /* 添加內邊距，確保與邊緣保持距離 */
@@ -328,8 +329,8 @@ body {
   }
 }
 #gameCanvas {
-  background: #444;
-  border: 1px solid #444;
+  background: #47532d;
+  border: 1px solid #47532d;
   /* 添加邊框，與大廳風格一致 */
   border-radius: 10px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
