@@ -83,21 +83,21 @@ const GAME_CONFIG = {
       name: "共感頻率器",
       description: "大喇叭",
       color: "#44FF44",
-      size: 50,
+      size: 75,
       image: "assets/items/item-map-b.png"
     },
     monsterItemA: {
       name: "綠能聚合晶體",
       description: "綠色的石頭",
       color: "#FFAA00",
-      size: 35,
+      size: 50,
       image: "assets/items/item-monster-a.png"
     },
     monsterItemB: {
       name: "動能核心",
       description: "有電的東西",
       color: "#4444FF",
-      size: 45,
+      size: 70,
       image: "assets/items/item-monster-b.png"
     }
   },
