@@ -751,7 +751,7 @@ const storySystem = {
         try {
           const introVideo = document.createElement("video");
           introVideo.src = `assets/story/story_${level}_before.mp4`;
-          introVideo.muted = true;
+          introVideo.muted = false;
           introVideo.loop = false;
           introVideo.preload = "metadata";
           
@@ -799,7 +799,7 @@ const storySystem = {
         try {
           const outroVideo = document.createElement("video");
           outroVideo.src = `assets/story/story_${level}_after.mp4`;
-          outroVideo.muted = true;
+          outroVideo.muted = false;
           outroVideo.loop = false;
           outroVideo.preload = "metadata";
           
@@ -1179,7 +1179,7 @@ const aboutSystem = {
         try {
           const introVideo = document.createElement("video");
           introVideo.src = `assets/story/story_${level}_before.mp4`;
-          introVideo.muted = true;
+          introVideo.muted = false;
           introVideo.loop = false;
           introVideo.preload = "metadata";
           
@@ -1224,7 +1224,7 @@ const aboutSystem = {
         try {
           const outroVideo = document.createElement("video");
           outroVideo.src = `assets/story/story_${level}_after.mp4`;
-          outroVideo.muted = true;
+          outroVideo.muted = false;
           outroVideo.loop = false;
           outroVideo.preload = "metadata";
           
@@ -1313,6 +1313,9 @@ const aboutSystem = {
     if (aboutPage) {
       aboutPage.classList.add("hidden");
     }
+    
+    // 同時停止滿版影片播放
+    this.hideFullscreenImage();
   },
 
   // 更新美術圖列表
@@ -1385,7 +1388,7 @@ const aboutSystem = {
         // 創建影片元素
         const video = document.createElement("video");
         video.src = this.storyVideos[videoKey].src;
-        video.muted = true;
+        video.muted = false;
         video.loop = false;
         video.controls = true;
         video.style.width = "100%";
@@ -1597,11 +1600,25 @@ window.addEventListener("keydown", (e) => {
 
     // 處理劇情狀態下的任意鍵
     if (gameState === "storyIntro") {
+      // 如果有影片正在播放，跳過影片
+      if (storySystem.currentVideo && storySystem.videoLoaded) {
+        storySystem.currentVideo.pause();
+        storySystem.currentVideo.currentTime = 0;
+        storySystem.videoEnded = true;
+      }
+      
       // 關卡開始劇情結束，開始遊戲
       gameState = "playing";
       restartGame();
       console.log("關卡開始劇情結束，開始遊戲");
     } else if (gameState === "storyOutro") {
+      // 如果有影片正在播放，跳過影片
+      if (storySystem.currentVideo && storySystem.videoLoaded) {
+        storySystem.currentVideo.pause();
+        storySystem.currentVideo.currentTime = 0;
+        storySystem.videoEnded = true;
+      }
+      
       // 關卡結束劇情結束，進入下一關或返回大廳
       const completedLevel = currentLevel;
       if (completedLevel < MAX_LEVEL) {
@@ -1882,7 +1899,8 @@ function handleActionPress() {
   if (gameState === "storyIntro") {
     // 如果有影片正在播放，跳過影片
     if (storySystem.currentVideo && storySystem.videoLoaded) {
-      storySystem.currentVideo.currentTime = storySystem.currentVideo.duration;
+      storySystem.currentVideo.pause();
+      storySystem.currentVideo.currentTime = 0;
       storySystem.videoEnded = true;
     }
     
@@ -1893,7 +1911,8 @@ function handleActionPress() {
   } else if (gameState === "storyOutro") {
     // 如果有影片正在播放，跳過影片
     if (storySystem.currentVideo && storySystem.videoLoaded) {
-      storySystem.currentVideo.currentTime = storySystem.currentVideo.duration;
+      storySystem.currentVideo.pause();
+      storySystem.currentVideo.currentTime = 0;
       storySystem.videoEnded = true;
     }
     
@@ -2866,13 +2885,23 @@ function updateMonsters() {
       const dy = py - my;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
+      // 計算碰撞距離（玩家半徑 + 怪物半徑）
+      const playerRadius = 30; // 與 checkCollision 函數中的值保持一致
+      const monsterRadius = Math.min(m.width, m.height) / 2;
+      const collisionDistance = playerRadius + monsterRadius;
+
       // 只有當玩家不在安全區域內且沒有執行動作時才追蹤
       if (!isPlayerInSafeZone && !player.isActioning) {
         if (dist <= 500) {
           // 500像素內：追蹤玩家
-          if (dist > 0) {
+          if (dist > collisionDistance) {
+            // 只有在不碰撞的距離才移動
             m.dx = (dx / dist) * m.speed;
             m.dy = (dy / dist) * m.speed;
+          } else {
+            // 已經碰到玩家，停止移動
+            m.dx = 0;
+            m.dy = 0;
           }
         } else {
           // 500像素外：回到起始座標附近
@@ -4653,9 +4682,11 @@ async function initGame() {
 
   if (fullscreenImage) {
     fullscreenImage.addEventListener("click", (e) => {
-      // 點擊任何地方都關閉滿版大圖
-      aboutSystem.hideFullscreenImage();
-      audioSystem.playButtonClick();
+      // 只有點擊背景區域（不是影片或圖片）才關閉
+      if (e.target === fullscreenImage || e.target.classList.contains("fullscreen-overlay")) {
+        aboutSystem.hideFullscreenImage();
+        audioSystem.playButtonClick();
+      }
     });
   }
 

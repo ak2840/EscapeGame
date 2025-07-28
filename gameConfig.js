@@ -110,21 +110,21 @@ const GAME_CONFIG = {
       dropItemB: 0.0
     },
     normalB: {
-      hp: 5,
+      hp: 10,
       speed: 0.8,
       color: "#8844FF",
       dropItemA: 0.0,
       dropItemB: 0.0
     },
     normalC: {
-      hp: 5,
+      hp: 10,
       speed: 0.8,
       color: "#44FF44",
       dropItemA: 0.0,
       dropItemB: 0.0
     },
     trackerA: {
-      hp: 2,
+      hp: 5,
       speed: 1.5,
       color: "#FF0088",
       size: 120,
@@ -132,7 +132,7 @@ const GAME_CONFIG = {
       dropItemB: 0.0
     },
     trackerB: {
-      hp: 2,
+      hp: 5,
       speed: 1.5,
       color: "#FF0088",
       size: 120,
