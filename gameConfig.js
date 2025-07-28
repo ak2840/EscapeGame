@@ -197,12 +197,12 @@ const GAME_CONFIG = {
         monsterItemA: 10
       },
       mapTiles: [
-        { path: "assets/maps/map-level2-1.png", weight: 3 },
+        { path: "assets/maps/map-level2-1.png", weight: 10 },
         { path: "assets/maps/map-level2-2.png", weight: 1 },
         { path: "assets/maps/map-level2-3.png", weight: 1 },
-        { path: "assets/maps/map-level2-4.png", weight: 1 },
-        { path: "assets/maps/map-level2-5.png", weight: 1 },
-        { path: "assets/maps/map-level2-6.png", weight: 1 }
+        { path: "assets/maps/map-level2-4.png", weight: 2 },
+        { path: "assets/maps/map-level2-5.png", weight: 2 },
+        { path: "assets/maps/map-level2-6.png", weight: 2 }
       ]
     },
     3: {
@@ -225,7 +225,7 @@ const GAME_CONFIG = {
         monsterItemA: 5
       },
       mapTiles: [
-        { path: "assets/maps/map-level3-1.png", weight: 30 },
+        { path: "assets/maps/map-level3-1.png", weight: 3 },
         { path: "assets/maps/map-level3-2.png", weight: 1 },
         { path: "assets/maps/map-level3-3.png", weight: 1 },
         { path: "assets/maps/map-level3-4.png", weight: 1 },
