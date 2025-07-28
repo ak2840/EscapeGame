@@ -13,6 +13,7 @@ const audioSystem = {
   victorySound: null,
   gameOverSound: null,
   buttonClickSound: null,
+  healSound: null,
 
   async init() {
     this.gameMusic = document.getElementById("gameMusic");
@@ -21,9 +22,10 @@ const audioSystem = {
     this.victorySound = document.getElementById("victorySound");
     this.gameOverSound = document.getElementById("gameOverSound");
     this.buttonClickSound = document.getElementById("buttonClickSound");
+    this.healSound = document.getElementById("healSound");
 
     // 使用載入管理器追蹤音訊載入
-    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3")];
+    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
 
     // 等待音訊載入完成
     await Promise.all(audioPromises);
@@ -112,7 +114,7 @@ const audioSystem = {
     }
 
     // 設定所有音效音量
-    const soundEffects = [this.attackSound, this.hitSound, this.victorySound, this.gameOverSound, this.buttonClickSound];
+    const soundEffects = [this.attackSound, this.hitSound, this.victorySound, this.gameOverSound, this.buttonClickSound, this.healSound];
     soundEffects.forEach((sound) => {
       if (sound) {
         sound.volume = this.sfxVolume;
@@ -166,6 +168,10 @@ const audioSystem = {
 
   playButtonClick() {
     this.playSFX(this.buttonClickSound);
+  },
+
+  playHeal() {
+    this.playSFX(this.healSound);
   },
 
   setBGMVolume(volume) {
@@ -244,6 +250,8 @@ const particleSystem = {
     }
   },
 
+
+
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
@@ -281,6 +289,7 @@ const particleSystem = {
           if (!particle.rotationSpeed) particle.rotationSpeed = (Math.random() - 0.5) * 0.2;
           particle.rotation += particle.rotationSpeed;
           break;
+
       }
 
       // 移除死亡粒子
@@ -5051,6 +5060,26 @@ function checkItemCollection() {
       totalItemsCollected++;
 
       console.log(`收集道具: ${item.type} (總計: ${itemCounts[item.type]})`);
+
+      // 特殊效果：綠能結晶回覆HP
+      if (item.type === "monsterItemA") {
+        const healAmount = 3;
+        const oldHp = player.hp;
+        player.hp = Math.min(player.maxHp, player.hp + healAmount);
+        const actualHeal = player.hp - oldHp;
+        
+        if (actualHeal > 0) {
+          console.log(`綠能結晶回覆了 ${actualHeal} 點HP！當前血量：${player.hp}/${player.maxHp}`);
+          
+          // 播放專用的治療音效
+          audioSystem.playHeal();
+        } else {
+          console.log("血量已滿，無法回覆HP");
+          
+          // 血量已滿時播放按鈕音效作為提示
+          audioSystem.playButtonClick();
+        }
+      }
 
       // 創建收集特效
       const itemConfig = itemSettings[item.type];
