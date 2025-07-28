@@ -627,6 +627,8 @@ body {
   overflow: hidden;
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .about-header {
@@ -636,6 +638,7 @@ body {
   padding: 20px 30px;
   border-bottom: 1px solid #47532d;
   background: linear-gradient(135deg, #637441, #47532d);
+  flex-shrink: 0;
 }
 
 .about-title {
@@ -668,7 +671,9 @@ body {
 .about-content {
   padding: 30px;
   overflow-y: auto;
-  height: 100vh;
+  max-height: calc(80vh - 80px); /* 減去 header 的高度 */
+  flex: 1;
+  min-height: 0;
 }
 
 .section-title {
@@ -788,7 +793,8 @@ body {
   align-items: center;
   pointer-events: none;
 }
-.fullscreen-overlay img {
+.fullscreen-overlay img,
+.fullscreen-overlay video {
   max-width: 100%;
   max-height: 100%;
   -o-object-fit: contain;
@@ -797,21 +803,30 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
+.fullscreen-overlay video {
+  pointer-events: auto;
+}
 
 /* 響應式設計 */
 @media (max-width: 768px) {
   .about-container {
     width: 95%;
     max-height: 90vh;
+    display: flex;
+    flex-direction: column;
   }
   .about-header {
     padding: 15px 20px;
+    flex-shrink: 0;
   }
   .about-title {
     font-size: 24px;
   }
   .about-content {
     padding: 20px;
+    max-height: calc(90vh - 70px); /* 減去 header 的高度 */
+    flex: 1;
+    min-height: 0;
   }
   .team-list {
     max-width: 250px;

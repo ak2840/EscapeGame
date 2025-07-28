@@ -708,14 +708,19 @@ let gameLoopRunning = false; // 控制遊戲循環是否正在運行
 
 // 劇情系統
 const storySystem = {
-  introImages: {}, // 關卡開始前的劇情圖片
-  outroImages: {}, // 關卡結束後的劇情圖片
-  currentImage: null, // 當前顯示的劇情圖片
+  introImages: {}, // 關卡開始前的劇情圖片（作為備用）
+  outroImages: {}, // 關卡結束後的劇情圖片（作為備用）
+  introVideos: {}, // 關卡開始前的劇情影片
+  outroVideos: {}, // 關卡結束後的劇情影片
+  currentVideo: null, // 當前播放的劇情影片
+  currentImage: null, // 當前顯示的劇情圖片（備用）
+  videoLoaded: false, // 影片是否已載入
+  videoEnded: false, // 影片是否已結束
   imageLoaded: false, // 圖片是否已載入
 
-  // 載入劇情圖片
+  // 載入劇情影片和圖片
   async loadStoryImages() {
-    console.log("開始載入劇情圖片...");
+    console.log("開始載入劇情影片和圖片...");
     console.log("MAX_LEVEL:", MAX_LEVEL);
 
     if (!MAX_LEVEL || MAX_LEVEL <= 0) {
@@ -723,8 +728,31 @@ const storySystem = {
       MAX_LEVEL = 4;
     }
 
-    // 載入關卡開始劇情圖片
+    // 載入關卡開始劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
+      // 載入影片
+      try {
+        const introVideo = document.createElement("video");
+        introVideo.src = `assets/story/story_${level}_before.mp4`;
+        introVideo.muted = true;
+        introVideo.loop = false;
+        introVideo.preload = "metadata";
+        
+        await new Promise((resolve, reject) => {
+          introVideo.addEventListener("loadeddata", resolve);
+          introVideo.addEventListener("error", () => {
+            console.warn(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+            reject();
+          });
+        });
+        
+        this.introVideos[level] = introVideo;
+        console.log(`關卡${level}開始劇情影片載入成功`);
+      } catch (error) {
+        console.log(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+      }
+
+      // 載入圖片（作為備用）
       try {
         const introImg = new Image();
         introImg.src = `assets/story/story_${level}_before.jpg`;
@@ -744,8 +772,31 @@ const storySystem = {
       }
     }
 
-    // 載入關卡結束劇情圖片
+    // 載入關卡結束劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
+      // 載入影片
+      try {
+        const outroVideo = document.createElement("video");
+        outroVideo.src = `assets/story/story_${level}_after.mp4`;
+        outroVideo.muted = true;
+        outroVideo.loop = false;
+        outroVideo.preload = "metadata";
+        
+        await new Promise((resolve, reject) => {
+          outroVideo.addEventListener("loadeddata", resolve);
+          outroVideo.addEventListener("error", () => {
+            console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+            reject();
+          });
+        });
+        
+        this.outroVideos[level] = outroVideo;
+        console.log(`關卡${level}結束劇情影片載入成功`);
+      } catch (error) {
+        console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+      }
+
+      // 載入圖片（作為備用）
       try {
         const outroImg = new Image();
         outroImg.src = `assets/story/story_${level}_after.jpg`;
@@ -765,7 +816,7 @@ const storySystem = {
       }
     }
 
-    console.log("劇情圖片載入完成");
+    console.log("劇情影片和圖片載入完成");
   },
 
   // 創建預設的關卡開始劇情圖片
@@ -879,8 +930,33 @@ const storySystem = {
 
   // 顯示關卡開始劇情
   showIntro(level) {
-    this.currentImage = this.introImages[level];
-    this.imageLoaded = true;
+    // 優先使用影片，如果沒有影片則使用圖片
+    if (this.introVideos[level]) {
+      this.currentVideo = this.introVideos[level];
+      this.currentImage = null;
+      this.videoLoaded = true;
+      this.videoEnded = false;
+      this.imageLoaded = false;
+      
+      // 重置影片到開始位置並播放
+      this.currentVideo.currentTime = 0;
+      this.currentVideo.play().catch(error => {
+        console.warn("影片播放失敗，使用圖片:", error);
+        this.currentVideo = null;
+        this.currentImage = this.introImages[level];
+        this.imageLoaded = true;
+        this.videoLoaded = false;
+      });
+      
+      console.log(`播放第${level}關開始劇情影片`);
+    } else {
+      this.currentVideo = null;
+      this.currentImage = this.introImages[level];
+      this.imageLoaded = true;
+      this.videoLoaded = false;
+      console.log(`顯示第${level}關開始劇情圖片`);
+    }
+    
     gameState = "storyIntro";
     // 立即重新調整Canvas大小以適應視窗
     resizeCanvas();
@@ -888,13 +964,37 @@ const storySystem = {
     setTimeout(() => {
       resizeCanvas();
     }, 100);
-    console.log(`顯示第${level}關開始劇情`);
   },
 
   // 顯示關卡結束劇情
   showOutro(level) {
-    this.currentImage = this.outroImages[level];
-    this.imageLoaded = true;
+    // 優先使用影片，如果沒有影片則使用圖片
+    if (this.outroVideos[level]) {
+      this.currentVideo = this.outroVideos[level];
+      this.currentImage = null;
+      this.videoLoaded = true;
+      this.videoEnded = false;
+      this.imageLoaded = false;
+      
+      // 重置影片到開始位置並播放
+      this.currentVideo.currentTime = 0;
+      this.currentVideo.play().catch(error => {
+        console.warn("影片播放失敗，使用圖片:", error);
+        this.currentVideo = null;
+        this.currentImage = this.outroImages[level];
+        this.imageLoaded = true;
+        this.videoLoaded = false;
+      });
+      
+      console.log(`播放第${level}關結束劇情影片`);
+    } else {
+      this.currentVideo = null;
+      this.currentImage = this.outroImages[level];
+      this.imageLoaded = true;
+      this.videoLoaded = false;
+      console.log(`顯示第${level}關結束劇情圖片`);
+    }
+    
     gameState = "storyOutro";
     // 立即重新調整Canvas大小以適應視窗
     resizeCanvas();
@@ -902,63 +1002,129 @@ const storySystem = {
     setTimeout(() => {
       resizeCanvas();
     }, 100);
-    console.log(`顯示第${level}關結束劇情`);
   },
 
-  // 繪製劇情圖片
+  // 繪製劇情影片或圖片
   draw(ctx) {
-    if (!this.currentImage || !this.imageLoaded) return;
+    // 檢查是否有影片正在播放
+    if (this.currentVideo && this.videoLoaded) {
+      // 檢查影片是否已結束
+      if (this.currentVideo.ended) {
+        this.videoEnded = true;
+      }
 
-    // 清空畫布
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      // 清空畫布
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // 為音效控制按鈕留出空間（右上角區域）
-    const buttonAreaHeight = 60; // 音效按鈕區域高度
+      // 為音效控制按鈕留出空間（右上角區域）
+      const buttonAreaHeight = 60; // 音效按鈕區域高度
 
-    // 計算圖片縮放和位置（考慮按鈕區域）
-    const imgAspect = this.currentImage.width / this.currentImage.height;
-    const availableHeight = ctx.canvas.height - buttonAreaHeight;
-    const canvasAspect = ctx.canvas.width / availableHeight;
+      // 計算影片縮放和位置（考慮按鈕區域）
+      const videoAspect = this.currentVideo.videoWidth / this.currentVideo.videoHeight;
+      const availableHeight = ctx.canvas.height - buttonAreaHeight;
+      const canvasAspect = ctx.canvas.width / availableHeight;
 
-    let drawWidth, drawHeight, drawX, drawY;
+      let drawWidth, drawHeight, drawX, drawY;
 
-    if (imgAspect > canvasAspect) {
-      // 圖片較寬，以寬度為準
-      drawWidth = ctx.canvas.width;
-      drawHeight = ctx.canvas.width / imgAspect;
-      drawX = 0;
-      drawY = (availableHeight - drawHeight) / 2;
+      if (videoAspect > canvasAspect) {
+        // 影片較寬，以寬度為準
+        drawWidth = ctx.canvas.width;
+        drawHeight = ctx.canvas.width / videoAspect;
+        drawX = 0;
+        drawY = (availableHeight - drawHeight) / 2;
+      } else {
+        // 影片較高，以高度為準
+        drawHeight = availableHeight;
+        drawWidth = availableHeight * videoAspect;
+        drawX = (ctx.canvas.width - drawWidth) / 2;
+        drawY = 0;
+      }
+
+      // 繪製影片
+      ctx.drawImage(this.currentVideo, drawX, drawY, drawWidth, drawHeight);
+    } else if (this.currentImage && this.imageLoaded) {
+      // 使用圖片作為備用
+      // 清空畫布
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      // 為音效控制按鈕留出空間（右上角區域）
+      const buttonAreaHeight = 60; // 音效按鈕區域高度
+
+      // 計算圖片縮放和位置（考慮按鈕區域）
+      const imgAspect = this.currentImage.width / this.currentImage.height;
+      const availableHeight = ctx.canvas.height - buttonAreaHeight;
+      const canvasAspect = ctx.canvas.width / availableHeight;
+
+      let drawWidth, drawHeight, drawX, drawY;
+
+      if (imgAspect > canvasAspect) {
+        // 圖片較寬，以寬度為準
+        drawWidth = ctx.canvas.width;
+        drawHeight = ctx.canvas.width / imgAspect;
+        drawX = 0;
+        drawY = (availableHeight - drawHeight) / 2;
+      } else {
+        // 圖片較高，以高度為準
+        drawHeight = availableHeight;
+        drawWidth = availableHeight * imgAspect;
+        drawX = (ctx.canvas.width - drawWidth) / 2;
+        drawY = 0;
+      }
+
+      // 繪製圖片
+      ctx.drawImage(this.currentImage, drawX, drawY, drawWidth, drawHeight);
     } else {
-      // 圖片較高，以高度為準
-      drawHeight = availableHeight;
-      drawWidth = availableHeight * imgAspect;
-      drawX = (ctx.canvas.width - drawWidth) / 2;
-      drawY = 0;
+      return; // 沒有內容可顯示
     }
 
-    // 繪製圖片
-    ctx.drawImage(this.currentImage, drawX, drawY, drawWidth, drawHeight);
-  },
-};
+         // 繪製"按任意鍵繼續"提示（始終顯示，允許跳過）
+     const buttonAreaHeight = 60;
+     const overlayHeight = 60;
+     const overlayY = ctx.canvas.height - buttonAreaHeight - overlayHeight;
+     
+     // 半透明背景
+     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+     ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
+     
+     // 提示文字
+     ctx.fillStyle = "#fed456";
+     ctx.font = "bold 20px 'JasonHW-Round', 'Orbitron', sans-serif";
+     ctx.textAlign = "center";
+     ctx.fillText("按任意鍵繼續", ctx.canvas.width / 2, overlayY + 35);
+   },
+
+   // 停止當前影片播放
+   stopCurrentVideo() {
+     if (this.currentVideo) {
+       this.currentVideo.pause();
+       this.currentVideo.currentTime = 0;
+       this.currentVideo = null;
+       this.videoLoaded = false;
+       this.videoEnded = false;
+     }
+   },
+ };
 
 // 關於系統
 const aboutSystem = {
-  storyImages: {}, // 劇情圖片
+  storyImages: {}, // 劇情圖片（用於縮圖）
+  storyVideos: {}, // 劇情影片（用於全螢幕播放）
   imageLoaded: false, // 圖片是否已載入
 
-  // 載入劇情圖片
+  // 載入劇情圖片和影片
   async loadStoryImages() {
-    console.log("開始載入關於頁面的劇情圖片...");
+    console.log("開始載入關於頁面的劇情圖片和影片...");
 
     if (!MAX_LEVEL || MAX_LEVEL <= 0) {
       console.error("MAX_LEVEL 未正確設定，使用預設值 4");
       MAX_LEVEL = 4;
     }
 
-    // 載入關卡劇情圖片（每個關卡有開始和結束兩張圖片）
+    // 載入關卡劇情圖片和影片（每個關卡有開始和結束兩張圖片/影片）
     for (let level = 1; level <= MAX_LEVEL; level++) {
-      // 載入關卡開始圖片
+      // 載入關卡開始圖片（用於縮圖）
       try {
         const introImg = new Image();
         introImg.src = `assets/story/story_${level}_before.jpg`;
@@ -977,7 +1143,29 @@ const aboutSystem = {
         console.log(`關卡${level}使用預設開始劇情圖片`);
       }
 
-      // 載入關卡結束圖片
+      // 載入關卡開始影片（用於全螢幕播放）
+      try {
+        const introVideo = document.createElement("video");
+        introVideo.src = `assets/story/story_${level}_before.mp4`;
+        introVideo.muted = true;
+        introVideo.loop = false;
+        introVideo.preload = "metadata";
+        
+        await new Promise((resolve, reject) => {
+          introVideo.addEventListener("loadeddata", resolve);
+          introVideo.addEventListener("error", () => {
+            console.warn(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+            reject();
+          });
+        });
+        
+        this.storyVideos[`${level}_before`] = introVideo;
+        console.log(`關卡${level}開始劇情影片載入成功`);
+      } catch (error) {
+        console.log(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+      }
+
+      // 載入關卡結束圖片（用於縮圖）
       try {
         const outroImg = new Image();
         outroImg.src = `assets/story/story_${level}_after.jpg`;
@@ -995,9 +1183,31 @@ const aboutSystem = {
         this.storyImages[`${level}_after`] = this.createDefaultStoryImage(level, "after");
         console.log(`關卡${level}使用預設結束劇情圖片`);
       }
+
+      // 載入關卡結束影片（用於全螢幕播放）
+      try {
+        const outroVideo = document.createElement("video");
+        outroVideo.src = `assets/story/story_${level}_after.mp4`;
+        outroVideo.muted = true;
+        outroVideo.loop = false;
+        outroVideo.preload = "metadata";
+        
+        await new Promise((resolve, reject) => {
+          outroVideo.addEventListener("loadeddata", resolve);
+          outroVideo.addEventListener("error", () => {
+            console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+            reject();
+          });
+        });
+        
+        this.storyVideos[`${level}_after`] = outroVideo;
+        console.log(`關卡${level}結束劇情影片載入成功`);
+      } catch (error) {
+        console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+      }
     }
 
-    console.log("關於頁面劇情圖片載入完成");
+    console.log("關於頁面劇情圖片和影片載入完成");
   },
 
   // 創建預設的劇情圖片
@@ -1114,32 +1324,84 @@ const aboutSystem = {
 
     galleryItem.appendChild(image);
 
-    // 添加點擊事件來顯示滿版大圖
+    // 添加點擊事件來顯示滿版大圖或影片
     if (isUnlocked) {
       galleryItem.addEventListener("click", () => {
-        this.showFullscreenImage(image.src, `${levelName} ${type === "before" ? "開始" : "結束"}劇情`);
+        this.showFullscreenMedia(level, type, `${levelName} ${type === "before" ? "開始" : "結束"}劇情`);
       });
     }
 
     return galleryItem;
   },
 
-  // 顯示滿版大圖
-  showFullscreenImage(imageSrc, title) {
+  // 顯示滿版大圖或影片
+  showFullscreenMedia(level, type, title) {
     const fullscreenImage = document.getElementById("fullscreenImage");
     const fullscreenImageSrc = document.getElementById("fullscreenImageSrc");
 
     if (fullscreenImage && fullscreenImageSrc) {
-      fullscreenImageSrc.src = imageSrc;
-      fullscreenImageSrc.alt = title;
+      // 檢查是否有對應的影片
+      const videoKey = `${level}_${type}`;
+      if (this.storyVideos[videoKey]) {
+        // 創建影片元素
+        const video = document.createElement("video");
+        video.src = this.storyVideos[videoKey].src;
+        video.muted = true;
+        video.loop = false;
+        video.controls = true;
+        video.style.width = "100%";
+        video.style.height = "100%";
+        video.style.objectFit = "contain";
+        
+        // 清空容器並添加影片
+        fullscreenImageSrc.innerHTML = "";
+        fullscreenImageSrc.appendChild(video);
+        
+        // 播放影片
+        video.play().catch(error => {
+          console.warn("影片播放失敗，使用圖片:", error);
+          this.showFullscreenImageFallback(level, type, title);
+        });
+      } else {
+        // 沒有影片，使用圖片
+        this.showFullscreenImageFallback(level, type, title);
+      }
+      
       fullscreenImage.classList.remove("hidden");
     }
   },
 
-  // 隱藏滿版大圖
+  // 顯示滿版大圖（備用方法）
+  showFullscreenImageFallback(level, type, title) {
+    const fullscreenImage = document.getElementById("fullscreenImage");
+    const fullscreenImageSrc = document.getElementById("fullscreenImageSrc");
+
+    if (fullscreenImage && fullscreenImageSrc) {
+      const imageKey = `${level}_${type}`;
+      if (this.storyImages[imageKey]) {
+        fullscreenImageSrc.innerHTML = "";
+        const img = document.createElement("img");
+        img.src = this.storyImages[imageKey].src;
+        img.alt = title;
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "contain";
+        fullscreenImageSrc.appendChild(img);
+      }
+    }
+  },
+
+  // 隱藏滿版大圖或影片
   hideFullscreenImage() {
     const fullscreenImage = document.getElementById("fullscreenImage");
     if (fullscreenImage) {
+      // 停止所有影片播放
+      const videos = fullscreenImage.querySelectorAll("video");
+      videos.forEach(video => {
+        video.pause();
+        video.currentTime = 0;
+      });
+      
       fullscreenImage.classList.add("hidden");
     }
   },
@@ -1579,11 +1841,23 @@ function handleActionPress() {
 
   // 處理劇情狀態下的空白鍵
   if (gameState === "storyIntro") {
+    // 如果有影片正在播放，跳過影片
+    if (storySystem.currentVideo && storySystem.videoLoaded) {
+      storySystem.currentVideo.currentTime = storySystem.currentVideo.duration;
+      storySystem.videoEnded = true;
+    }
+    
     // 關卡開始劇情結束，開始遊戲
     gameState = "playing";
     restartGame();
     console.log("關卡開始劇情結束，開始遊戲");
   } else if (gameState === "storyOutro") {
+    // 如果有影片正在播放，跳過影片
+    if (storySystem.currentVideo && storySystem.videoLoaded) {
+      storySystem.currentVideo.currentTime = storySystem.currentVideo.duration;
+      storySystem.videoEnded = true;
+    }
+    
     // 關卡結束劇情結束，進入下一關或返回大廳
     const completedLevel = currentLevel;
     if (completedLevel < MAX_LEVEL) {
@@ -4208,6 +4482,9 @@ function returnToLobby() {
   // 停止遊戲背景音樂
   audioSystem.stopGameMusic();
 
+  // 停止當前影片播放
+  storySystem.stopCurrentVideo();
+
   showLobby();
   updateLobbyDisplay();
 
@@ -4281,7 +4558,7 @@ async function initGame() {
     window.loadingManager.updateProgress(25, "關卡配置載入完成...");
   }
 
-  // 再載入劇情圖片（確保MAX_LEVEL已經設定）
+  // 再載入劇情影片和圖片（確保MAX_LEVEL已經設定）
   await storySystem.loadStoryImages();
 
   // 更新載入進度
@@ -4289,7 +4566,7 @@ async function initGame() {
     window.loadingManager.updateProgress(35, "劇情圖片載入完成...");
   }
 
-  // 載入關於頁面的劇情圖片
+  // 載入關於頁面的劇情圖片和影片
   await aboutSystem.loadStoryImages();
 
   // 更新載入進度
