@@ -24,8 +24,36 @@ const audioSystem = {
     this.buttonClickSound = document.getElementById("buttonClickSound");
     this.healSound = document.getElementById("healSound");
 
-    // 使用載入管理器追蹤音訊載入
-    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
+    // 檢測是否為手機設備
+    const isMobile = window.innerWidth <= 768 || 
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                    "ontouchstart" in window || 
+                    navigator.maxTouchPoints > 0;
+
+    // 根據設備類型決定載入哪些音訊
+    const audioPromises = [];
+    
+    if (isMobile) {
+      // 手機上只載入必要的音訊
+      console.log("手機設備：只載入必要音訊");
+      audioPromises.push(
+        window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3")
+      );
+    } else {
+      // 桌面設備載入所有音訊
+      console.log("桌面設備：載入所有音訊");
+      audioPromises.push(
+        window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"),
+        window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")
+      );
+    }
 
     // 等待音訊載入完成
     await Promise.all(audioPromises);
@@ -125,7 +153,7 @@ const audioSystem = {
   },
 
   playGameMusic() {
-    if (this.bgmEnabled && this.gameMusic) {
+    if (this.bgmEnabled && this.gameMusic && this.gameMusic.readyState >= 2) {
       this.gameMusic.volume = this.bgmVolume;
       this.gameMusic.play().catch((e) => console.log("遊戲背景音樂播放失敗:", e));
     }
@@ -143,7 +171,7 @@ const audioSystem = {
   },
 
   playSFX(sound) {
-    if (this.sfxEnabled && sound) {
+    if (this.sfxEnabled && sound && sound.readyState >= 2) {
       sound.volume = this.sfxVolume;
       sound.currentTime = 0;
       sound.play().catch((e) => console.log("音效播放失敗:", e));

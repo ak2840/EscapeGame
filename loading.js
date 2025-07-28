@@ -10,7 +10,18 @@ class LoadingManager {
         this.isInitialized = false;
         this.animationFrame = 0;
         this.animationInterval = null;
+        this.loadingPromises = [];
+        this.timeoutDuration = 30000; // 30秒超時
+        this.isMobile = this.detectMobile();
         this.init();
+    }
+
+    // 檢測是否為手機設備
+    detectMobile() {
+        return window.innerWidth <= 768 || 
+               /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+               "ontouchstart" in window || 
+               navigator.maxTouchPoints > 0;
     }
 
     createLoadingScreen() {
@@ -102,7 +113,9 @@ class LoadingManager {
 
         const loadingTips = document.createElement('div');
         loadingTips.id = 'loadingTips';
-        loadingTips.textContent = '載入提示：遊戲包含大量圖片和音訊資源，請耐心等待...';
+        loadingTips.textContent = this.isMobile ? 
+            '載入提示：手機載入可能需要較長時間，請保持網路連接...' : 
+            '載入提示：遊戲包含大量圖片和音訊資源，請耐心等待...';
         loadingTips.style.cssText = `
             text-align: center;
             margin-top: 20px;
@@ -111,6 +124,24 @@ class LoadingManager {
             max-width: 400px;
             line-height: 1.4;
         `;
+
+        // 添加跳過載入按鈕（僅在手機上顯示）
+        if (this.isMobile) {
+            const skipButton = document.createElement('button');
+            skipButton.textContent = '跳過載入（可能影響遊戲體驗）';
+            skipButton.style.cssText = `
+                margin-top: 20px;
+                padding: 10px 20px;
+                background: rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+                border-radius: 5px;
+                color: white;
+                cursor: pointer;
+                font-size: 14px;
+            `;
+            skipButton.onclick = () => this.forceComplete();
+            screen.appendChild(skipButton);
+        }
 
         progressContainer.appendChild(this.progressBar);
         screen.appendChild(title);
@@ -146,8 +177,12 @@ class LoadingManager {
         // 地圖圖片 (每個關卡6張)
         total += 24; // 4 * 6 = 24
         
-        // 音訊檔案
-        total += 6; // background-music, attack, hit, victory, game-over, button-click
+        // 音訊檔案（手機上減少音訊載入）
+        if (this.isMobile) {
+            total += 3; // 只載入必要的音訊：attack, hit, button-click
+        } else {
+            total += 7; // 所有音訊檔案
+        }
         
         // 道具圖片
         total += 4; // 4種道具
@@ -158,7 +193,7 @@ class LoadingManager {
         // 額外緩衝，確保進度條能夠平滑運行
         total += 10;
         
-        console.log(`計算總資源數量: ${total}`);
+        console.log(`計算總資源數量: ${total} (手機: ${this.isMobile})`);
         return total;
     }
 
@@ -189,11 +224,17 @@ class LoadingManager {
         const loadingTips = document.getElementById('loadingTips');
         if (loadingTips) {
             if (percentage < 30) {
-                loadingTips.textContent = '載入提示：正在載入遊戲核心資源...';
+                loadingTips.textContent = this.isMobile ? 
+                    '載入提示：正在載入遊戲核心資源...' :
+                    '載入提示：正在載入遊戲核心資源...';
             } else if (percentage < 60) {
-                loadingTips.textContent = '載入提示：正在載入圖片資源，這可能需要一些時間...';
+                loadingTips.textContent = this.isMobile ? 
+                    '載入提示：正在載入圖片資源，手機載入較慢請耐心等待...' :
+                    '載入提示：正在載入圖片資源，這可能需要一些時間...';
             } else if (percentage < 90) {
-                loadingTips.textContent = '載入提示：正在載入音訊資源...';
+                loadingTips.textContent = this.isMobile ? 
+                    '載入提示：正在載入音訊資源...' :
+                    '載入提示：正在載入音訊資源...';
             } else {
                 loadingTips.textContent = '載入提示：即將完成載入，準備進入遊戲...';
             }
@@ -217,14 +258,21 @@ class LoadingManager {
         }
     }
 
-    // 真正的圖片載入追蹤
+    // 帶超時的圖片載入追蹤
     trackImageLoad(imagePath) {
         return new Promise((resolve, reject) => {
             console.log(`開始載入圖片: ${imagePath}`);
             
             const img = new Image();
+            const timeout = setTimeout(() => {
+                console.warn(`圖片載入超時: ${imagePath}`);
+                this.loadedAssets++;
+                this.updateProgress(this.loadedAssets, `載入超時: ${imagePath.split('/').pop()}`);
+                resolve(null); // 不拒絕，而是返回 null
+            }, this.timeoutDuration);
             
             img.onload = () => {
+                clearTimeout(timeout);
                 this.loadedAssets++;
                 this.updateProgress(this.loadedAssets, `載入圖片: ${imagePath.split('/').pop()}`);
                 console.log(`圖片載入完成: ${imagePath}`);
@@ -232,24 +280,32 @@ class LoadingManager {
             };
             
             img.onerror = () => {
+                clearTimeout(timeout);
                 console.error(`圖片載入失敗: ${imagePath}`);
                 this.loadedAssets++;
                 this.updateProgress(this.loadedAssets, `載入失敗: ${imagePath.split('/').pop()}`);
-                reject(new Error(`圖片載入失敗: ${imagePath}`));
+                resolve(null); // 不拒絕，而是返回 null
             };
             
             img.src = imagePath;
         });
     }
 
-    // 真正的音訊載入追蹤
+    // 帶超時的音訊載入追蹤
     trackAudioLoad(audioPath) {
         return new Promise((resolve, reject) => {
             console.log(`開始載入音訊: ${audioPath}`);
             
             const audio = new Audio();
+            const timeout = setTimeout(() => {
+                console.warn(`音訊載入超時: ${audioPath}`);
+                this.loadedAssets++;
+                this.updateProgress(this.loadedAssets, `載入超時: ${audioPath.split('/').pop()}`);
+                resolve(null); // 不拒絕，而是返回 null
+            }, this.timeoutDuration);
             
             audio.addEventListener('canplaythrough', () => {
+                clearTimeout(timeout);
                 this.loadedAssets++;
                 this.updateProgress(this.loadedAssets, `載入音訊: ${audioPath.split('/').pop()}`);
                 console.log(`音訊載入完成: ${audioPath}`);
@@ -257,10 +313,11 @@ class LoadingManager {
             });
             
             audio.addEventListener('error', () => {
+                clearTimeout(timeout);
                 console.error(`音訊載入失敗: ${audioPath}`);
                 this.loadedAssets++;
                 this.updateProgress(this.loadedAssets, `載入失敗: ${audioPath.split('/').pop()}`);
-                reject(new Error(`音訊載入失敗: ${audioPath}`));
+                resolve(null); // 不拒絕，而是返回 null
             });
             
             audio.src = audioPath;
