@@ -24,36 +24,8 @@ const audioSystem = {
     this.buttonClickSound = document.getElementById("buttonClickSound");
     this.healSound = document.getElementById("healSound");
 
-    // 檢測是否為手機設備
-    const isMobile = window.innerWidth <= 768 || 
-                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-                    "ontouchstart" in window || 
-                    navigator.maxTouchPoints > 0;
-
-    // 根據設備類型決定載入哪些音訊
-    const audioPromises = [];
-    
-    if (isMobile) {
-      // 手機上只載入必要的音訊
-      console.log("手機設備：只載入必要音訊");
-      audioPromises.push(
-        window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3")
-      );
-    } else {
-      // 桌面設備載入所有音訊
-      console.log("桌面設備：載入所有音訊");
-      audioPromises.push(
-        window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"),
-        window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")
-      );
-    }
+    // 使用載入管理器追蹤音訊載入
+    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
 
     // 等待音訊載入完成
     await Promise.all(audioPromises);
@@ -153,7 +125,7 @@ const audioSystem = {
   },
 
   playGameMusic() {
-    if (this.bgmEnabled && this.gameMusic && this.gameMusic.readyState >= 2) {
+    if (this.bgmEnabled && this.gameMusic) {
       this.gameMusic.volume = this.bgmVolume;
       this.gameMusic.play().catch((e) => console.log("遊戲背景音樂播放失敗:", e));
     }
@@ -171,7 +143,7 @@ const audioSystem = {
   },
 
   playSFX(sound) {
-    if (this.sfxEnabled && sound && sound.readyState >= 2) {
+    if (this.sfxEnabled && sound) {
       sound.volume = this.sfxVolume;
       sound.currentTime = 0;
       sound.play().catch((e) => console.log("音效播放失敗:", e));
@@ -765,28 +737,39 @@ const storySystem = {
       MAX_LEVEL = 4;
     }
 
+    // 檢查是否為手機設備
+    const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    
+    if (isMobile) {
+      console.log("檢測到手機設備，跳過影片載入以節省流量");
+    }
+
     // 載入關卡開始劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
-      // 載入影片
-      try {
-        const introVideo = document.createElement("video");
-        introVideo.src = `assets/story/story_${level}_before.mp4`;
-        introVideo.muted = true;
-        introVideo.loop = false;
-        introVideo.preload = "metadata";
-        
-        await new Promise((resolve, reject) => {
-          introVideo.addEventListener("loadeddata", resolve);
-          introVideo.addEventListener("error", () => {
-            console.warn(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
-            reject();
+      // 只在非手機設備上載入影片
+      if (!isMobile) {
+        try {
+          const introVideo = document.createElement("video");
+          introVideo.src = `assets/story/story_${level}_before.mp4`;
+          introVideo.muted = true;
+          introVideo.loop = false;
+          introVideo.preload = "metadata";
+          
+          await new Promise((resolve, reject) => {
+            introVideo.addEventListener("loadeddata", resolve);
+            introVideo.addEventListener("error", () => {
+              console.warn(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+              reject();
+            });
           });
-        });
-        
-        this.introVideos[level] = introVideo;
-        console.log(`關卡${level}開始劇情影片載入成功`);
-      } catch (error) {
-        console.log(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+          
+          this.introVideos[level] = introVideo;
+          console.log(`關卡${level}開始劇情影片載入成功`);
+        } catch (error) {
+          console.log(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+        }
+      } else {
+        console.log(`手機設備：跳過關卡${level}開始劇情影片載入`);
       }
 
       // 載入圖片（作為備用）
@@ -811,26 +794,30 @@ const storySystem = {
 
     // 載入關卡結束劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
-      // 載入影片
-      try {
-        const outroVideo = document.createElement("video");
-        outroVideo.src = `assets/story/story_${level}_after.mp4`;
-        outroVideo.muted = true;
-        outroVideo.loop = false;
-        outroVideo.preload = "metadata";
-        
-        await new Promise((resolve, reject) => {
-          outroVideo.addEventListener("loadeddata", resolve);
-          outroVideo.addEventListener("error", () => {
-            console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
-            reject();
+      // 只在非手機設備上載入影片
+      if (!isMobile) {
+        try {
+          const outroVideo = document.createElement("video");
+          outroVideo.src = `assets/story/story_${level}_after.mp4`;
+          outroVideo.muted = true;
+          outroVideo.loop = false;
+          outroVideo.preload = "metadata";
+          
+          await new Promise((resolve, reject) => {
+            outroVideo.addEventListener("loadeddata", resolve);
+            outroVideo.addEventListener("error", () => {
+              console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+              reject();
+            });
           });
-        });
-        
-        this.outroVideos[level] = outroVideo;
-        console.log(`關卡${level}結束劇情影片載入成功`);
-      } catch (error) {
-        console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+          
+          this.outroVideos[level] = outroVideo;
+          console.log(`關卡${level}結束劇情影片載入成功`);
+        } catch (error) {
+          console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+        }
+      } else {
+        console.log(`手機設備：跳過關卡${level}結束劇情影片載入`);
       }
 
       // 載入圖片（作為備用）
@@ -1159,6 +1146,13 @@ const aboutSystem = {
       MAX_LEVEL = 4;
     }
 
+    // 檢查是否為手機設備
+    const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    
+    if (isMobile) {
+      console.log("檢測到手機設備，跳過影片載入以節省流量");
+    }
+
     // 載入關卡劇情圖片和影片（每個關卡有開始和結束兩張圖片/影片）
     for (let level = 1; level <= MAX_LEVEL; level++) {
       // 載入關卡開始圖片（用於縮圖）
@@ -1180,26 +1174,30 @@ const aboutSystem = {
         console.log(`關卡${level}使用預設開始劇情圖片`);
       }
 
-      // 載入關卡開始影片（用於全螢幕播放）
-      try {
-        const introVideo = document.createElement("video");
-        introVideo.src = `assets/story/story_${level}_before.mp4`;
-        introVideo.muted = true;
-        introVideo.loop = false;
-        introVideo.preload = "metadata";
-        
-        await new Promise((resolve, reject) => {
-          introVideo.addEventListener("loadeddata", resolve);
-          introVideo.addEventListener("error", () => {
-            console.warn(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
-            reject();
+      // 只在非手機設備上載入影片
+      if (!isMobile) {
+        try {
+          const introVideo = document.createElement("video");
+          introVideo.src = `assets/story/story_${level}_before.mp4`;
+          introVideo.muted = true;
+          introVideo.loop = false;
+          introVideo.preload = "metadata";
+          
+          await new Promise((resolve, reject) => {
+            introVideo.addEventListener("loadeddata", resolve);
+            introVideo.addEventListener("error", () => {
+              console.warn(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+              reject();
+            });
           });
-        });
-        
-        this.storyVideos[`${level}_before`] = introVideo;
-        console.log(`關卡${level}開始劇情影片載入成功`);
-      } catch (error) {
-        console.log(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+          
+          this.storyVideos[`${level}_before`] = introVideo;
+          console.log(`關卡${level}開始劇情影片載入成功`);
+        } catch (error) {
+          console.log(`關卡${level}開始劇情影片載入失敗，將使用圖片`);
+        }
+      } else {
+        console.log(`手機設備：跳過關卡${level}開始劇情影片載入`);
       }
 
       // 載入關卡結束圖片（用於縮圖）
@@ -1221,26 +1219,30 @@ const aboutSystem = {
         console.log(`關卡${level}使用預設結束劇情圖片`);
       }
 
-      // 載入關卡結束影片（用於全螢幕播放）
-      try {
-        const outroVideo = document.createElement("video");
-        outroVideo.src = `assets/story/story_${level}_after.mp4`;
-        outroVideo.muted = true;
-        outroVideo.loop = false;
-        outroVideo.preload = "metadata";
-        
-        await new Promise((resolve, reject) => {
-          outroVideo.addEventListener("loadeddata", resolve);
-          outroVideo.addEventListener("error", () => {
-            console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
-            reject();
+      // 只在非手機設備上載入影片
+      if (!isMobile) {
+        try {
+          const outroVideo = document.createElement("video");
+          outroVideo.src = `assets/story/story_${level}_after.mp4`;
+          outroVideo.muted = true;
+          outroVideo.loop = false;
+          outroVideo.preload = "metadata";
+          
+          await new Promise((resolve, reject) => {
+            outroVideo.addEventListener("loadeddata", resolve);
+            outroVideo.addEventListener("error", () => {
+              console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+              reject();
+            });
           });
-        });
-        
-        this.storyVideos[`${level}_after`] = outroVideo;
-        console.log(`關卡${level}結束劇情影片載入成功`);
-      } catch (error) {
-        console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+          
+          this.storyVideos[`${level}_after`] = outroVideo;
+          console.log(`關卡${level}結束劇情影片載入成功`);
+        } catch (error) {
+          console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
+        }
+      } else {
+        console.log(`手機設備：跳過關卡${level}結束劇情影片載入`);
       }
     }
 

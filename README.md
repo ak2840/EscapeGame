@@ -43,6 +43,7 @@
 - **音效系統**：完整的背景音樂和音效，可獨立控制
 - **粒子效果**：攻擊、擊中、爆炸等視覺特效
 - **進度保存**：自動保存關卡進度到Cookie
+- **流量節省**：手機設備自動跳過影片載入，節省流量
 
 ## 🚀 快速開始
 
@@ -290,6 +291,7 @@ EscapeGame/
 - `MOBILE_CONTROLS_README.md` - 手機控制技術實現詳解
 - `STORY_SYSTEM_README.md` - 劇情系統技術實現詳解
 - `WEIGHT_SYSTEM_README.md` - 權重系統算法詳解
+- `MOBILE_DATA_SAVING_README.md` - 手機流量節省功能詳解
 
 ## ⚙️ 配置系統
 
@@ -460,6 +462,7 @@ itemSettings: {
 - **[劇情系統](STORY_SYSTEM_README.md)** - 劇情圖片載入、預設圖片生成、狀態管理
 - **[權重系統](WEIGHT_SYSTEM_README.md)** - 權重算法、隨機種子、調試功能
 - **[關於頁面](ABOUT_PAGE_README.md)** - 模態視窗、美術圖列表、進度控制
+- **[流量節省功能](MOBILE_DATA_SAVING_README.md)** - 手機設備檢測、影片載入優化、流量節省策略
 
 ### 🎯 適用對象
 - **開發者**：需要了解技術實現細節
