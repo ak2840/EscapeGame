@@ -170,12 +170,12 @@ const GAME_CONFIG = {
         mapItemA: 1
       },
       mapTiles: [
-        { path: "assets/maps/map-level1-1.png", weight: 10 },
-        { path: "assets/maps/map-level1-2.png", weight: 1 },
-        { path: "assets/maps/map-level1-3.png", weight: 1 },
-        { path: "assets/maps/map-level1-4.png", weight: 1 },
-        { path: "assets/maps/map-level1-5.png", weight: 1 },
-        { path: "assets/maps/map-level1-6.png", weight: 1 }
+        { path: "assets/maps/map-level1-1.png", weight: 1 },
+        { path: "assets/maps/map-level1-2.png", weight: 0 },
+        { path: "assets/maps/map-level1-3.png", weight: 0 },
+        { path: "assets/maps/map-level1-4.png", weight: 0 },
+        { path: "assets/maps/map-level1-5.png", weight: 0 },
+        { path: "assets/maps/map-level1-6.png", weight: 0 }
       ]
     },
     2: {
