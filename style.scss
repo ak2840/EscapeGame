@@ -630,12 +630,12 @@ body {
 
 .action-btn {
   width: 240px;
-  height: 60px;
+  height: 120px;
   border: 1px solid #dbab61;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.8);
   color: #8d6c3b;
-  font-size: 24px;
+  font-size: 36px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -675,8 +675,8 @@ body {
   }
   &.actionesc-btn {
     width: 120px;
-    height: 60px;
-    font-size: 24px;
+    height: 80px;
+    font-size: 30px;
   }
 }
 
@@ -925,8 +925,8 @@ body {
   position: fixed;
   bottom: 30px;
   left: 30px;
-  width: 160px; 
-  height: 160px;
+  width: 240px; 
+  height: 240px;
   z-index: 1000;
   touch-action: none;
 }
@@ -941,15 +941,12 @@ body {
 }
 
 .joystick-stick {
-  width: 80px;    
-  height: 80px;
+  width: 120px;    
+  height: 120px;
   border-radius: 50%;
   background: linear-gradient(135deg, #dbab61, #8d6c3b);
   position: absolute;
-  top: 40px;       
-  left: 40px;
+  top: 60px;       
+  left: 60px;
   transition: 0.1s ease;
 }
-
-
-
