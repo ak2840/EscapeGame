@@ -28,7 +28,7 @@ $white: #ffffff;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #47532d; 
+  background: #47532d;
 }
 body {
   margin: 0;
@@ -534,22 +534,22 @@ body {
 
 .mobile-controls {
   position: fixed;
-  bottom: 20px;
+  bottom: 40px;
   left: 20px;
   display: none;
-
+  width: 100%;
   /* 預設隱藏 */
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   z-index: 1002;
-  animation: pulse 2s ease-in-out infinite;
+  //animation: pulse 2s ease-in-out infinite;
 }
 
 .direction-pad {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  gap: 40px;
 }
 
 .direction-row {
@@ -558,13 +558,13 @@ body {
 }
 
 .control-btn {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   border: 3px solid #666;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.8);
   color: #ffffff;
-  font-size: 24px;
+  font-size: 48px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -622,19 +622,19 @@ body {
   /* 預設隱藏 */
   gap: 10px;
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   right: 20px;
   z-index: 1002;
 }
 
 .action-btn {
-  width: 120px;
-  height: 60px;
+  width: 240px;
+  height: 120px;
   border: 3px solid #666;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.8);
   color: #ffffff;
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -669,6 +669,11 @@ body {
   &.muted {
     background: linear-gradient(135deg, #f44336, #d32f2f);
     border-color: #f44336;
+  }
+  &.actionesc-btn {
+    width: 120px;
+    height: 80px;
+    font-size: 20px;
   }
 }
 

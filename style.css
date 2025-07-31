@@ -4,11 +4,6 @@
   font-family: "JasonHW-Round";
   src: url("assets/fonts/JasonHandwriting1.ttf") format("truetype");
 }
-/* 清松手寫體8 */
-@font-face {
-  font-family: "JasonHW-Free";
-  src: url("assets/fonts/JasonHandwriting8.ttf") format("truetype");
-}
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -468,21 +463,21 @@ body {
 /* 手機操作按鈕樣式 */
 .mobile-controls {
   position: fixed;
-  bottom: 20px;
+  bottom: 40px;
   left: 20px;
   display: none;
+  width: 100%;
   /* 預設隱藏 */
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   z-index: 1002;
-  animation: pulse 2s ease-in-out infinite;
 }
 
 .direction-pad {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  gap: 40px;
 }
 
 .direction-row {
@@ -491,13 +486,13 @@ body {
 }
 
 .control-btn {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   border: 3px solid #666;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.8);
   color: #ffffff;
-  font-size: 24px;
+  font-size: 48px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -550,19 +545,19 @@ body {
   /* 預設隱藏 */
   gap: 10px;
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   right: 20px;
   z-index: 1002;
 }
 
 .action-btn {
-  width: 120px;
-  height: 60px;
+  width: 240px;
+  height: 120px;
   border: 3px solid #666;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.8);
   color: #ffffff;
-  font-size: 18px;
+  font-size: 36px;
   font-weight: bold;
   cursor: pointer;
   display: flex;
@@ -597,6 +592,11 @@ body {
   background: linear-gradient(135deg, #f44336, #d32f2f);
   border-color: #f44336;
 }
+.action-btn.actionesc-btn {
+  width: 120px;
+  height: 80px;
+  font-size: 20px;
+}
 
 /* 關於頁面樣式 */
 .about-page {
@@ -627,8 +627,6 @@ body {
   overflow: hidden;
   box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
   position: relative;
-  display: flex;
-  flex-direction: column;
 }
 
 .about-header {
@@ -638,7 +636,6 @@ body {
   padding: 20px 30px;
   border-bottom: 1px solid #47532d;
   background: linear-gradient(135deg, #637441, #47532d);
-  flex-shrink: 0;
 }
 
 .about-title {
@@ -671,9 +668,7 @@ body {
 .about-content {
   padding: 30px;
   overflow-y: auto;
-  max-height: calc(80vh - 80px); /* 減去 header 的高度 */
-  flex: 1;
-  min-height: 0;
+  height: 100vh;
 }
 
 .section-title {
@@ -793,8 +788,7 @@ body {
   align-items: center;
   pointer-events: none;
 }
-.fullscreen-overlay img,
-.fullscreen-overlay video {
+.fullscreen-overlay img {
   max-width: 100%;
   max-height: 100%;
   -o-object-fit: contain;
@@ -803,30 +797,21 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
-.fullscreen-overlay video {
-  pointer-events: auto;
-}
 
 /* 響應式設計 */
 @media (max-width: 768px) {
   .about-container {
     width: 95%;
     max-height: 90vh;
-    display: flex;
-    flex-direction: column;
   }
   .about-header {
     padding: 15px 20px;
-    flex-shrink: 0;
   }
   .about-title {
     font-size: 24px;
   }
   .about-content {
     padding: 20px;
-    max-height: calc(90vh - 70px); /* 減去 header 的高度 */
-    flex: 1;
-    min-height: 0;
   }
   .team-list {
     max-width: 250px;
