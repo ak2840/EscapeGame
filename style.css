@@ -822,4 +822,42 @@ body {
   .gallery-item {
     max-width: 100%;
   }
+}
+.virtual-joystick {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 120px;
+  height: 120px;
+  z-index: 1000;
+  touch-action: none;
+}
+
+.joystick-base {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #ccc;
+  position: relative;
+}
+
+.joystick-stick {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ffd700;
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  transition: 0.1s ease;
+}
+
+.mobile-action-buttons {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  display: flex;
+  gap: 15px;
+  z-index: 1000;
 }/*# sourceMappingURL=style.css.map */

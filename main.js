@@ -5317,3 +5317,62 @@ function resetItems() {
   totalItemsCollected = 0;
   console.log("道具系統已重置，道具數量:", items.length);
 }
+
+
+//TEST
+
+(function () {
+  const base = document.getElementById("joystickBase");
+  const stick = document.getElementById("joystickStick");
+  let dragging = false;
+  let center = { x: 0, y: 0 };
+  let maxDist = 40; // 最遠距離
+
+  function getDirection(dx, dy) {
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    if (angle >= -45 && angle <= 45) return "right";
+    if (angle > 45 && angle < 135) return "down";
+    if (angle >= 135 || angle <= -135) return "left";
+    if (angle < -45 && angle > -135) return "up";
+    return null;
+  }
+
+  base.addEventListener("touchstart", e => {
+    const rect = base.getBoundingClientRect();
+    center = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    };
+    dragging = true;
+  });
+
+  base.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    let dx = touch.clientX - center.x;
+    let dy = touch.clientY - center.y;
+    const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+    const angle = Math.atan2(dy, dx);
+
+    dx = Math.cos(angle) * dist;
+    dy = Math.sin(angle) * dist;
+
+    stick.style.left = `${dx + 30}px`;
+    stick.style.top = `${dy + 30}px`;
+
+    const direction = getDirection(dx, dy);
+    // 這裡觸發方向行為，如呼叫控制邏輯
+    if (window.handleJoystickMove) {
+      window.handleJoystickMove(direction);
+    }
+  }, { passive: false });
+
+  base.addEventListener("touchend", () => {
+    dragging = false;
+    stick.style.left = "30px";
+    stick.style.top = "30px";
+    if (window.handleJoystickMove) {
+      window.handleJoystickMove(null);
+    }
+  });
+})();
