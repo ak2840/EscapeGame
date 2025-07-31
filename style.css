@@ -267,7 +267,7 @@ body {
 }
 .sound-button.active {
   background: rgba(76, 175, 80, 0.3);
-  border-color: #4caf50;
+  border-color: #47532d;
 }
 .sound-button.muted {
   background: rgba(244, 67, 54, 0.3);
@@ -393,14 +393,14 @@ body {
     width: 70px;
     height: 70px;
     font-size: 28px;
-    border: 4px solid #ffd700;
+    border: 4px solid #532d2d;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.3);
   }
   .action-btn {
     width: 140px;
     height: 70px;
     font-size: 22px;
-    border: 4px solid #4caf50;
+    border: 4px solid #47532d;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(76, 175, 80, 0.3);
   }
   .direction-pad,
@@ -519,8 +519,8 @@ body {
   transform: translateY(0);
 }
 .control-btn.active {
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  border-color: #4caf50;
+  background: linear-gradient(135deg, #47532d, #45a049);
+  border-color: #47532d;
   transform: scale(0.95);
   box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
 }
@@ -553,10 +553,10 @@ body {
 .action-btn {
   width: 240px;
   height: 120px;
-  border: 3px solid #666;
+  border: 1px solid #dbab61;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.8);
-  color: #ffffff;
+  color: #8d6c3b;
   font-size: 36px;
   font-weight: bold;
   cursor: pointer;
@@ -583,10 +583,11 @@ body {
   transform: translateY(0);
 }
 .action-btn.active {
-  background: linear-gradient(135deg, #4caf50, #45a049);
-  border-color: #4caf50;
+  background: linear-gradient(135deg, #637441, #47532d);
+  border-color: #47532d;
   transform: scale(0.95);
   box-shadow: 0 2px 10px rgba(76, 175, 80, 0.4);
+  color: #fff;
 }
 .action-btn.muted {
   background: linear-gradient(135deg, #f44336, #d32f2f);
@@ -827,8 +828,8 @@ body {
   position: fixed;
   bottom: 30px;
   left: 30px;
-  width: 120px;
-  height: 120px;
+  width: 240px;
+  height: 240px;
   z-index: 1000;
   touch-action: none;
 }
@@ -837,27 +838,18 @@ body {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid #ccc;
+  background: rgba(141, 108, 59, 0.1);
+  border: 2px solid #8d6c3b;
   position: relative;
 }
 
 .joystick-stick {
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  background: #ffd700;
+  background: linear-gradient(135deg, #dbab61, #8d6c3b);
   position: absolute;
-  top: 30px;
-  left: 30px;
+  top: 60px;
+  left: 60px;
   transition: 0.1s ease;
-}
-
-.mobile-action-buttons {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  display: flex;
-  gap: 15px;
-  z-index: 1000;
 }/*# sourceMappingURL=style.css.map */

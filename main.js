@@ -5319,14 +5319,14 @@ function resetItems() {
 }
 
 
-//TEST
+//虛擬搖桿操作
 
 (function () {
   const base = document.getElementById("joystickBase");
   const stick = document.getElementById("joystickStick");
   let dragging = false;
   let center = { x: 0, y: 0 };
-  let maxDist = 40; // 最遠距離
+  let maxDist = 80; // 最遠距離
 
   function getDirection(dx, dy) {
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
@@ -5369,10 +5369,55 @@ function resetItems() {
 
   base.addEventListener("touchend", () => {
     dragging = false;
-    stick.style.left = "30px";
-    stick.style.top = "30px";
+    stick.style.left = "60px";
+    stick.style.top = "60px";
     if (window.handleJoystickMove) {
       window.handleJoystickMove(null);
     }
   });
 })();
+
+// ✅ 虛擬搖桿方向控制對應到 keys 狀態
+window.handleJoystickMove = function (direction) {
+  keys.ArrowUp = false;
+  keys.ArrowDown = false;
+  keys.ArrowLeft = false;
+  keys.ArrowRight = false;
+
+  switch (direction) {
+    case "up":
+      keys.ArrowUp = true;
+      break;
+    case "down":
+      keys.ArrowDown = true;
+      break;
+    case "left":
+      keys.ArrowLeft = true;
+      break;
+    case "right":
+      keys.ArrowRight = true;
+      break;
+  }
+};
+
+// ✅ 虛擬按鈕模擬按鍵（例如 SPACE / ESC）
+const actionBtn = document.getElementById("actionBtn");
+const escapeBtn = document.getElementById("escapeBtn");
+
+if (actionBtn) {
+  actionBtn.addEventListener("touchstart", () => {
+    keys.Space = true;
+  });
+  actionBtn.addEventListener("touchend", () => {
+    keys.Space = false;
+  });
+}
+
+if (escapeBtn) {
+  escapeBtn.addEventListener("touchstart", () => {
+    keys.Escape = true;
+  });
+  escapeBtn.addEventListener("touchend", () => {
+    keys.Escape = false;
+  });
+}
