@@ -2922,7 +2922,10 @@ function autoAttack() {
     audioSystem.playAttack();
 
     // 創建攻擊粒子效果
-    particleSystem.createTrail(px, py, "#FFFF00");
+    // 創建軌跡效果（手機設備跳過）
+    if (!isMobileDevice()) {
+      particleSystem.createTrail(px, py, "#FFFF00");
+    }
   }
 }
 
@@ -3229,8 +3232,10 @@ function checkCollision() {
         // 播放受傷音效
         audioSystem.playHit();
 
-        // 創建受傷粒子效果
-        particleSystem.createHitEffect(playerCenterX, playerCenterY, "#b13435");
+          // 創建受傷粒子效果（手機設備跳過）
+  if (!isMobileDevice()) {
+    particleSystem.createHitEffect(playerCenterX, playerCenterY, "#b13435");
+  }
 
         console.log(`玩家受到${m.type}傷害！剩餘血量：${player.hp}`);
 
@@ -3296,7 +3301,10 @@ function showExitConditionHint() {
   // 創建提示粒子效果
   const exitCenterX = exit.x + exit.width / 2;
   const exitCenterY = exit.y + exit.height / 2;
-  particleSystem.createExplosion(exitCenterX, exitCenterY, "#FF0000", 8);
+  // 創建出口爆炸效果（手機設備跳過）
+  if (!isMobileDevice()) {
+    particleSystem.createExplosion(exitCenterX, exitCenterY, "#FF0000", 8);
+  }
 
   // 播放提示音效
   audioSystem.playSFX(audioSystem.hitSound);
@@ -3377,7 +3385,10 @@ function updateProjectiles() {
         audioSystem.playHit();
 
         // 創建擊中粒子效果
-        particleSystem.createHitEffect(mx, my, "#b13435");
+        // 創建命中粒子效果（手機設備跳過）
+        if (!isMobileDevice()) {
+          particleSystem.createHitEffect(mx, my, "#b13435");
+        }
 
         if (m.hp <= 0) {
           // 怪物死亡
@@ -3389,7 +3400,10 @@ function updateProjectiles() {
           gameStats.recordKill();
 
           // 創建爆炸粒子效果
-          particleSystem.createExplosion(mx, my, "#fed456", 12);
+          // 創建爆炸效果（手機設備跳過）
+          if (!isMobileDevice()) {
+            particleSystem.createExplosion(mx, my, "#fed456", 12);
+          }
 
           // 如果是普通怪物，產生擴散攻擊
           if (deadMonster.type === "normalA" || deadMonster.type === "normalB" || deadMonster.type === "normalC") {
@@ -3439,8 +3453,10 @@ function updateMonsterProjectiles() {
         // 播放受傷音效
         audioSystem.playHit();
 
-        // 創建受傷粒子效果
+              // 創建受傷粒子效果（手機設備跳過）
+      if (!isMobileDevice()) {
         particleSystem.createHitEffect(px, py, "#b13435");
+      }
 
         console.log(`玩家被怪物攻擊擊中！剩餘血量：${player.hp}`);
 
@@ -3994,7 +4010,10 @@ function executeDebugFunction() {
       // 創建收集特效
       const playerCenterX = player.x + player.width / 2;
       const playerCenterY = player.y + player.height / 2;
-      particleSystem.createExplosion(playerCenterX, playerCenterY, "#456d1d", 12);
+      // 創建攻擊爆炸效果（手機設備跳過）
+      if (!isMobileDevice()) {
+        particleSystem.createExplosion(playerCenterX, playerCenterY, "#456d1d", 12);
+      }
 
       console.log("Debug: 已收集足夠道具，可以通關！");
     } else {
@@ -5170,7 +5189,10 @@ function createDeathExplosionAttack(x, y, monsterType) {
       audioSystem.playHit();
 
       // 在玩家位置創建簡化的冰凍粒子效果（減少粒子數量）
-      particleSystem.createIceExplosion(playerCenterX, playerCenterY);
+      // 創建冰凍爆炸效果（手機設備跳過）
+      if (!isMobileDevice()) {
+        particleSystem.createIceExplosion(playerCenterX, playerCenterY);
+      }
     }
   }
 
@@ -5178,7 +5200,10 @@ function createDeathExplosionAttack(x, y, monsterType) {
   createRangeAttackEffect(x, y, attackRadius, attackDuration);
 
   // 創建簡化的冰凍爆炸粒子效果（減少粒子數量）
-  particleSystem.createIceExplosion(x, y);
+  // 創建冰凍爆炸效果（手機設備跳過）
+  if (!isMobileDevice()) {
+    particleSystem.createIceExplosion(x, y);
+  }
 
   console.log(`${monsterType} 死亡時產生冰凍範圍攻擊！範圍：${attackRadius}像素`);
 }
@@ -5277,7 +5302,10 @@ function checkItemCollection() {
       // 創建收集特效
       const itemConfig = itemSettings[item.type];
       if (itemConfig) {
-        particleSystem.createExplosion(itemCenterX, itemCenterY, itemConfig.color, 6);
+        // 創建道具收集爆炸效果（手機設備跳過）
+        if (!isMobileDevice()) {
+          particleSystem.createExplosion(itemCenterX, itemCenterY, itemConfig.color, 6);
+        }
       }
 
       // 播放收集音效
