@@ -1,14 +1,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// 平台檢測函數
-function detectPlatform() {
-  const userAgent = navigator.userAgent.toLowerCase();
-  const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent) || 
-                   (window.innerWidth <= 768 && window.innerHeight <= 1024);
-  return isMobile ? 'mobile' : 'pc';
-}
-
 // 音效系統
 const audioSystem = {
   bgmEnabled: true, // 預設開啟背景音樂
@@ -23,30 +15,6 @@ const audioSystem = {
   gameOverSound: null,
   buttonClickSound: null,
   healSound: null,
-  
-  // 音效播放頻率控制
-  lastAttackSoundTime: 0,
-  lastHitSoundTime: 0,
-  lastButtonClickTime: 0,
-  soundCooldown: 100, // 預設音效最小間隔時間（毫秒）- PC版使用
-
-  // 音效池管理
-  maxConcurrentSounds: 5, // 最大同時播放音效數量 - 增加以容納更多音效
-  activeSounds: 0,
-  soundQueue: [],
-
-  // 根據平台調整音效頻率
-  adjustCooldownForPlatform() {
-    const platform = detectPlatform();
-    if (platform === 'mobile') {
-      this.soundCooldown = 50; // 手機版降低音效頻率
-      console.log("檢測到手機平台，音效間隔設為 50ms");
-    } else {
-      this.soundCooldown = 50; // PC版維持初始射擊/被擊中音效頻率
-      console.log("檢測到PC平台，音效間隔設為 100ms");
-    }
-    console.log(`平台檢測結果: ${platform}, 視窗尺寸: ${window.innerWidth}x${window.innerHeight}`);
-  },
 
   async init() {
     this.gameMusic = document.getElementById("gameMusic");
@@ -58,20 +26,8 @@ const audioSystem = {
     this.buttonClickSound = document.getElementById("buttonClickSound");
     this.healSound = document.getElementById("healSound");
 
-    // 根據平台調整音效頻率
-    this.adjustCooldownForPlatform();
-
     // 使用載入管理器追蹤音訊載入
-    const audioPromises = [
-      window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/first-background-music.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"),
-      window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")
-    ];
+    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/first-background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
 
     // 等待音訊載入完成
     await Promise.all(audioPromises);
@@ -212,135 +168,36 @@ const audioSystem = {
     this.stopLobbyMusic();
   },
 
-  playSFX(sound, type = "normal") {
-    if (!this.sfxEnabled || !sound) return;
-    
-    const currentTime = Date.now();
-    
-    // 檢查音效播放頻率限制
-    if (type === "attack" && currentTime - this.lastAttackSoundTime < this.soundCooldown) {
-      return; // 攻擊音效太頻繁，跳過
-    }
-    if (type === "hit" && currentTime - this.lastHitSoundTime < this.soundCooldown) {
-      return; // 擊中音效太頻繁，跳過
-    }
-    if (type === "button" && currentTime - this.lastButtonClickTime < 50) {
-      return; // 按鈕音效太頻繁，跳過
-    }
-    
-    // 檢查同時播放的音效數量
-    if (this.activeSounds >= this.maxConcurrentSounds) {
-      // 如果超過最大數量，將音效加入佇列
-      this.soundQueue.push({ sound, type, currentTime });
-      return;
-    }
-    
-    // 播放音效
-    this._playSound(sound, type);
-  },
-  
-    // 實際播放音效的內部函數
-  _playSound(sound, type) {
-    if (!sound) return;
-
-    // 為治療音效添加調試日誌
-    if (type === "heal") {
-      console.log("治療音效播放狀態:", {
-        activeSounds: this.activeSounds,
-        queueLength: this.soundQueue.length,
-        soundPaused: sound.paused,
-        soundEnded: sound.ended
-      });
-    }
-
-    this.activeSounds++;
-    
-    // 設定音量和播放
-    sound.volume = this.sfxVolume;
-    
-    // 只有當音效不在播放狀態時才重設時間，避免中斷正在播放的音效
-    if (sound.paused || sound.ended) {
+  playSFX(sound) {
+    if (this.sfxEnabled && sound) {
+      sound.volume = this.sfxVolume;
       sound.currentTime = 0;
-    }
-    
-    sound.play().catch((e) => {
-      console.log("音效播放失敗:", e);
-      this.activeSounds--;
-    });
-    
-    // 監聽音效結束事件
-    const onEnded = () => {
-      this.activeSounds--;
-      sound.removeEventListener('ended', onEnded);
-      
-      // 播放佇列中的下一個音效
-      if (this.soundQueue.length > 0 && this.activeSounds < this.maxConcurrentSounds) {
-        const nextSound = this.soundQueue.shift();
-        this._playSound(nextSound.sound, nextSound.type);
-      }
-    };
-    
-    sound.addEventListener('ended', onEnded);
-    
-    // 更新最後播放時間
-    const currentTime = Date.now();
-    if (type === "attack") {
-      this.lastAttackSoundTime = currentTime;
-    } else if (type === "hit") {
-      this.lastHitSoundTime = currentTime;
-    } else if (type === "button") {
-      this.lastButtonClickTime = currentTime;
+      sound.play().catch((e) => console.log("音效播放失敗:", e));
     }
   },
 
   playAttack() {
-    this.playSFX(this.attackSound, "attack");
+    this.playSFX(this.attackSound);
   },
 
   playHit() {
-    this.playSFX(this.hitSound, "hit");
+    this.playSFX(this.hitSound);
   },
 
   playVictory() {
-    this.playSFX(this.victorySound, "victory");
+    this.playSFX(this.victorySound);
   },
 
   playGameOver() {
-    this.playSFX(this.gameOverSound, "gameover");
+    this.playSFX(this.gameOverSound);
   },
 
   playButtonClick() {
-    this.playSFX(this.buttonClickSound, "button");
+    this.playSFX(this.buttonClickSound);
   },
 
   playHeal() {
-    console.log("嘗試播放治療音效");
-    this.playSFX(this.healSound, "heal");
-  },
-
-  // 重置音效系統狀態
-  reset() {
-    this.lastAttackSoundTime = 0;
-    this.lastHitSoundTime = 0;
-    this.lastButtonClickTime = 0;
-    this.activeSounds = 0;
-    this.soundQueue = [];
-  },
-
-  // 清理音效佇列
-  clearQueue() {
-    this.soundQueue = [];
-  },
-
-  // 獲取音效系統狀態（用於調試）
-  getStatus() {
-    return {
-      activeSounds: this.activeSounds,
-      queueLength: this.soundQueue.length,
-      lastAttackTime: this.lastAttackSoundTime,
-      lastHitTime: this.lastHitSoundTime,
-      lastButtonTime: this.lastButtonClickTime
-    };
+    this.playSFX(this.healSound);
   },
 
   setBGMVolume(volume) {
@@ -1730,9 +1587,6 @@ window.addEventListener("resize", () => {
       console.log("手機操作按鈕已隱藏 - 視窗大小改變");
     }
   }
-  
-  // 更新音效頻率設定（當平台改變時）
-  audioSystem.adjustCooldownForPlatform();
 });
 
 // 鍵盤事件
@@ -3678,9 +3532,6 @@ function restartGame() {
   gameOver = false;
   gameWon = false;
   lastAttackTime = 0;
-  
-  // 重置音效系統
-  audioSystem.reset();
 
   // 重置計時器
   gameStartTime = Date.now();
@@ -4124,18 +3975,6 @@ function executeDebugFunction() {
 
     console.log("Debug: 已全通關！");
   }
-  
-  // 顯示平台和音效設定資訊
-  const platform = detectPlatform();
-  console.log("=== 平台和音效設定資訊 ===");
-  console.log(`當前平台: ${platform}`);
-  console.log(`音效間隔: ${audioSystem.soundCooldown}ms`);
-  console.log(`音效啟用: ${audioSystem.sfxEnabled}`);
-  console.log(`背景音樂啟用: ${audioSystem.bgmEnabled}`);
-  console.log(`最大同時音效: ${audioSystem.maxConcurrentSounds}`);
-  console.log(`當前活躍音效: ${audioSystem.activeSounds}`);
-  console.log(`音效佇列長度: ${audioSystem.soundQueue.length}`);
-  console.log("==========================");
 }
 
 // 新增：繪製左上角ESC離開按鈕
@@ -4716,9 +4555,6 @@ async function startLevel(level) {
   loadLevel(); // 只載入進度，不更新配置
   await updateLevelConfig(); // 更新關卡配置
   hideLobby();
-  
-  // 重置音效系統
-  audioSystem.reset();
 
   // 顯示關卡開始劇情（會自動暫停背景音樂）
   storySystem.showIntro(level);
