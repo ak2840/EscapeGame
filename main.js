@@ -1,6 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// 移動設備檢測函數
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+         ('ontouchstart' in window) || 
+         (navigator.maxTouchPoints > 0);
+}
+
 // 音效系統
 const audioSystem = {
   bgmEnabled: true, // 預設開啟背景音樂
@@ -234,6 +241,7 @@ const audioSystem = {
 const particleSystem = {
   particles: [],
   maxParticles: 80, // 限制最大粒子數量（優化性能）
+  mobileDisabled: false, // 移動設備禁用標誌
 
   createParticle(x, y, vx, vy, color, size, life, type = "normal") {
     return {
@@ -250,6 +258,10 @@ const particleSystem = {
   },
 
   addParticle(particle) {
+    // 移動設備禁用粒子系統
+    if (this.mobileDisabled) {
+      return;
+    }
     // 限制粒子數量，防止性能問題
     if (this.particles.length < this.maxParticles) {
       this.particles.push(particle);
@@ -296,6 +308,10 @@ const particleSystem = {
 
 
   update() {
+    // 移動設備禁用粒子更新
+    if (this.mobileDisabled) {
+      return;
+    }
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
 
@@ -343,6 +359,10 @@ const particleSystem = {
   },
 
   draw(offsetX, offsetY) {
+    // 移動設備禁用粒子繪製
+    if (this.mobileDisabled) {
+      return;
+    }
     ctx.save();
 
     for (const particle of this.particles) {
@@ -382,6 +402,14 @@ const particleSystem = {
 
   clear() {
     this.particles = [];
+  },
+
+  init() {
+    // 根據設備類型初始化粒子系統
+    this.mobileDisabled = isMobileDevice();
+    if (this.mobileDisabled) {
+      console.log("檢測到移動設備，禁用粒子系統以提升性能");
+    }
   },
 };
 
@@ -1762,30 +1790,30 @@ function initMobileControls() {
   directionButtons.forEach((button) => {
     const direction = button.getAttribute("data-direction");
 
-    // 統一的事件處理函數
-    const handlePress = (e) => {
+    // 移動設備優化：使用節流函數
+    const throttledHandlePress = debounce((e) => {
       e.preventDefault();
       e.stopPropagation();
       handleDirectionPress(direction);
       button.classList.add("active");
-    };
+    }, isMobileDevice() ? 50 : 0); // 移動設備50ms節流
 
-    const handleRelease = (e) => {
+    const throttledHandleRelease = debounce((e) => {
       e.preventDefault();
       e.stopPropagation();
       handleDirectionRelease(direction);
       button.classList.remove("active");
-    };
+    }, isMobileDevice() ? 50 : 0); // 移動設備50ms節流
 
     // 觸控事件
-    button.addEventListener("touchstart", handlePress, { passive: false });
-    button.addEventListener("touchend", handleRelease, { passive: false });
-    button.addEventListener("touchcancel", handleRelease, { passive: false });
+    button.addEventListener("touchstart", throttledHandlePress, { passive: false });
+    button.addEventListener("touchend", throttledHandleRelease, { passive: false });
+    button.addEventListener("touchcancel", throttledHandleRelease, { passive: false });
 
     // 滑鼠事件
-    button.addEventListener("mousedown", handlePress);
-    button.addEventListener("mouseup", handleRelease);
-    button.addEventListener("mouseleave", handleRelease);
+    button.addEventListener("mousedown", throttledHandlePress);
+    button.addEventListener("mouseup", throttledHandleRelease);
+    button.addEventListener("mouseleave", throttledHandleRelease);
   });
 
   // 動作按鈕
@@ -1793,27 +1821,27 @@ function initMobileControls() {
   const escapeBtn = document.getElementById("escapeBtn");
   const debugBtn = document.getElementById("debugBtn");
 
-  // 動作按鈕事件處理函數
-  const handleActionButtonPress = (e) => {
+  // 動作按鈕事件處理函數（移動設備優化）
+  const throttledActionPress = debounce((e) => {
     e.preventDefault();
     e.stopPropagation();
     handleActionPress();
     actionBtn.classList.add("active");
-  };
+  }, isMobileDevice() ? 100 : 0); // 移動設備100ms節流
 
-  const handleActionButtonRelease = (e) => {
+  const throttledActionRelease = debounce((e) => {
     e.preventDefault();
     e.stopPropagation();
     handleActionRelease();
     actionBtn.classList.remove("active");
-  };
+  }, isMobileDevice() ? 100 : 0); // 移動設備100ms節流
 
-  actionBtn.addEventListener("touchstart", handleActionButtonPress, { passive: false });
-  actionBtn.addEventListener("mousedown", handleActionButtonPress);
-  actionBtn.addEventListener("touchend", handleActionButtonRelease, { passive: false });
-  actionBtn.addEventListener("mouseup", handleActionButtonRelease);
-  actionBtn.addEventListener("touchcancel", handleActionButtonRelease, { passive: false });
-  actionBtn.addEventListener("mouseleave", handleActionButtonRelease);
+  actionBtn.addEventListener("touchstart", throttledActionPress, { passive: false });
+  actionBtn.addEventListener("mousedown", throttledActionPress);
+  actionBtn.addEventListener("touchend", throttledActionRelease, { passive: false });
+  actionBtn.addEventListener("mouseup", throttledActionRelease);
+  actionBtn.addEventListener("touchcancel", throttledActionRelease, { passive: false });
+  actionBtn.addEventListener("mouseleave", throttledActionRelease);
 
   // ESC按鈕事件
   escapeBtn.addEventListener("touchstart", (e) => {
@@ -2787,8 +2815,13 @@ function distance(ax, ay, bx, by) {
 function autoAttack() {
   const currentTime = Date.now();
 
-  // 計算當前攻擊冷卻時間（考慮冰凍狀態）
+  // 移動設備優化：降低攻擊頻率
   let currentAttackCooldown = ATTACK_COOLDOWN;
+  if (isMobileDevice()) {
+    currentAttackCooldown *= 1.5; // 移動設備攻擊冷卻時間增加50%
+  }
+  
+  // 計算當前攻擊冷卻時間（考慮冰凍狀態）
   if (player.isFrozen) {
     currentAttackCooldown = ATTACK_COOLDOWN * player.frozenAttackCooldownMultiplier;
   }
@@ -2895,6 +2928,17 @@ function autoAttack() {
 
 function updateMonsters() {
   const currentTime = Date.now();
+
+  // 移動設備優化：減少怪物更新頻率
+  if (isMobileDevice()) {
+    if (!updateMonsters.updateCounter) {
+      updateMonsters.updateCounter = 0;
+    }
+    updateMonsters.updateCounter++;
+    if (updateMonsters.updateCounter % 2 !== 0) { // 每2幀更新一次怪物
+      return;
+    }
+  }
 
   // 檢查玩家是否在安全區域內
   const isPlayerInSafeZone = isInSafeZone(player.x, player.y, player.width, player.height);
@@ -3135,6 +3179,17 @@ function checkCollision() {
     }
   }
 
+  // 移動設備優化：減少碰撞檢測頻率
+  if (isMobileDevice()) {
+    if (!checkCollision.collisionCheckCounter) {
+      checkCollision.collisionCheckCounter = 0;
+    }
+    checkCollision.collisionCheckCounter++;
+    if (checkCollision.collisionCheckCounter % 3 !== 0) { // 每3幀檢查一次碰撞
+      return;
+    }
+  }
+
   // 計算玩家中心點
   const playerCenterX = player.x + player.width / 2;
   const playerCenterY = player.y + player.height / 2;
@@ -3289,6 +3344,17 @@ function drawExit(offsetX, offsetY) {
 }
 
 function updateProjectiles() {
+  // 移動設備優化：減少彈幕更新頻率
+  if (isMobileDevice()) {
+    if (!updateProjectiles.updateCounter) {
+      updateProjectiles.updateCounter = 0;
+    }
+    updateProjectiles.updateCounter++;
+    if (updateProjectiles.updateCounter % 2 !== 0) { // 每2幀更新一次彈幕
+      return;
+    }
+  }
+
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
 
@@ -4317,6 +4383,11 @@ function gameLoop() {
     if (currentFPS < 30) {
       console.warn(`性能警告：FPS = ${currentFPS}`);
     }
+    
+    // 移動設備性能監控
+    if (isMobileDevice() && currentFPS < 25) {
+      console.warn(`移動設備性能警告：FPS = ${currentFPS}，建議關閉更多特效`);
+    }
   }
 
   if (gameState === "playing" && !gameOver && !gameWon) {
@@ -4670,6 +4741,9 @@ async function initGame() {
 
   // 初始化音效系統
   await audioSystem.init();
+  
+  // 初始化粒子系統
+  particleSystem.init();
 
   // 更新載入進度
   if (window.loadingManager) {
