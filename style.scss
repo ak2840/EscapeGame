@@ -84,7 +84,16 @@ body {
     z-index: -1;
   }
 }
+@media (max-width: 768px) {
+  .lobby-container {
+    transform: scale(1.25) !important;
+    transform-origin: top center;
+  }
 
+  #gameLobby {
+    overflow: auto;
+  }
+}
 /* 為了確保文字在背景圖片上清晰可見，添加一個半透明遮罩 */
 
 .game-title {
