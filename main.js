@@ -33,6 +33,24 @@ const audioSystem = {
     this.buttonClickSound = document.getElementById("buttonClickSound");
     this.healSound = document.getElementById("healSound");
 
+    // 移動設備音效優化：預載入和緩存設置
+    if (isMobileDevice()) {
+      console.log("檢測到移動設備，啟用音效優化模式");
+      
+      // 設置音效預載入
+      const mobileAudioElements = [
+        this.attackSound, this.hitSound, this.victorySound, 
+        this.gameOverSound, this.buttonClickSound, this.healSound
+      ];
+      
+      mobileAudioElements.forEach(audio => {
+        if (audio) {
+          audio.preload = "auto";
+          audio.load(); // 強制預載入
+        }
+      });
+    }
+
     // 使用載入管理器追蹤音訊載入
     const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/first-background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
 
@@ -186,17 +204,66 @@ const audioSystem = {
 
   playSFX(sound) {
     if (this.sfxEnabled && sound) {
+      // 移動設備音效優化：避免頻繁播放造成的卡頓
+      if (isMobileDevice()) {
+        // 檢查是否正在播放同一個音效
+        if (sound.playing) {
+          return; // 如果正在播放，跳過
+        }
+        
+        // 設置播放標誌
+        sound.playing = true;
+        
+        // 設置播放完成後清除標誌
+        sound.addEventListener('ended', () => {
+          sound.playing = false;
+        }, { once: true });
+      }
+      
       sound.volume = this.sfxVolume;
       sound.currentTime = 0;
-      sound.play().catch((e) => console.log("音效播放失敗:", e));
+      sound.play().catch((e) => {
+        console.log("音效播放失敗:", e);
+        if (isMobileDevice()) {
+          sound.playing = false; // 播放失敗時清除標誌
+        }
+      });
     }
   },
 
   playAttack() {
+    // 移動設備攻擊音效優化：限制播放頻率
+    if (isMobileDevice()) {
+      const currentTime = Date.now();
+      if (!this.lastAttackSoundTime) {
+        this.lastAttackSoundTime = 0;
+      }
+      
+      // 限制攻擊音效播放頻率為每100ms一次
+      if (currentTime - this.lastAttackSoundTime < 100) {
+        return;
+      }
+      this.lastAttackSoundTime = currentTime;
+    }
+    
     this.playSFX(this.attackSound);
   },
 
   playHit() {
+    // 移動設備命中音效優化：限制播放頻率
+    if (isMobileDevice()) {
+      const currentTime = Date.now();
+      if (!this.lastHitSoundTime) {
+        this.lastHitSoundTime = 0;
+      }
+      
+      // 限制命中音效播放頻率為每150ms一次
+      if (currentTime - this.lastHitSoundTime < 150) {
+        return;
+      }
+      this.lastHitSoundTime = currentTime;
+    }
+    
     this.playSFX(this.hitSound);
   },
 
