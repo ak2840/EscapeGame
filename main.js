@@ -250,6 +250,8 @@ const particleSystem = {
     }
   },
 
+
+
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
@@ -287,6 +289,7 @@ const particleSystem = {
           if (!particle.rotationSpeed) particle.rotationSpeed = (Math.random() - 0.5) * 0.2;
           particle.rotation += particle.rotationSpeed;
           break;
+
       }
 
       // 移除死亡粒子
@@ -736,7 +739,7 @@ const storySystem = {
 
     // 檢查是否為手機設備
     const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
+    
     if (isMobile) {
       console.log("檢測到手機設備，跳過影片載入以節省流量");
     }
@@ -751,7 +754,7 @@ const storySystem = {
           introVideo.muted = false;
           introVideo.loop = false;
           introVideo.preload = "metadata";
-
+          
           await new Promise((resolve, reject) => {
             introVideo.addEventListener("loadeddata", resolve);
             introVideo.addEventListener("error", () => {
@@ -759,7 +762,7 @@ const storySystem = {
               reject();
             });
           });
-
+          
           this.introVideos[level] = introVideo;
           console.log(`關卡${level}開始劇情影片載入成功`);
         } catch (error) {
@@ -799,7 +802,7 @@ const storySystem = {
           outroVideo.muted = false;
           outroVideo.loop = false;
           outroVideo.preload = "metadata";
-
+          
           await new Promise((resolve, reject) => {
             outroVideo.addEventListener("loadeddata", resolve);
             outroVideo.addEventListener("error", () => {
@@ -807,7 +810,7 @@ const storySystem = {
               reject();
             });
           });
-
+          
           this.outroVideos[level] = outroVideo;
           console.log(`關卡${level}結束劇情影片載入成功`);
         } catch (error) {
@@ -951,6 +954,10 @@ const storySystem = {
 
   // 顯示關卡開始劇情
   showIntro(level) {
+    // 暫停背景音樂
+    audioSystem.stopGameMusic();
+    console.log("劇情播放期間暫停背景音樂");
+    
     // 優先使用影片，如果沒有影片則使用圖片
     if (this.introVideos[level]) {
       this.currentVideo = this.introVideos[level];
@@ -958,21 +965,17 @@ const storySystem = {
       this.videoLoaded = true;
       this.videoEnded = false;
       this.imageLoaded = false;
-
+      
       // 重置影片到開始位置並播放
       this.currentVideo.currentTime = 0;
-      // 暫停背景音樂
-      if (audioSystem.gameMusic && !audioSystem.gameMusic.paused) {
-        audioSystem.gameMusic.pause();
-      }
-      this.currentVideo.play().catch((error) => {
+      this.currentVideo.play().catch(error => {
         console.warn("影片播放失敗，使用圖片:", error);
         this.currentVideo = null;
         this.currentImage = this.introImages[level];
         this.imageLoaded = true;
         this.videoLoaded = false;
       });
-
+      
       console.log(`播放第${level}關開始劇情影片`);
     } else {
       this.currentVideo = null;
@@ -981,7 +984,7 @@ const storySystem = {
       this.videoLoaded = false;
       console.log(`顯示第${level}關開始劇情圖片`);
     }
-
+    
     gameState = "storyIntro";
     // 立即重新調整Canvas大小以適應視窗
     resizeCanvas();
@@ -993,6 +996,10 @@ const storySystem = {
 
   // 顯示關卡結束劇情
   showOutro(level) {
+    // 暫停背景音樂
+    audioSystem.stopGameMusic();
+    console.log("劇情播放期間暫停背景音樂");
+    
     // 優先使用影片，如果沒有影片則使用圖片
     if (this.outroVideos[level]) {
       this.currentVideo = this.outroVideos[level];
@@ -1000,21 +1007,17 @@ const storySystem = {
       this.videoLoaded = true;
       this.videoEnded = false;
       this.imageLoaded = false;
-
+      
       // 重置影片到開始位置並播放
       this.currentVideo.currentTime = 0;
-            // 暫停背景音樂
-      if (audioSystem.gameMusic && !audioSystem.gameMusic.paused) {
-        audioSystem.gameMusic.pause();
-      }
-      this.currentVideo.play().catch((error) => {
+      this.currentVideo.play().catch(error => {
         console.warn("影片播放失敗，使用圖片:", error);
         this.currentVideo = null;
         this.currentImage = this.outroImages[level];
         this.imageLoaded = true;
         this.videoLoaded = false;
       });
-
+      
       console.log(`播放第${level}關結束劇情影片`);
     } else {
       this.currentVideo = null;
@@ -1023,7 +1026,7 @@ const storySystem = {
       this.videoLoaded = false;
       console.log(`顯示第${level}關結束劇情圖片`);
     }
-
+    
     gameState = "storyOutro";
     // 立即重新調整Canvas大小以適應視窗
     resizeCanvas();
@@ -1040,6 +1043,9 @@ const storySystem = {
       // 檢查影片是否已結束
       if (this.currentVideo.ended) {
         this.videoEnded = true;
+        // 影片自然結束時恢復背景音樂
+        audioSystem.playGameMusic();
+        console.log("影片自然結束，恢復背景音樂");
       }
 
       // 清空畫布
@@ -1108,33 +1114,33 @@ const storySystem = {
       return; // 沒有內容可顯示
     }
 
-    // 繪製"按任意鍵繼續"提示（始終顯示，允許跳過）
-    const buttonAreaHeight = 60;
-    const overlayHeight = 60;
-    const overlayY = ctx.canvas.height - buttonAreaHeight - overlayHeight;
+         // 繪製"按任意鍵繼續"提示（始終顯示，允許跳過）
+     const buttonAreaHeight = 60;
+     const overlayHeight = 60;
+     const overlayY = ctx.canvas.height - buttonAreaHeight - overlayHeight;
+     
+     // 半透明背景
+     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+     ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
+     
+     // 提示文字
+     ctx.fillStyle = "#fed456";
+     ctx.font = "bold 20px 'JasonHW-Round', 'Orbitron', sans-serif";
+     ctx.textAlign = "center";
+     ctx.fillText("按任意鍵繼續", ctx.canvas.width / 2, overlayY + 35);
+   },
 
-    // 半透明背景
-    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-    ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
-
-    // 提示文字
-    ctx.fillStyle = "#fed456";
-    ctx.font = "bold 20px 'JasonHW-Round', 'Orbitron', sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("按任意鍵繼續", ctx.canvas.width / 2, overlayY + 35);
-  },
-
-  // 停止當前影片播放
-  stopCurrentVideo() {
-    if (this.currentVideo) {
-      this.currentVideo.pause();
-      this.currentVideo.currentTime = 0;
-      this.currentVideo = null;
-      this.videoLoaded = false;
-      this.videoEnded = false;
-    }
-  },
-};
+   // 停止當前影片播放
+   stopCurrentVideo() {
+     if (this.currentVideo) {
+       this.currentVideo.pause();
+       this.currentVideo.currentTime = 0;
+       this.currentVideo = null;
+       this.videoLoaded = false;
+       this.videoEnded = false;
+     }
+   },
+ };
 
 // 關於系統
 const aboutSystem = {
@@ -1153,7 +1159,7 @@ const aboutSystem = {
 
     // 檢查是否為手機設備
     const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
+    
     if (isMobile) {
       console.log("檢測到手機設備，跳過影片載入以節省流量");
     }
@@ -1187,7 +1193,7 @@ const aboutSystem = {
           introVideo.muted = false;
           introVideo.loop = false;
           introVideo.preload = "metadata";
-
+          
           await new Promise((resolve, reject) => {
             introVideo.addEventListener("loadeddata", resolve);
             introVideo.addEventListener("error", () => {
@@ -1195,7 +1201,7 @@ const aboutSystem = {
               reject();
             });
           });
-
+          
           this.storyVideos[`${level}_before`] = introVideo;
           console.log(`關卡${level}開始劇情影片載入成功`);
         } catch (error) {
@@ -1232,7 +1238,7 @@ const aboutSystem = {
           outroVideo.muted = false;
           outroVideo.loop = false;
           outroVideo.preload = "metadata";
-
+          
           await new Promise((resolve, reject) => {
             outroVideo.addEventListener("loadeddata", resolve);
             outroVideo.addEventListener("error", () => {
@@ -1240,7 +1246,7 @@ const aboutSystem = {
               reject();
             });
           });
-
+          
           this.storyVideos[`${level}_after`] = outroVideo;
           console.log(`關卡${level}結束劇情影片載入成功`);
         } catch (error) {
@@ -1318,7 +1324,7 @@ const aboutSystem = {
     if (aboutPage) {
       aboutPage.classList.add("hidden");
     }
-
+    
     // 同時停止滿版影片播放
     this.hideFullscreenImage();
   },
@@ -1399,13 +1405,13 @@ const aboutSystem = {
         video.style.width = "100%";
         video.style.height = "100%";
         video.style.objectFit = "contain";
-
+        
         // 清空容器並添加影片
         fullscreenImageSrc.innerHTML = "";
         fullscreenImageSrc.appendChild(video);
-
+        
         // 播放影片
-        video.play().catch((error) => {
+        video.play().catch(error => {
           console.warn("影片播放失敗，使用圖片:", error);
           this.showFullscreenImageFallback(level, type, title);
         });
@@ -1413,7 +1419,7 @@ const aboutSystem = {
         // 沒有影片，使用圖片
         this.showFullscreenImageFallback(level, type, title);
       }
-
+      
       fullscreenImage.classList.remove("hidden");
     }
   },
@@ -1444,11 +1450,11 @@ const aboutSystem = {
     if (fullscreenImage) {
       // 停止所有影片播放
       const videos = fullscreenImage.querySelectorAll("video");
-      videos.forEach((video) => {
+      videos.forEach(video => {
         video.pause();
         video.currentTime = 0;
       });
-
+      
       fullscreenImage.classList.add("hidden");
     }
   },
@@ -1611,9 +1617,12 @@ window.addEventListener("keydown", (e) => {
         storySystem.currentVideo.currentTime = 0;
         storySystem.videoEnded = true;
       }
-
+      
       // 關卡開始劇情結束，開始遊戲
       gameState = "playing";
+      // 恢復背景音樂
+      audioSystem.playGameMusic();
+      console.log("劇情結束，恢復背景音樂");
       restartGame();
       console.log("關卡開始劇情結束，開始遊戲");
     } else if (gameState === "storyOutro") {
@@ -1623,7 +1632,7 @@ window.addEventListener("keydown", (e) => {
         storySystem.currentVideo.currentTime = 0;
         storySystem.videoEnded = true;
       }
-
+      
       // 關卡結束劇情結束，進入下一關或返回大廳
       const completedLevel = currentLevel;
       if (completedLevel < MAX_LEVEL) {
@@ -1644,6 +1653,9 @@ window.addEventListener("keydown", (e) => {
       } else {
         // 最後一關通關，回到大廳
         gameWon = true;
+        // 恢復背景音樂
+        audioSystem.playGameMusic();
+        console.log("劇情結束，恢復背景音樂");
         returnToLobby();
       }
     }
@@ -1725,50 +1737,30 @@ function initMobileControls() {
   directionButtons.forEach((button) => {
     const direction = button.getAttribute("data-direction");
 
-    // 按下事件
-    button.addEventListener("touchstart", (e) => {
+    // 統一的事件處理函數
+    const handlePress = (e) => {
       e.preventDefault();
       e.stopPropagation();
       handleDirectionPress(direction);
       button.classList.add("active");
-    });
+    };
 
-    button.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionPress(direction);
-      button.classList.add("active");
-    });
-
-    // 放開事件
-    button.addEventListener("touchend", (e) => {
+    const handleRelease = (e) => {
       e.preventDefault();
       e.stopPropagation();
       handleDirectionRelease(direction);
       button.classList.remove("active");
-    });
+    };
 
-    button.addEventListener("mouseup", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionRelease(direction);
-      button.classList.remove("active");
-    });
+    // 觸控事件
+    button.addEventListener("touchstart", handlePress, { passive: false });
+    button.addEventListener("touchend", handleRelease, { passive: false });
+    button.addEventListener("touchcancel", handleRelease, { passive: false });
 
-    // 離開事件（防止按鈕卡住）
-    button.addEventListener("touchcancel", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionRelease(direction);
-      button.classList.remove("active");
-    });
-
-    button.addEventListener("mouseleave", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionRelease(direction);
-      button.classList.remove("active");
-    });
+    // 滑鼠事件
+    button.addEventListener("mousedown", handlePress);
+    button.addEventListener("mouseup", handleRelease);
+    button.addEventListener("mouseleave", handleRelease);
   });
 
   // 動作按鈕
@@ -1776,34 +1768,27 @@ function initMobileControls() {
   const escapeBtn = document.getElementById("escapeBtn");
   const debugBtn = document.getElementById("debugBtn");
 
-  // 動作按鈕事件
-  actionBtn.addEventListener("touchstart", (e) => {
+  // 動作按鈕事件處理函數
+  const handleActionButtonPress = (e) => {
     e.preventDefault();
     e.stopPropagation();
     handleActionPress();
     actionBtn.classList.add("active");
-  });
+  };
 
-  actionBtn.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleActionPress();
-    actionBtn.classList.add("active");
-  });
-
-  actionBtn.addEventListener("touchend", (e) => {
+  const handleActionButtonRelease = (e) => {
     e.preventDefault();
     e.stopPropagation();
     handleActionRelease();
     actionBtn.classList.remove("active");
-  });
+  };
 
-  actionBtn.addEventListener("mouseup", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleActionRelease();
-    actionBtn.classList.remove("active");
-  });
+  actionBtn.addEventListener("touchstart", handleActionButtonPress, { passive: false });
+  actionBtn.addEventListener("mousedown", handleActionButtonPress);
+  actionBtn.addEventListener("touchend", handleActionButtonRelease, { passive: false });
+  actionBtn.addEventListener("mouseup", handleActionButtonRelease);
+  actionBtn.addEventListener("touchcancel", handleActionButtonRelease, { passive: false });
+  actionBtn.addEventListener("mouseleave", handleActionButtonRelease);
 
   // ESC按鈕事件
   escapeBtn.addEventListener("touchstart", (e) => {
@@ -1908,7 +1893,7 @@ function handleActionPress() {
       storySystem.currentVideo.currentTime = 0;
       storySystem.videoEnded = true;
     }
-
+    
     // 關卡開始劇情結束，開始遊戲
     gameState = "playing";
     restartGame();
@@ -1920,7 +1905,7 @@ function handleActionPress() {
       storySystem.currentVideo.currentTime = 0;
       storySystem.videoEnded = true;
     }
-
+    
     // 關卡結束劇情結束，進入下一關或返回大廳
     const completedLevel = currentLevel;
     if (completedLevel < MAX_LEVEL) {
@@ -2806,69 +2791,80 @@ function autoAttack() {
     return; // 在安全區域內不能攻擊
   }
 
-  // 檢查所有怪物
+  // 優化：預計算玩家位置和基礎範圍
+  const px = player.x + player.width / 2;
+  const py = player.y + player.height / 2;
+  const baseRange = 300; // 基礎射擊距離
+  const playerWidth = player.width;
+  const totalRange = baseRange + playerWidth / 2;
+
+  // 檢查所有怪物（從最近的開始檢查）
+  let closestMonster = null;
+  let closestDistance = Infinity;
+
   for (let i = monsters.length - 1; i >= 0; i--) {
     const m = monsters[i];
-    // 以玩家中心與怪物中心計算距離
-    const px = player.x + player.width / 2;
-    const py = player.y + player.height / 2;
+    const mx = m.x + m.width / 2;
+    const my = m.y + m.height / 2;
+    const monsterWidth = m.width;
+    const monsterRange = totalRange + monsterWidth / 2;
+    const dist = distance(px, py, mx, my);
+
+    if (dist < monsterRange && dist < closestDistance) {
+      closestMonster = { monster: m, index: i, distance: dist };
+      closestDistance = dist;
+    }
+  }
+
+  // 攻擊最近的怪物
+  if (closestMonster) {
+    const m = closestMonster.monster;
     const mx = m.x + m.width / 2;
     const my = m.y + m.height / 2;
 
-    // 計算射擊距離，加上角色和怪物的寬度
-    const baseRange = 300; // 基礎射擊距離
-    const playerWidth = player.width;
-    const monsterWidth = m.width;
-    const totalRange = baseRange + playerWidth / 2 + monsterWidth / 2;
+    // 發射彈幕
+    const dx = mx - px;
+    const dy = my - py;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance(px, py, mx, my) < totalRange) {
-      // 發射彈幕
-      const dx = mx - px;
-      const dy = my - py;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      // 根據攻擊方向更新角色朝向
-      if (Math.abs(dx) > Math.abs(dy)) {
-        // 水平方向為主
-        if (dx > 0) {
-          player.direction = "right";
-        } else {
-          player.direction = "left";
-        }
+    // 根據攻擊方向更新角色朝向
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // 水平方向為主
+      if (dx > 0) {
+        player.direction = "right";
       } else {
-        // 垂直方向為主
-        if (dy > 0) {
-          player.direction = "down";
-        } else {
-          player.direction = "up";
-        }
+        player.direction = "left";
       }
-
-      projectiles.push({
-        x: px,
-        y: py,
-        vx: (dx / dist) * PROJECTILE_SPEED,
-        vy: (dy / dist) * PROJECTILE_SPEED,
-        targetMonster: i,
-      });
-
-      // 設定攻擊動畫
-      player.isAttacking = true;
-      player.attackStartTime = currentTime;
-      player.attackAnimationTime = currentTime;
-      player.attackAnimationFrame = 1;
-
-      lastAttackTime = currentTime;
-
-      // 播放攻擊音效
-      audioSystem.playAttack();
-
-      // 創建攻擊粒子效果
-      particleSystem.createTrail(px, py, "#FFFF00");
-
-      // 一次只攻擊一隻
-      break;
+    } else {
+      // 垂直方向為主
+      if (dy > 0) {
+        player.direction = "down";
+      } else {
+        player.direction = "up";
+      }
     }
+
+    projectiles.push({
+      x: px,
+      y: py,
+      vx: (dx / dist) * PROJECTILE_SPEED,
+      vy: (dy / dist) * PROJECTILE_SPEED,
+      targetMonster: closestMonster.index,
+    });
+
+    // 設定攻擊動畫
+    player.isAttacking = true;
+    player.attackStartTime = currentTime;
+    player.attackAnimationTime = currentTime;
+    player.attackAnimationFrame = 1;
+
+    lastAttackTime = currentTime;
+
+    // 播放攻擊音效
+    audioSystem.playAttack();
+
+    // 創建攻擊粒子效果
+    particleSystem.createTrail(px, py, "#FFFF00");
   }
 }
 
@@ -3789,13 +3785,13 @@ function drawGameTitle() {
 function drawPlayerHealth() {
   // 血量顏色根據血量變化
   let healthColor;
-  if (player.hp >= 7) {
-    healthColor = "#456d1d"; // 高血：綠
-  } else if (player.hp >= 4) {
-    healthColor = "#fed456"; // 中血：黃
-  } else {
-    healthColor = "#b13434"; // 低血：紅
-  }
+if (player.hp >= 7) {
+  healthColor = "#456d1d"; // 高血：綠
+} else if (player.hp >= 4) {
+  healthColor = "#fed456"; // 中血：黃
+} else {
+  healthColor = "#b13434"; // 低血：紅
+}
 
   // 面板背景
   ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
@@ -4276,8 +4272,27 @@ function drawGameObjectsWithZOrder(offsetX, offsetY) {
   }
 }
 
+// 性能監控變數
+let frameCount = 0;
+let lastFpsTime = Date.now();
+let currentFPS = 0;
+
 function gameLoop() {
   if (!gameLoopRunning) return;
+
+  // 性能監控
+  frameCount++;
+  const currentTime = Date.now();
+  if (currentTime - lastFpsTime >= 1000) {
+    currentFPS = frameCount;
+    frameCount = 0;
+    lastFpsTime = currentTime;
+    
+    // 如果FPS過低，輸出警告
+    if (currentFPS < 30) {
+      console.warn(`性能警告：FPS = ${currentFPS}`);
+    }
+  }
 
   if (gameState === "playing" && !gameOver && !gameWon) {
     updatePlayer();
@@ -5133,15 +5148,15 @@ function checkItemCollection() {
         const oldHp = player.hp;
         player.hp = Math.min(player.maxHp, player.hp + healAmount);
         const actualHeal = player.hp - oldHp;
-
+        
         if (actualHeal > 0) {
           console.log(`綠能結晶回覆了 ${actualHeal} 點HP！當前血量：${player.hp}/${player.maxHp}`);
-
+          
           // 播放專用的治療音效
           audioSystem.playHeal();
         } else {
           console.log("血量已滿，無法回覆HP");
-
+          
           // 血量已滿時播放按鈕音效作為提示
           audioSystem.playButtonClick();
         }
@@ -5323,6 +5338,7 @@ function resetItems() {
   console.log("道具系統已重置，道具數量:", items.length);
 }
 
+
 //虛擬搖桿操作
 
 (function () {
@@ -5331,6 +5347,8 @@ function resetItems() {
   let dragging = false;
   let center = { x: 0, y: 0 };
   let maxDist = 80; // 最遠距離
+  let lastUpdateTime = 0;
+  const throttleDelay = 16; // 約60FPS的更新頻率
 
   function getDirection(dx, dy) {
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
@@ -5341,44 +5359,61 @@ function resetItems() {
     return null;
   }
 
-  base.addEventListener("touchstart", (e) => {
+  function updateJoystick(touch) {
+    const currentTime = Date.now();
+    if (currentTime - lastUpdateTime < throttleDelay) {
+      return; // 節流處理
+    }
+    lastUpdateTime = currentTime;
+
+    let dx = touch.clientX - center.x;
+    let dy = touch.clientY - center.y;
+    const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+    const angle = Math.atan2(dy, dx);
+
+    dx = Math.cos(angle) * dist;
+    dy = Math.sin(angle) * dist;
+
+    // 使用 transform 而不是 left/top 來提高性能
+    stick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+    const direction = getDirection(dx, dy);
+    // 這裡觸發方向行為，如呼叫控制邏輯
+    if (window.handleJoystickMove) {
+      window.handleJoystickMove(direction);
+    }
+  }
+
+  base.addEventListener("touchstart", e => {
+    e.preventDefault();
     const rect = base.getBoundingClientRect();
     center = {
       x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
+      y: rect.top + rect.height / 2
     };
     dragging = true;
+    lastUpdateTime = 0; // 重置節流計時器
   });
 
-  base.addEventListener(
-    "touchmove",
-    (e) => {
-      if (!dragging) return;
-      const touch = e.touches[0];
-      let dx = touch.clientX - center.x;
-      let dy = touch.clientY - center.y;
-      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
-      const angle = Math.atan2(dy, dx);
+  base.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    e.preventDefault();
+    updateJoystick(e.touches[0]);
+  }, { passive: false });
 
-      dx = Math.cos(angle) * dist;
-      dy = Math.sin(angle) * dist;
-
-      stick.style.left = `${dx + 30}px`;
-      stick.style.top = `${dy + 30}px`;
-
-      const direction = getDirection(dx, dy);
-      // 這裡觸發方向行為，如呼叫控制邏輯
-      if (window.handleJoystickMove) {
-        window.handleJoystickMove(direction);
-      }
-    },
-    { passive: false }
-  );
-
-  base.addEventListener("touchend", () => {
+  base.addEventListener("touchend", (e) => {
+    e.preventDefault();
     dragging = false;
-    stick.style.left = "40px";
-    stick.style.top = "40px";
+    stick.style.transform = "translate(0px, 0px)";
+    if (window.handleJoystickMove) {
+      window.handleJoystickMove(null);
+    }
+  });
+
+  base.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
+    dragging = false;
+    stick.style.transform = "translate(0px, 0px)";
     if (window.handleJoystickMove) {
       window.handleJoystickMove(null);
     }
@@ -5412,20 +5447,45 @@ window.handleJoystickMove = function (direction) {
 const actionBtn = document.getElementById("actionBtn");
 const escapeBtn = document.getElementById("escapeBtn");
 
+// 防抖函數
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 if (actionBtn) {
-  actionBtn.addEventListener("touchstart", () => {
+  actionBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
     keys.Space = true;
   });
-  actionBtn.addEventListener("touchend", () => {
+  actionBtn.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    keys.Space = false;
+  });
+  actionBtn.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
     keys.Space = false;
   });
 }
 
 if (escapeBtn) {
-  escapeBtn.addEventListener("touchstart", () => {
+  escapeBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
     keys.Escape = true;
   });
-  escapeBtn.addEventListener("touchend", () => {
+  escapeBtn.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    keys.Escape = false;
+  });
+  escapeBtn.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
     keys.Escape = false;
   });
 }
