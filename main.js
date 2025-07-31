@@ -221,6 +221,7 @@ const audioSystem = {
 // 粒子效果系統
 const particleSystem = {
   particles: [],
+  maxParticles: 80, // 限制最大粒子數量（優化性能）
 
   createParticle(x, y, vx, vy, color, size, life, type = "normal") {
     return {
@@ -237,25 +238,28 @@ const particleSystem = {
   },
 
   addParticle(particle) {
-    this.particles.push(particle);
+    // 限制粒子數量，防止性能問題
+    if (this.particles.length < this.maxParticles) {
+      this.particles.push(particle);
+    }
   },
 
-  createExplosion(x, y, color = "#fed456", count = 8) {
+  createExplosion(x, y, color = "#fed456", count = 6) {
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count;
       const speed = 2 + Math.random() * 3;
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
-      const particle = this.createParticle(x, y, vx, vy, color, 3 + Math.random() * 3, 30 + Math.random() * 30, "explosion");
+      const particle = this.createParticle(x, y, vx, vy, color, 3 + Math.random() * 3, 25 + Math.random() * 20, "explosion");
       this.addParticle(particle);
     }
   },
 
   createHitEffect(x, y, color = "#b13435") {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       const vx = (Math.random() - 0.5) * 4;
       const vy = (Math.random() - 0.5) * 4;
-      const particle = this.createParticle(x, y, vx, vy, color, 2 + Math.random() * 2, 20 + Math.random() * 20, "hit");
+      const particle = this.createParticle(x, y, vx, vy, color, 2 + Math.random() * 2, 15 + Math.random() * 15, "hit");
       this.addParticle(particle);
     }
   },
@@ -266,13 +270,13 @@ const particleSystem = {
   },
 
   createIceExplosion(x, y) {
-    // 創建冰凍爆炸效果
-    for (let i = 0; i < 20; i++) {
-      const angle = (Math.PI * 2 * i) / 20;
+    // 創建冰凍爆炸效果（優化：減少粒子數量）
+    for (let i = 0; i < 12; i++) {
+      const angle = (Math.PI * 2 * i) / 12;
       const speed = 1 + Math.random() * 2;
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
-      const particle = this.createParticle(x, y, vx, vy, "#00FFFF", 2 + Math.random() * 3, 40 + Math.random() * 30, "ice");
+      const particle = this.createParticle(x, y, vx, vy, "#00FFFF", 2 + Math.random() * 3, 30 + Math.random() * 20, "ice");
       this.addParticle(particle);
     }
   },
@@ -334,38 +338,20 @@ const particleSystem = {
       ctx.globalAlpha = alpha;
 
       if (particle.type === "ice") {
-        // 冰凍粒子的特殊繪製
+        // 冰凍粒子的簡化繪製（優化性能）
         ctx.save();
         ctx.translate(particle.x - offsetX, particle.y - offsetY);
         if (particle.rotation) {
           ctx.rotate(particle.rotation);
         }
 
-        // 繪製冰晶形狀
+        // 簡化的冰晶形狀（減少路徑點數）
         ctx.fillStyle = particle.color;
         ctx.beginPath();
         ctx.moveTo(0, -particle.size);
-        ctx.lineTo(particle.size * 0.3, -particle.size * 0.3);
-        ctx.lineTo(particle.size, 0);
-        ctx.lineTo(particle.size * 0.3, particle.size * 0.3);
-        ctx.lineTo(0, particle.size);
-        ctx.lineTo(-particle.size * 0.3, particle.size * 0.3);
-        ctx.lineTo(-particle.size, 0);
-        ctx.lineTo(-particle.size * 0.3, -particle.size * 0.3);
-        ctx.closePath();
-        ctx.fill();
-
-        // 添加內部高光
-        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.beginPath();
-        ctx.moveTo(0, -particle.size * 0.5);
-        ctx.lineTo(particle.size * 0.15, -particle.size * 0.15);
         ctx.lineTo(particle.size * 0.5, 0);
-        ctx.lineTo(particle.size * 0.15, particle.size * 0.15);
-        ctx.lineTo(0, particle.size * 0.5);
-        ctx.lineTo(-particle.size * 0.15, particle.size * 0.15);
+        ctx.lineTo(0, particle.size);
         ctx.lineTo(-particle.size * 0.5, 0);
-        ctx.lineTo(-particle.size * 0.15, -particle.size * 0.15);
         ctx.closePath();
         ctx.fill();
 
@@ -4335,6 +4321,11 @@ function gameLoop() {
 
     // 更新粒子效果
     particleSystem.update();
+    
+    // 粒子數量監控（性能優化）
+    if (particleSystem.particles.length > 60) {
+      console.warn(`粒子數量過多：${particleSystem.particles.length}，可能影響性能`);
+    }
   }
 
   // 繪製不同狀態的內容
@@ -5069,7 +5060,7 @@ function createRangeAttackEffect(x, y, radius, duration) {
   });
 }
 
-// 創建死亡範圍攻擊
+// 創建死亡範圍攻擊（優化性能）
 function createDeathExplosionAttack(x, y, monsterType) {
   // 範圍攻擊參數
   const attackRadius = 400; // 攻擊範圍半徑（比玩家攻擊距離300像素更大）
@@ -5090,7 +5081,7 @@ function createDeathExplosionAttack(x, y, monsterType) {
       // 播放冰凍音效
       audioSystem.playHit();
 
-      // 在玩家位置創建冰凍粒子效果
+      // 在玩家位置創建簡化的冰凍粒子效果（減少粒子數量）
       particleSystem.createIceExplosion(playerCenterX, playerCenterY);
     }
   }
@@ -5098,7 +5089,7 @@ function createDeathExplosionAttack(x, y, monsterType) {
   // 創建範圍攻擊視覺效果
   createRangeAttackEffect(x, y, attackRadius, attackDuration);
 
-  // 創建冰凍爆炸粒子效果
+  // 創建簡化的冰凍爆炸粒子效果（減少粒子數量）
   particleSystem.createIceExplosion(x, y);
 
   console.log(`${monsterType} 死亡時產生冰凍範圍攻擊！範圍：${attackRadius}像素`);
