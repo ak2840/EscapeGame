@@ -1,6 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// 移動設備檢測函數
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+         ('ontouchstart' in window) || 
+         (navigator.maxTouchPoints > 0);
+}
+
 // 音效系統
 const audioSystem = {
   bgmEnabled: true, // 預設開啟背景音樂
@@ -8,6 +15,7 @@ const audioSystem = {
   bgmVolume: 0.5, // 背景音樂音量 50%
   sfxVolume: 0.5, // 音效音量 50%
   gameMusic: null, // 遊戲背景音樂
+  firstBackgroundMusic: null, // 選擇關卡區背景音樂
   attackSound: null,
   hitSound: null,
   victorySound: null,
@@ -17,6 +25,7 @@ const audioSystem = {
 
   async init() {
     this.gameMusic = document.getElementById("gameMusic");
+    this.firstBackgroundMusic = document.getElementById("firstBackgroundMusic");
     this.attackSound = document.getElementById("attackSound");
     this.hitSound = document.getElementById("hitSound");
     this.victorySound = document.getElementById("victorySound");
@@ -25,7 +34,7 @@ const audioSystem = {
     this.healSound = document.getElementById("healSound");
 
     // 使用載入管理器追蹤音訊載入
-    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
+    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/first-background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
 
     // 等待音訊載入完成
     await Promise.all(audioPromises);
@@ -86,11 +95,16 @@ const audioSystem = {
 
   toggleBGM() {
     this.bgmEnabled = !this.bgmEnabled;
-    // 先暫停遊戲音樂
+    // 先暫停所有音樂
     this.stopGameMusic();
+    this.stopFirstBackgroundMusic();
     // 如果開啟且在遊戲相關狀態中，播放遊戲音樂
     if (this.bgmEnabled && (gameState === "playing" || gameState === "storyIntro" || gameState === "storyOutro")) {
       this.playGameMusic();
+    }
+    // 如果開啟且在大廳狀態中，播放選擇關卡區背景音樂
+    if (this.bgmEnabled && gameState === "lobby") {
+      this.playFirstBackgroundMusic();
     }
     this.updateButtonStates();
     this.saveAudioSettings();
@@ -111,6 +125,11 @@ const audioSystem = {
     // 設定背景音樂音量
     if (this.gameMusic) {
       this.gameMusic.volume = this.bgmVolume;
+    }
+    
+    // 設定選擇關卡區背景音樂音量
+    if (this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.volume = this.bgmVolume;
     }
 
     // 設定所有音效音量
@@ -140,6 +159,29 @@ const audioSystem = {
 
   stopAllMusic() {
     this.stopGameMusic();
+    this.stopFirstBackgroundMusic();
+  },
+
+  playFirstBackgroundMusic() {
+    console.log("嘗試播放選擇關卡區背景音樂...");
+    console.log("BGM 啟用狀態:", this.bgmEnabled);
+    console.log("firstBackgroundMusic 元素:", this.firstBackgroundMusic);
+    
+    if (this.bgmEnabled && this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.volume = this.bgmVolume;
+      console.log("設定音量為:", this.bgmVolume);
+      this.firstBackgroundMusic.play().catch((e) => console.log("選擇關卡區背景音樂播放失敗:", e));
+      console.log("選擇關卡區背景音樂播放指令已發送");
+    } else {
+      console.log("無法播放選擇關卡區背景音樂 - BGM未啟用或音頻元素不存在");
+    }
+  },
+
+  stopFirstBackgroundMusic() {
+    if (this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.pause();
+      this.firstBackgroundMusic.currentTime = 0;
+    }
   },
 
   playSFX(sound) {
@@ -179,6 +221,10 @@ const audioSystem = {
     if (this.gameMusic) {
       this.gameMusic.volume = this.bgmVolume;
     }
+    // 設定選擇關卡區背景音樂音量
+    if (this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.volume = this.bgmVolume;
+    }
     this.saveAudioSettings();
     console.log(`背景音樂音量已設定為: ${this.bgmVolume}`);
   },
@@ -194,6 +240,8 @@ const audioSystem = {
 // 粒子效果系統
 const particleSystem = {
   particles: [],
+  maxParticles: 80, // 限制最大粒子數量（優化性能）
+  mobileDisabled: false, // 移動設備禁用標誌
 
   createParticle(x, y, vx, vy, color, size, life, type = "normal") {
     return {
@@ -210,25 +258,32 @@ const particleSystem = {
   },
 
   addParticle(particle) {
-    this.particles.push(particle);
+    // 移動設備禁用粒子系統
+    if (this.mobileDisabled) {
+      return;
+    }
+    // 限制粒子數量，防止性能問題
+    if (this.particles.length < this.maxParticles) {
+      this.particles.push(particle);
+    }
   },
 
-  createExplosion(x, y, color = "#fed456", count = 8) {
+  createExplosion(x, y, color = "#fed456", count = 6) {
     for (let i = 0; i < count; i++) {
       const angle = (Math.PI * 2 * i) / count;
       const speed = 2 + Math.random() * 3;
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
-      const particle = this.createParticle(x, y, vx, vy, color, 3 + Math.random() * 3, 30 + Math.random() * 30, "explosion");
+      const particle = this.createParticle(x, y, vx, vy, color, 3 + Math.random() * 3, 25 + Math.random() * 20, "explosion");
       this.addParticle(particle);
     }
   },
 
   createHitEffect(x, y, color = "#b13435") {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
       const vx = (Math.random() - 0.5) * 4;
       const vy = (Math.random() - 0.5) * 4;
-      const particle = this.createParticle(x, y, vx, vy, color, 2 + Math.random() * 2, 20 + Math.random() * 20, "hit");
+      const particle = this.createParticle(x, y, vx, vy, color, 2 + Math.random() * 2, 15 + Math.random() * 15, "hit");
       this.addParticle(particle);
     }
   },
@@ -239,13 +294,13 @@ const particleSystem = {
   },
 
   createIceExplosion(x, y) {
-    // 創建冰凍爆炸效果
-    for (let i = 0; i < 20; i++) {
-      const angle = (Math.PI * 2 * i) / 20;
+    // 創建冰凍爆炸效果（優化：減少粒子數量）
+    for (let i = 0; i < 12; i++) {
+      const angle = (Math.PI * 2 * i) / 12;
       const speed = 1 + Math.random() * 2;
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
-      const particle = this.createParticle(x, y, vx, vy, "#00FFFF", 2 + Math.random() * 3, 40 + Math.random() * 30, "ice");
+      const particle = this.createParticle(x, y, vx, vy, "#00FFFF", 2 + Math.random() * 3, 30 + Math.random() * 20, "ice");
       this.addParticle(particle);
     }
   },
@@ -253,6 +308,10 @@ const particleSystem = {
 
 
   update() {
+    // 移動設備禁用粒子更新
+    if (this.mobileDisabled) {
+      return;
+    }
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
 
@@ -300,6 +359,10 @@ const particleSystem = {
   },
 
   draw(offsetX, offsetY) {
+    // 移動設備禁用粒子繪製
+    if (this.mobileDisabled) {
+      return;
+    }
     ctx.save();
 
     for (const particle of this.particles) {
@@ -307,38 +370,20 @@ const particleSystem = {
       ctx.globalAlpha = alpha;
 
       if (particle.type === "ice") {
-        // 冰凍粒子的特殊繪製
+        // 冰凍粒子的簡化繪製（優化性能）
         ctx.save();
         ctx.translate(particle.x - offsetX, particle.y - offsetY);
         if (particle.rotation) {
           ctx.rotate(particle.rotation);
         }
 
-        // 繪製冰晶形狀
+        // 簡化的冰晶形狀（減少路徑點數）
         ctx.fillStyle = particle.color;
         ctx.beginPath();
         ctx.moveTo(0, -particle.size);
-        ctx.lineTo(particle.size * 0.3, -particle.size * 0.3);
-        ctx.lineTo(particle.size, 0);
-        ctx.lineTo(particle.size * 0.3, particle.size * 0.3);
-        ctx.lineTo(0, particle.size);
-        ctx.lineTo(-particle.size * 0.3, particle.size * 0.3);
-        ctx.lineTo(-particle.size, 0);
-        ctx.lineTo(-particle.size * 0.3, -particle.size * 0.3);
-        ctx.closePath();
-        ctx.fill();
-
-        // 添加內部高光
-        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.beginPath();
-        ctx.moveTo(0, -particle.size * 0.5);
-        ctx.lineTo(particle.size * 0.15, -particle.size * 0.15);
         ctx.lineTo(particle.size * 0.5, 0);
-        ctx.lineTo(particle.size * 0.15, particle.size * 0.15);
-        ctx.lineTo(0, particle.size * 0.5);
-        ctx.lineTo(-particle.size * 0.15, particle.size * 0.15);
+        ctx.lineTo(0, particle.size);
         ctx.lineTo(-particle.size * 0.5, 0);
-        ctx.lineTo(-particle.size * 0.15, -particle.size * 0.15);
         ctx.closePath();
         ctx.fill();
 
@@ -357,6 +402,14 @@ const particleSystem = {
 
   clear() {
     this.particles = [];
+  },
+
+  init() {
+    // 根據設備類型初始化粒子系統
+    this.mobileDisabled = isMobileDevice();
+    if (this.mobileDisabled) {
+      console.log("檢測到移動設備，禁用粒子系統以提升性能");
+    }
   },
 };
 
@@ -954,6 +1007,10 @@ const storySystem = {
 
   // 顯示關卡開始劇情
   showIntro(level) {
+    // 暫停背景音樂
+    audioSystem.stopGameMusic();
+    console.log("劇情播放期間暫停背景音樂");
+    
     // 優先使用影片，如果沒有影片則使用圖片
     if (this.introVideos[level]) {
       this.currentVideo = this.introVideos[level];
@@ -992,6 +1049,10 @@ const storySystem = {
 
   // 顯示關卡結束劇情
   showOutro(level) {
+    // 暫停背景音樂
+    audioSystem.stopGameMusic();
+    console.log("劇情播放期間暫停背景音樂");
+    
     // 優先使用影片，如果沒有影片則使用圖片
     if (this.outroVideos[level]) {
       this.currentVideo = this.outroVideos[level];
@@ -1035,6 +1096,9 @@ const storySystem = {
       // 檢查影片是否已結束
       if (this.currentVideo.ended) {
         this.videoEnded = true;
+        // 影片自然結束時恢復背景音樂
+        audioSystem.playGameMusic();
+        console.log("影片自然結束，恢復背景音樂");
       }
 
       // 清空畫布
@@ -1609,6 +1673,9 @@ window.addEventListener("keydown", (e) => {
       
       // 關卡開始劇情結束，開始遊戲
       gameState = "playing";
+      // 恢復背景音樂
+      audioSystem.playGameMusic();
+      console.log("劇情結束，恢復背景音樂");
       restartGame();
       console.log("關卡開始劇情結束，開始遊戲");
     } else if (gameState === "storyOutro") {
@@ -1639,6 +1706,9 @@ window.addEventListener("keydown", (e) => {
       } else {
         // 最後一關通關，回到大廳
         gameWon = true;
+        // 恢復背景音樂
+        audioSystem.playGameMusic();
+        console.log("劇情結束，恢復背景音樂");
         returnToLobby();
       }
     }
@@ -1720,50 +1790,30 @@ function initMobileControls() {
   directionButtons.forEach((button) => {
     const direction = button.getAttribute("data-direction");
 
-    // 按下事件
-    button.addEventListener("touchstart", (e) => {
+    // 移動設備優化：使用節流函數
+    const throttledHandlePress = debounce((e) => {
       e.preventDefault();
       e.stopPropagation();
       handleDirectionPress(direction);
       button.classList.add("active");
-    });
+    }, isMobileDevice() ? 50 : 0); // 移動設備50ms節流
 
-    button.addEventListener("mousedown", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionPress(direction);
-      button.classList.add("active");
-    });
-
-    // 放開事件
-    button.addEventListener("touchend", (e) => {
+    const throttledHandleRelease = debounce((e) => {
       e.preventDefault();
       e.stopPropagation();
       handleDirectionRelease(direction);
       button.classList.remove("active");
-    });
+    }, isMobileDevice() ? 50 : 0); // 移動設備50ms節流
 
-    button.addEventListener("mouseup", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionRelease(direction);
-      button.classList.remove("active");
-    });
+    // 觸控事件
+    button.addEventListener("touchstart", throttledHandlePress, { passive: false });
+    button.addEventListener("touchend", throttledHandleRelease, { passive: false });
+    button.addEventListener("touchcancel", throttledHandleRelease, { passive: false });
 
-    // 離開事件（防止按鈕卡住）
-    button.addEventListener("touchcancel", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionRelease(direction);
-      button.classList.remove("active");
-    });
-
-    button.addEventListener("mouseleave", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDirectionRelease(direction);
-      button.classList.remove("active");
-    });
+    // 滑鼠事件
+    button.addEventListener("mousedown", throttledHandlePress);
+    button.addEventListener("mouseup", throttledHandleRelease);
+    button.addEventListener("mouseleave", throttledHandleRelease);
   });
 
   // 動作按鈕
@@ -1771,34 +1821,27 @@ function initMobileControls() {
   const escapeBtn = document.getElementById("escapeBtn");
   const debugBtn = document.getElementById("debugBtn");
 
-  // 動作按鈕事件
-  actionBtn.addEventListener("touchstart", (e) => {
+  // 動作按鈕事件處理函數（移動設備優化）
+  const throttledActionPress = debounce((e) => {
     e.preventDefault();
     e.stopPropagation();
     handleActionPress();
     actionBtn.classList.add("active");
-  });
+  }, isMobileDevice() ? 100 : 0); // 移動設備100ms節流
 
-  actionBtn.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleActionPress();
-    actionBtn.classList.add("active");
-  });
-
-  actionBtn.addEventListener("touchend", (e) => {
+  const throttledActionRelease = debounce((e) => {
     e.preventDefault();
     e.stopPropagation();
     handleActionRelease();
     actionBtn.classList.remove("active");
-  });
+  }, isMobileDevice() ? 100 : 0); // 移動設備100ms節流
 
-  actionBtn.addEventListener("mouseup", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleActionRelease();
-    actionBtn.classList.remove("active");
-  });
+  actionBtn.addEventListener("touchstart", throttledActionPress, { passive: false });
+  actionBtn.addEventListener("mousedown", throttledActionPress);
+  actionBtn.addEventListener("touchend", throttledActionRelease, { passive: false });
+  actionBtn.addEventListener("mouseup", throttledActionRelease);
+  actionBtn.addEventListener("touchcancel", throttledActionRelease, { passive: false });
+  actionBtn.addEventListener("mouseleave", throttledActionRelease);
 
   // ESC按鈕事件
   escapeBtn.addEventListener("touchstart", (e) => {
@@ -2772,8 +2815,13 @@ function distance(ax, ay, bx, by) {
 function autoAttack() {
   const currentTime = Date.now();
 
-  // 計算當前攻擊冷卻時間（考慮冰凍狀態）
+  // 移動設備優化：降低攻擊頻率
   let currentAttackCooldown = ATTACK_COOLDOWN;
+  if (isMobileDevice()) {
+    currentAttackCooldown *= 1.5; // 移動設備攻擊冷卻時間增加50%
+  }
+  
+  // 計算當前攻擊冷卻時間（考慮冰凍狀態）
   if (player.isFrozen) {
     currentAttackCooldown = ATTACK_COOLDOWN * player.frozenAttackCooldownMultiplier;
   }
@@ -2801,74 +2849,96 @@ function autoAttack() {
     return; // 在安全區域內不能攻擊
   }
 
-  // 檢查所有怪物
+  // 優化：預計算玩家位置和基礎範圍
+  const px = player.x + player.width / 2;
+  const py = player.y + player.height / 2;
+  const baseRange = 300; // 基礎射擊距離
+  const playerWidth = player.width;
+  const totalRange = baseRange + playerWidth / 2;
+
+  // 檢查所有怪物（從最近的開始檢查）
+  let closestMonster = null;
+  let closestDistance = Infinity;
+
   for (let i = monsters.length - 1; i >= 0; i--) {
     const m = monsters[i];
-    // 以玩家中心與怪物中心計算距離
-    const px = player.x + player.width / 2;
-    const py = player.y + player.height / 2;
+    const mx = m.x + m.width / 2;
+    const my = m.y + m.height / 2;
+    const monsterWidth = m.width;
+    const monsterRange = totalRange + monsterWidth / 2;
+    const dist = distance(px, py, mx, my);
+
+    if (dist < monsterRange && dist < closestDistance) {
+      closestMonster = { monster: m, index: i, distance: dist };
+      closestDistance = dist;
+    }
+  }
+
+  // 攻擊最近的怪物
+  if (closestMonster) {
+    const m = closestMonster.monster;
     const mx = m.x + m.width / 2;
     const my = m.y + m.height / 2;
 
-    // 計算射擊距離，加上角色和怪物的寬度
-    const baseRange = 300; // 基礎射擊距離
-    const playerWidth = player.width;
-    const monsterWidth = m.width;
-    const totalRange = baseRange + playerWidth / 2 + monsterWidth / 2;
+    // 發射彈幕
+    const dx = mx - px;
+    const dy = my - py;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (distance(px, py, mx, my) < totalRange) {
-      // 發射彈幕
-      const dx = mx - px;
-      const dy = my - py;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      // 根據攻擊方向更新角色朝向
-      if (Math.abs(dx) > Math.abs(dy)) {
-        // 水平方向為主
-        if (dx > 0) {
-          player.direction = "right";
-        } else {
-          player.direction = "left";
-        }
+    // 根據攻擊方向更新角色朝向
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // 水平方向為主
+      if (dx > 0) {
+        player.direction = "right";
       } else {
-        // 垂直方向為主
-        if (dy > 0) {
-          player.direction = "down";
-        } else {
-          player.direction = "up";
-        }
+        player.direction = "left";
       }
-
-      projectiles.push({
-        x: px,
-        y: py,
-        vx: (dx / dist) * PROJECTILE_SPEED,
-        vy: (dy / dist) * PROJECTILE_SPEED,
-        targetMonster: i,
-      });
-
-      // 設定攻擊動畫
-      player.isAttacking = true;
-      player.attackStartTime = currentTime;
-      player.attackAnimationTime = currentTime;
-      player.attackAnimationFrame = 1;
-
-      lastAttackTime = currentTime;
-
-      // 播放攻擊音效
-      audioSystem.playAttack();
-
-      // 創建攻擊粒子效果
-      particleSystem.createTrail(px, py, "#FFFF00");
-
-      // 一次只攻擊一隻
-      break;
+    } else {
+      // 垂直方向為主
+      if (dy > 0) {
+        player.direction = "down";
+      } else {
+        player.direction = "up";
+      }
     }
+
+    projectiles.push({
+      x: px,
+      y: py,
+      vx: (dx / dist) * PROJECTILE_SPEED,
+      vy: (dy / dist) * PROJECTILE_SPEED,
+      targetMonster: closestMonster.index,
+    });
+
+    // 設定攻擊動畫
+    player.isAttacking = true;
+    player.attackStartTime = currentTime;
+    player.attackAnimationTime = currentTime;
+    player.attackAnimationFrame = 1;
+
+    lastAttackTime = currentTime;
+
+    // 播放攻擊音效
+    audioSystem.playAttack();
+
+    // 創建攻擊粒子效果
+    particleSystem.createTrail(px, py, "#FFFF00");
   }
 }
 
 function updateMonsters() {
   const currentTime = Date.now();
+
+  // 移動設備優化：減少怪物更新頻率
+  if (isMobileDevice()) {
+    if (!updateMonsters.updateCounter) {
+      updateMonsters.updateCounter = 0;
+    }
+    updateMonsters.updateCounter++;
+    if (updateMonsters.updateCounter % 2 !== 0) { // 每2幀更新一次怪物
+      return;
+    }
+  }
 
   // 檢查玩家是否在安全區域內
   const isPlayerInSafeZone = isInSafeZone(player.x, player.y, player.width, player.height);
@@ -3109,6 +3179,17 @@ function checkCollision() {
     }
   }
 
+  // 移動設備優化：減少碰撞檢測頻率
+  if (isMobileDevice()) {
+    if (!checkCollision.collisionCheckCounter) {
+      checkCollision.collisionCheckCounter = 0;
+    }
+    checkCollision.collisionCheckCounter++;
+    if (checkCollision.collisionCheckCounter % 3 !== 0) { // 每3幀檢查一次碰撞
+      return;
+    }
+  }
+
   // 計算玩家中心點
   const playerCenterX = player.x + player.width / 2;
   const playerCenterY = player.y + player.height / 2;
@@ -3263,6 +3344,17 @@ function drawExit(offsetX, offsetY) {
 }
 
 function updateProjectiles() {
+  // 移動設備優化：減少彈幕更新頻率
+  if (isMobileDevice()) {
+    if (!updateProjectiles.updateCounter) {
+      updateProjectiles.updateCounter = 0;
+    }
+    updateProjectiles.updateCounter++;
+    if (updateProjectiles.updateCounter % 2 !== 0) { // 每2幀更新一次彈幕
+      return;
+    }
+  }
+
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
 
@@ -4271,8 +4363,32 @@ function drawGameObjectsWithZOrder(offsetX, offsetY) {
   }
 }
 
+// 性能監控變數
+let frameCount = 0;
+let lastFpsTime = Date.now();
+let currentFPS = 0;
+
 function gameLoop() {
   if (!gameLoopRunning) return;
+
+  // 性能監控
+  frameCount++;
+  const currentTime = Date.now();
+  if (currentTime - lastFpsTime >= 1000) {
+    currentFPS = frameCount;
+    frameCount = 0;
+    lastFpsTime = currentTime;
+    
+    // 如果FPS過低，輸出警告
+    if (currentFPS < 30) {
+      console.warn(`性能警告：FPS = ${currentFPS}`);
+    }
+    
+    // 移動設備性能監控
+    if (isMobileDevice() && currentFPS < 25) {
+      console.warn(`移動設備性能警告：FPS = ${currentFPS}，建議關閉更多特效`);
+    }
+  }
 
   if (gameState === "playing" && !gameOver && !gameWon) {
     updatePlayer();
@@ -4288,6 +4404,11 @@ function gameLoop() {
 
     // 更新粒子效果
     particleSystem.update();
+    
+    // 粒子數量監控（性能優化）
+    if (particleSystem.particles.length > 60) {
+      console.warn(`粒子數量過多：${particleSystem.particles.length}，可能影響性能`);
+    }
   }
 
   // 繪製不同狀態的內容
@@ -4395,8 +4516,15 @@ function initLobby() {
 }
 
 function showLobby() {
+  console.log("showLobby() 被調用");
   document.getElementById("gameLobby").classList.remove("hidden");
   document.getElementById("gameContainer").classList.add("hidden");
+
+  // 停止遊戲背景音樂，播放選擇關卡區背景音樂
+  console.log("準備播放選擇關卡區背景音樂...");
+  audioSystem.stopGameMusic();
+  audioSystem.playFirstBackgroundMusic();
+  console.log("進入選擇關卡區，播放 first-background-music");
 
   // 顯示手機操作按鈕（只在手機上）
   const mobileControls = document.getElementById("mobileControls");
@@ -4506,7 +4634,8 @@ async function startLevel(level) {
   await updateLevelConfig(); // 更新關卡配置
   hideLobby();
 
-  // 開始播放背景音樂（在劇情模式期間也播放）
+  // 停止選擇關卡區背景音樂，開始播放遊戲背景音樂
+  audioSystem.stopFirstBackgroundMusic();
   audioSystem.playGameMusic();
 
   // 顯示關卡開始劇情
@@ -4612,6 +4741,9 @@ async function initGame() {
 
   // 初始化音效系統
   await audioSystem.init();
+  
+  // 初始化粒子系統
+  particleSystem.init();
 
   // 更新載入進度
   if (window.loadingManager) {
@@ -5016,7 +5148,7 @@ function createRangeAttackEffect(x, y, radius, duration) {
   });
 }
 
-// 創建死亡範圍攻擊
+// 創建死亡範圍攻擊（優化性能）
 function createDeathExplosionAttack(x, y, monsterType) {
   // 範圍攻擊參數
   const attackRadius = 400; // 攻擊範圍半徑（比玩家攻擊距離300像素更大）
@@ -5037,7 +5169,7 @@ function createDeathExplosionAttack(x, y, monsterType) {
       // 播放冰凍音效
       audioSystem.playHit();
 
-      // 在玩家位置創建冰凍粒子效果
+      // 在玩家位置創建簡化的冰凍粒子效果（減少粒子數量）
       particleSystem.createIceExplosion(playerCenterX, playerCenterY);
     }
   }
@@ -5045,7 +5177,7 @@ function createDeathExplosionAttack(x, y, monsterType) {
   // 創建範圍攻擊視覺效果
   createRangeAttackEffect(x, y, attackRadius, attackDuration);
 
-  // 創建冰凍爆炸粒子效果
+  // 創建簡化的冰凍爆炸粒子效果（減少粒子數量）
   particleSystem.createIceExplosion(x, y);
 
   console.log(`${monsterType} 死亡時產生冰凍範圍攻擊！範圍：${attackRadius}像素`);
@@ -5327,6 +5459,8 @@ function resetItems() {
   let dragging = false;
   let center = { x: 0, y: 0 };
   let maxDist = 80; // 最遠距離
+  let lastUpdateTime = 0;
+  const throttleDelay = 16; // 約60FPS的更新頻率
 
   function getDirection(dx, dy) {
     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
@@ -5337,18 +5471,13 @@ function resetItems() {
     return null;
   }
 
-  base.addEventListener("touchstart", e => {
-    const rect = base.getBoundingClientRect();
-    center = {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2
-    };
-    dragging = true;
-  });
+  function updateJoystick(touch) {
+    const currentTime = Date.now();
+    if (currentTime - lastUpdateTime < throttleDelay) {
+      return; // 節流處理
+    }
+    lastUpdateTime = currentTime;
 
-  base.addEventListener("touchmove", e => {
-    if (!dragging) return;
-    const touch = e.touches[0];
     let dx = touch.clientX - center.x;
     let dy = touch.clientY - center.y;
     const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
@@ -5357,20 +5486,46 @@ function resetItems() {
     dx = Math.cos(angle) * dist;
     dy = Math.sin(angle) * dist;
 
-    stick.style.left = `${dx + 30}px`;
-    stick.style.top = `${dy + 30}px`;
+    // 使用 transform 而不是 left/top 來提高性能
+    stick.style.transform = `translate(${dx}px, ${dy}px)`;
 
     const direction = getDirection(dx, dy);
     // 這裡觸發方向行為，如呼叫控制邏輯
     if (window.handleJoystickMove) {
       window.handleJoystickMove(direction);
     }
+  }
+
+  base.addEventListener("touchstart", e => {
+    e.preventDefault();
+    const rect = base.getBoundingClientRect();
+    center = {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    };
+    dragging = true;
+    lastUpdateTime = 0; // 重置節流計時器
+  });
+
+  base.addEventListener("touchmove", e => {
+    if (!dragging) return;
+    e.preventDefault();
+    updateJoystick(e.touches[0]);
   }, { passive: false });
 
-  base.addEventListener("touchend", () => {
+  base.addEventListener("touchend", (e) => {
+    e.preventDefault();
     dragging = false;
-    stick.style.left = "60px";
-    stick.style.top = "60px";
+    stick.style.transform = "translate(0px, 0px)";
+    if (window.handleJoystickMove) {
+      window.handleJoystickMove(null);
+    }
+  });
+
+  base.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
+    dragging = false;
+    stick.style.transform = "translate(0px, 0px)";
     if (window.handleJoystickMove) {
       window.handleJoystickMove(null);
     }
@@ -5404,20 +5559,45 @@ window.handleJoystickMove = function (direction) {
 const actionBtn = document.getElementById("actionBtn");
 const escapeBtn = document.getElementById("escapeBtn");
 
+// 防抖函數
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 if (actionBtn) {
-  actionBtn.addEventListener("touchstart", () => {
+  actionBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
     keys.Space = true;
   });
-  actionBtn.addEventListener("touchend", () => {
+  actionBtn.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    keys.Space = false;
+  });
+  actionBtn.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
     keys.Space = false;
   });
 }
 
 if (escapeBtn) {
-  escapeBtn.addEventListener("touchstart", () => {
+  escapeBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
     keys.Escape = true;
   });
-  escapeBtn.addEventListener("touchend", () => {
+  escapeBtn.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    keys.Escape = false;
+  });
+  escapeBtn.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
     keys.Escape = false;
   });
 }
