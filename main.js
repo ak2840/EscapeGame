@@ -156,9 +156,17 @@ const audioSystem = {
   },
 
   playFirstBackgroundMusic() {
+    console.log("嘗試播放選擇關卡區背景音樂...");
+    console.log("BGM 啟用狀態:", this.bgmEnabled);
+    console.log("firstBackgroundMusic 元素:", this.firstBackgroundMusic);
+    
     if (this.bgmEnabled && this.firstBackgroundMusic) {
       this.firstBackgroundMusic.volume = this.bgmVolume;
+      console.log("設定音量為:", this.bgmVolume);
       this.firstBackgroundMusic.play().catch((e) => console.log("選擇關卡區背景音樂播放失敗:", e));
+      console.log("選擇關卡區背景音樂播放指令已發送");
+    } else {
+      console.log("無法播放選擇關卡區背景音樂 - BGM未啟用或音頻元素不存在");
     }
   },
 
@@ -205,6 +213,10 @@ const audioSystem = {
     this.bgmVolume = Math.max(0, Math.min(1, volume));
     if (this.gameMusic) {
       this.gameMusic.volume = this.bgmVolume;
+    }
+    // 設定選擇關卡區背景音樂音量
+    if (this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.volume = this.bgmVolume;
     }
     this.saveAudioSettings();
     console.log(`背景音樂音量已設定為: ${this.bgmVolume}`);
@@ -4433,10 +4445,12 @@ function initLobby() {
 }
 
 function showLobby() {
+  console.log("showLobby() 被調用");
   document.getElementById("gameLobby").classList.remove("hidden");
   document.getElementById("gameContainer").classList.add("hidden");
 
   // 停止遊戲背景音樂，播放選擇關卡區背景音樂
+  console.log("準備播放選擇關卡區背景音樂...");
   audioSystem.stopGameMusic();
   audioSystem.playFirstBackgroundMusic();
   console.log("進入選擇關卡區，播放 first-background-music");
