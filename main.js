@@ -8,6 +8,7 @@ const audioSystem = {
   bgmVolume: 0.5, // 背景音樂音量 50%
   sfxVolume: 0.5, // 音效音量 50%
   gameMusic: null, // 遊戲背景音樂
+  firstBackgroundMusic: null, // 選擇關卡區背景音樂
   attackSound: null,
   hitSound: null,
   victorySound: null,
@@ -17,6 +18,7 @@ const audioSystem = {
 
   async init() {
     this.gameMusic = document.getElementById("gameMusic");
+    this.firstBackgroundMusic = document.getElementById("firstBackgroundMusic");
     this.attackSound = document.getElementById("attackSound");
     this.hitSound = document.getElementById("hitSound");
     this.victorySound = document.getElementById("victorySound");
@@ -25,7 +27,7 @@ const audioSystem = {
     this.healSound = document.getElementById("healSound");
 
     // 使用載入管理器追蹤音訊載入
-    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
+    const audioPromises = [window.loadingManager.trackAudioLoad("assets/audio/background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/first-background-music.mp3"), window.loadingManager.trackAudioLoad("assets/audio/attack.mp3"), window.loadingManager.trackAudioLoad("assets/audio/hit.mp3"), window.loadingManager.trackAudioLoad("assets/audio/victory.mp3"), window.loadingManager.trackAudioLoad("assets/audio/game-over.mp3"), window.loadingManager.trackAudioLoad("assets/audio/button-click.mp3"), window.loadingManager.trackAudioLoad("assets/audio/heal.mp3")];
 
     // 等待音訊載入完成
     await Promise.all(audioPromises);
@@ -86,11 +88,16 @@ const audioSystem = {
 
   toggleBGM() {
     this.bgmEnabled = !this.bgmEnabled;
-    // 先暫停遊戲音樂
+    // 先暫停所有音樂
     this.stopGameMusic();
+    this.stopFirstBackgroundMusic();
     // 如果開啟且在遊戲相關狀態中，播放遊戲音樂
     if (this.bgmEnabled && (gameState === "playing" || gameState === "storyIntro" || gameState === "storyOutro")) {
       this.playGameMusic();
+    }
+    // 如果開啟且在大廳狀態中，播放選擇關卡區背景音樂
+    if (this.bgmEnabled && gameState === "lobby") {
+      this.playFirstBackgroundMusic();
     }
     this.updateButtonStates();
     this.saveAudioSettings();
@@ -111,6 +118,11 @@ const audioSystem = {
     // 設定背景音樂音量
     if (this.gameMusic) {
       this.gameMusic.volume = this.bgmVolume;
+    }
+    
+    // 設定選擇關卡區背景音樂音量
+    if (this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.volume = this.bgmVolume;
     }
 
     // 設定所有音效音量
@@ -140,6 +152,21 @@ const audioSystem = {
 
   stopAllMusic() {
     this.stopGameMusic();
+    this.stopFirstBackgroundMusic();
+  },
+
+  playFirstBackgroundMusic() {
+    if (this.bgmEnabled && this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.volume = this.bgmVolume;
+      this.firstBackgroundMusic.play().catch((e) => console.log("選擇關卡區背景音樂播放失敗:", e));
+    }
+  },
+
+  stopFirstBackgroundMusic() {
+    if (this.firstBackgroundMusic) {
+      this.firstBackgroundMusic.pause();
+      this.firstBackgroundMusic.currentTime = 0;
+    }
   },
 
   playSFX(sound) {
@@ -4418,6 +4445,11 @@ function showLobby() {
   document.getElementById("gameLobby").classList.remove("hidden");
   document.getElementById("gameContainer").classList.add("hidden");
 
+  // 停止遊戲背景音樂，播放選擇關卡區背景音樂
+  audioSystem.stopGameMusic();
+  audioSystem.playFirstBackgroundMusic();
+  console.log("進入選擇關卡區，播放 first-background-music");
+
   // 顯示手機操作按鈕（只在手機上）
   const mobileControls = document.getElementById("mobileControls");
   const actionButtons = document.querySelector(".action-buttons");
@@ -4526,7 +4558,8 @@ async function startLevel(level) {
   await updateLevelConfig(); // 更新關卡配置
   hideLobby();
 
-  // 開始播放背景音樂（在劇情模式期間也播放）
+  // 停止選擇關卡區背景音樂，開始播放遊戲背景音樂
+  audioSystem.stopFirstBackgroundMusic();
   audioSystem.playGameMusic();
 
   // 顯示關卡開始劇情
