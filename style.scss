@@ -9,11 +9,7 @@ $white: #ffffff;
   font-family: "JasonHW-Round";
   src: url("assets/fonts/JasonHandwriting1.ttf") format("truetype");
 }
-/* 清松手寫體8 */
-@font-face {
-  font-family: "JasonHW-Free";
-  src: url("assets/fonts/JasonHandwriting8.ttf") format("truetype");
-}
+
 //scrollbar
 ::-webkit-scrollbar {
   width: 10px;
