@@ -153,8 +153,8 @@ const GAME_CONFIG = {
   levels: {
     1: {
       name: "新手關卡",
-      mapWidth: 1200,
-      mapHeight: 1000,
+      mapWidth: 1600,
+      mapHeight: 1200,
       normalAMonsters: 0,
       normalBMonsters: 0,
       normalCMonsters: 0,

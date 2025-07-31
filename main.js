@@ -3703,8 +3703,8 @@ function calculateCanvasSize() {
   const containerRect = container.getBoundingClientRect();
 
   // 最大尺寸
-  const MAX_WIDTH = 1200;
-  const MAX_HEIGHT = 900;
+  const MAX_WIDTH = 1600;
+  const MAX_HEIGHT = 1200;
 
   // 容器可用空間（減去內邊距）
   const availableWidth = containerRect.width - 40; // 20px padding on each side
@@ -5369,8 +5369,8 @@ function resetItems() {
 
   base.addEventListener("touchend", () => {
     dragging = false;
-    stick.style.left = "60px";
-    stick.style.top = "60px";
+    stick.style.left = "40px";
+    stick.style.top = "40px";
     if (window.handleJoystickMove) {
       window.handleJoystickMove(null);
     }
