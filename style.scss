@@ -448,6 +448,7 @@ body {
   }
 
   .action-btn {
+    
     width: 140px;
     height: 70px;
     font-size: 22px;
@@ -648,6 +649,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   backdrop-filter: blur(5px);
   touch-action: manipulation;
+  font-family: "JasonHW-Round", "Orbitron", sans-serif;
 
   &:hover {
     transform: translateY(-2px);
@@ -674,7 +676,7 @@ body {
   &.actionesc-btn {
     width: 120px;
     height: 80px;
-    font-size: 20px;
+    font-size: 30px;
   }
 }
 

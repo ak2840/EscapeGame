@@ -573,6 +573,7 @@ body {
   -webkit-backdrop-filter: blur(5px);
           backdrop-filter: blur(5px);
   touch-action: manipulation;
+  font-family: "JasonHW-Round", "Orbitron", sans-serif;
 }
 .action-btn:hover {
   transform: translateY(-2px);
@@ -596,7 +597,7 @@ body {
 .action-btn.actionesc-btn {
   width: 120px;
   height: 80px;
-  font-size: 20px;
+  font-size: 30px;
 }
 
 /* 關於頁面樣式 */
