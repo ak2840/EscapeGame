@@ -35,7 +35,6 @@ const audioSystem = {
     // ✅ 手機預設關閉音效與音樂（若尚未有 cookie）
     const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
-      if (getCookie("bgmEnabled") === null) this.bgmEnabled = false;
       if (getCookie("sfxEnabled") === null) this.sfxEnabled = false;
     }
 
