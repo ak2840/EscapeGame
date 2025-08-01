@@ -4432,6 +4432,19 @@ function updatePageTitles() {
   }
 }
 
+function updateEscapeButtonVisibility(inGame = false) {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const escapeBtn = document.getElementById("escapeBtn");
+  if (!escapeBtn) return;
+
+  if (isMobile) {
+    escapeBtn.style.display = inGame ? "block" : "none";
+  } else {
+    escapeBtn.style.display = "none"; 
+  }
+}
+
+
 // 遊戲大廳管理函數
 function initLobby() {
   try {
@@ -4447,6 +4460,10 @@ function initLobby() {
 
     showLobby();
     console.log("大廳顯示完成");
+
+    // ✅ 手機版隱藏右上角 ESC 離開按鈕
+    updateEscapeButtonVisibility(false);
+
   } catch (error) {
     console.error("初始化大廳失敗:", error);
     // 即使失敗也要顯示大廳
@@ -4568,6 +4585,8 @@ function updateLobbyDisplay() {
 }
 
 async function startLevel(level) {
+   updateEscapeButtonVisibility(true); // ✅ 手機顯示離開鍵
+
   currentLevel = level;
   loadLevel(); // 只載入進度，不更新配置
   await updateLevelConfig(); // 更新關卡配置
