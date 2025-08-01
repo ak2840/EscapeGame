@@ -303,6 +303,28 @@ class LoadingManager {
           this.loadingScreen.parentNode.removeChild(this.loadingScreen);
         }
         console.log("載入畫面已隱藏");
+        // ✅ 載入完成後自動播放大廳背景音樂
+        if (window.audioSystem?.bgmEnabled && window.audioSystem?.firstBackgroundMusic) {
+          try {
+            window.audioSystem.firstBackgroundMusic.volume = window.audioSystem.bgmVolume;
+            window.audioSystem.firstBackgroundMusic.loop = true;
+            const playPromise = window.audioSystem.firstBackgroundMusic.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((err) => {
+                console.warn("大廳音樂自動播放失敗，等待互動再補啟:", err);
+                const resume = () => {
+                  window.audioSystem.firstBackgroundMusic.play().catch(() => {});
+                  window.removeEventListener("click", resume);
+                  window.removeEventListener("touchstart", resume);
+                };
+                window.addEventListener("click", resume);
+                window.addEventListener("touchstart", resume);
+              });
+            }
+          } catch (e) {
+            console.error("播放大廳音樂失敗:", e);
+          }
+        }
       }, 800);
     }
   }

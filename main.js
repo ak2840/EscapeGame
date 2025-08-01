@@ -32,6 +32,13 @@ const audioSystem = {
     // 等待音訊載入完成
     await Promise.all(audioPromises);
 
+    // ✅ 手機預設關閉音效與音樂（若尚未有 cookie）
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      if (getCookie("bgmEnabled") === null) this.bgmEnabled = false;
+      if (getCookie("sfxEnabled") === null) this.sfxEnabled = false;
+    }
+
     // 從 cookie 讀取音效設定
     this.loadAudioSettings();
 
@@ -113,6 +120,20 @@ const audioSystem = {
   updateButtonStates() {
     // 不再需要更新HTML按鈕狀態，因為使用遊戲內按鈕
     // 遊戲內按鈕會根據 audioSystem.bgmEnabled 和 audioSystem.sfxEnabled 自動更新
+      const bgmIcon = document.getElementById("bgmIcon");
+  const sfxIcon = document.getElementById("sfxIcon");
+
+  if (bgmIcon) {
+    bgmIcon.src = this.bgmEnabled
+      ? "assets/ui/volume-on.svg"
+      : "assets/ui/volume-off.svg";
+  }
+
+  if (sfxIcon) {
+    sfxIcon.src = this.sfxEnabled
+      ? "assets/ui/sound-on.svg"
+      : "assets/ui/sound-off.svg";
+  }
   },
 
   setVolume() {
@@ -279,8 +300,6 @@ const particleSystem = {
     }
   },
 
-
-
   update() {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const particle = this.particles[i];
@@ -318,7 +337,6 @@ const particleSystem = {
           if (!particle.rotationSpeed) particle.rotationSpeed = (Math.random() - 0.5) * 0.2;
           particle.rotation += particle.rotationSpeed;
           break;
-
       }
 
       // 移除死亡粒子
@@ -768,7 +786,7 @@ const storySystem = {
 
     // 檢查是否為手機設備
     const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    
+
     if (isMobile) {
       console.log("檢測到手機設備，跳過影片載入以節省流量");
     }
@@ -783,7 +801,7 @@ const storySystem = {
           introVideo.muted = false;
           introVideo.loop = false;
           introVideo.preload = "metadata";
-          
+
           await new Promise((resolve, reject) => {
             introVideo.addEventListener("loadeddata", resolve);
             introVideo.addEventListener("error", () => {
@@ -791,7 +809,7 @@ const storySystem = {
               reject();
             });
           });
-          
+
           this.introVideos[level] = introVideo;
           console.log(`關卡${level}開始劇情影片載入成功`);
         } catch (error) {
@@ -831,7 +849,7 @@ const storySystem = {
           outroVideo.muted = false;
           outroVideo.loop = false;
           outroVideo.preload = "metadata";
-          
+
           await new Promise((resolve, reject) => {
             outroVideo.addEventListener("loadeddata", resolve);
             outroVideo.addEventListener("error", () => {
@@ -839,7 +857,7 @@ const storySystem = {
               reject();
             });
           });
-          
+
           this.outroVideos[level] = outroVideo;
           console.log(`關卡${level}結束劇情影片載入成功`);
         } catch (error) {
@@ -985,7 +1003,7 @@ const storySystem = {
   showIntro(level) {
     // 暫停所有背景音樂
     audioSystem.stopAllMusic();
-    
+
     // 優先使用影片，如果沒有影片則使用圖片
     if (this.introVideos[level]) {
       this.currentVideo = this.introVideos[level];
@@ -993,17 +1011,17 @@ const storySystem = {
       this.videoLoaded = true;
       this.videoEnded = false;
       this.imageLoaded = false;
-      
+
       // 重置影片到開始位置並播放
       this.currentVideo.currentTime = 0;
-      this.currentVideo.play().catch(error => {
+      this.currentVideo.play().catch((error) => {
         console.warn("影片播放失敗，使用圖片:", error);
         this.currentVideo = null;
         this.currentImage = this.introImages[level];
         this.imageLoaded = true;
         this.videoLoaded = false;
       });
-      
+
       console.log(`播放第${level}關開始劇情影片`);
     } else {
       this.currentVideo = null;
@@ -1012,7 +1030,7 @@ const storySystem = {
       this.videoLoaded = false;
       console.log(`顯示第${level}關開始劇情圖片`);
     }
-    
+
     gameState = "storyIntro";
     // 立即重新調整Canvas大小以適應視窗
     resizeCanvas();
@@ -1026,7 +1044,7 @@ const storySystem = {
   showOutro(level) {
     // 暫停所有背景音樂
     audioSystem.stopAllMusic();
-    
+
     // 優先使用影片，如果沒有影片則使用圖片
     if (this.outroVideos[level]) {
       this.currentVideo = this.outroVideos[level];
@@ -1034,17 +1052,17 @@ const storySystem = {
       this.videoLoaded = true;
       this.videoEnded = false;
       this.imageLoaded = false;
-      
+
       // 重置影片到開始位置並播放
       this.currentVideo.currentTime = 0;
-      this.currentVideo.play().catch(error => {
+      this.currentVideo.play().catch((error) => {
         console.warn("影片播放失敗，使用圖片:", error);
         this.currentVideo = null;
         this.currentImage = this.outroImages[level];
         this.imageLoaded = true;
         this.videoLoaded = false;
       });
-      
+
       console.log(`播放第${level}關結束劇情影片`);
     } else {
       this.currentVideo = null;
@@ -1053,7 +1071,7 @@ const storySystem = {
       this.videoLoaded = false;
       console.log(`顯示第${level}關結束劇情圖片`);
     }
-    
+
     gameState = "storyOutro";
     // 立即重新調整Canvas大小以適應視窗
     resizeCanvas();
@@ -1138,33 +1156,33 @@ const storySystem = {
       return; // 沒有內容可顯示
     }
 
-         // 繪製"按任意鍵繼續"提示（始終顯示，允許跳過）
-     const buttonAreaHeight = 60;
-     const overlayHeight = 60;
-     const overlayY = ctx.canvas.height - buttonAreaHeight - overlayHeight;
-     
-     // 半透明背景
-     ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-     ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
-     
-     // 提示文字
-     ctx.fillStyle = "#fed456";
-     ctx.font = "bold 20px 'JasonHW-Round', 'Orbitron', sans-serif";
-     ctx.textAlign = "center";
-     ctx.fillText("按任意鍵繼續", ctx.canvas.width / 2, overlayY + 35);
-   },
+    // 繪製"按任意鍵繼續"提示（始終顯示，允許跳過）
+    const buttonAreaHeight = 60;
+    const overlayHeight = 60;
+    const overlayY = ctx.canvas.height - buttonAreaHeight - overlayHeight;
 
-   // 停止當前影片播放
-   stopCurrentVideo() {
-     if (this.currentVideo) {
-       this.currentVideo.pause();
-       this.currentVideo.currentTime = 0;
-       this.currentVideo = null;
-       this.videoLoaded = false;
-       this.videoEnded = false;
-     }
-   },
- };
+    // 半透明背景
+    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
+
+    // 提示文字
+    ctx.fillStyle = "#fed456";
+    ctx.font = "bold 20px 'JasonHW-Round', 'Orbitron', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("按任意鍵繼續", ctx.canvas.width / 2, overlayY + 35);
+  },
+
+  // 停止當前影片播放
+  stopCurrentVideo() {
+    if (this.currentVideo) {
+      this.currentVideo.pause();
+      this.currentVideo.currentTime = 0;
+      this.currentVideo = null;
+      this.videoLoaded = false;
+      this.videoEnded = false;
+    }
+  },
+};
 
 // 關於系統
 const aboutSystem = {
@@ -1183,7 +1201,7 @@ const aboutSystem = {
 
     // 檢查是否為手機設備
     const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    
+
     if (isMobile) {
       console.log("檢測到手機設備，跳過影片載入以節省流量");
     }
@@ -1217,7 +1235,7 @@ const aboutSystem = {
           introVideo.muted = false;
           introVideo.loop = false;
           introVideo.preload = "metadata";
-          
+
           await new Promise((resolve, reject) => {
             introVideo.addEventListener("loadeddata", resolve);
             introVideo.addEventListener("error", () => {
@@ -1225,7 +1243,7 @@ const aboutSystem = {
               reject();
             });
           });
-          
+
           this.storyVideos[`${level}_before`] = introVideo;
           console.log(`關卡${level}開始劇情影片載入成功`);
         } catch (error) {
@@ -1262,7 +1280,7 @@ const aboutSystem = {
           outroVideo.muted = false;
           outroVideo.loop = false;
           outroVideo.preload = "metadata";
-          
+
           await new Promise((resolve, reject) => {
             outroVideo.addEventListener("loadeddata", resolve);
             outroVideo.addEventListener("error", () => {
@@ -1270,7 +1288,7 @@ const aboutSystem = {
               reject();
             });
           });
-          
+
           this.storyVideos[`${level}_after`] = outroVideo;
           console.log(`關卡${level}結束劇情影片載入成功`);
         } catch (error) {
@@ -1348,7 +1366,7 @@ const aboutSystem = {
     if (aboutPage) {
       aboutPage.classList.add("hidden");
     }
-    
+
     // 同時停止滿版影片播放
     this.hideFullscreenImage();
   },
@@ -1429,13 +1447,13 @@ const aboutSystem = {
         video.style.width = "100%";
         video.style.height = "100%";
         video.style.objectFit = "contain";
-        
+
         // 清空容器並添加影片
         fullscreenImageSrc.innerHTML = "";
         fullscreenImageSrc.appendChild(video);
-        
+
         // 播放影片
-        video.play().catch(error => {
+        video.play().catch((error) => {
           console.warn("影片播放失敗，使用圖片:", error);
           this.showFullscreenImageFallback(level, type, title);
         });
@@ -1443,7 +1461,7 @@ const aboutSystem = {
         // 沒有影片，使用圖片
         this.showFullscreenImageFallback(level, type, title);
       }
-      
+
       fullscreenImage.classList.remove("hidden");
     }
   },
@@ -1474,11 +1492,11 @@ const aboutSystem = {
     if (fullscreenImage) {
       // 停止所有影片播放
       const videos = fullscreenImage.querySelectorAll("video");
-      videos.forEach(video => {
+      videos.forEach((video) => {
         video.pause();
         video.currentTime = 0;
       });
-      
+
       fullscreenImage.classList.add("hidden");
     }
   },
@@ -1641,7 +1659,7 @@ window.addEventListener("keydown", (e) => {
         storySystem.currentVideo.currentTime = 0;
         storySystem.videoEnded = true;
       }
-      
+
       // 關卡開始劇情結束，開始遊戲
       gameState = "playing";
       restartGame();
@@ -1657,7 +1675,7 @@ window.addEventListener("keydown", (e) => {
         storySystem.currentVideo.currentTime = 0;
         storySystem.videoEnded = true;
       }
-      
+
       // 關卡結束劇情結束，進入下一關或返回大廳
       const completedLevel = currentLevel;
       if (completedLevel < MAX_LEVEL) {
@@ -1942,7 +1960,7 @@ function handleActionPress() {
       storySystem.currentVideo.currentTime = 0;
       storySystem.videoEnded = true;
     }
-    
+
     // 關卡開始劇情結束，開始遊戲
     gameState = "playing";
     restartGame();
@@ -1958,7 +1976,7 @@ function handleActionPress() {
       storySystem.currentVideo.currentTime = 0;
       storySystem.videoEnded = true;
     }
-    
+
     // 關卡結束劇情結束，進入下一關或返回大廳
     const completedLevel = currentLevel;
     if (completedLevel < MAX_LEVEL) {
@@ -3827,13 +3845,13 @@ function drawGameTitle() {
 function drawPlayerHealth() {
   // 血量顏色根據血量變化
   let healthColor;
-if (player.hp >= 7) {
-  healthColor = "#456d1d"; // 高血：綠
-} else if (player.hp >= 4) {
-  healthColor = "#fed456"; // 中血：黃
-} else {
-  healthColor = "#b13434"; // 低血：紅
-}
+  if (player.hp >= 7) {
+    healthColor = "#456d1d"; // 高血：綠
+  } else if (player.hp >= 4) {
+    healthColor = "#fed456"; // 中血：黃
+  } else {
+    healthColor = "#b13434"; // 低血：紅
+  }
 
   // 面板背景
   ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
@@ -4460,7 +4478,7 @@ function showLobby() {
   }
 
   gameState = "lobby";
-  
+
   // 播放大廳背景音樂
   audioSystem.stopGameMusic(); // 先停止遊戲音樂
   audioSystem.playLobbyMusic();
@@ -4494,7 +4512,7 @@ function hideLobby() {
   }
 
   gameState = "playing";
-  
+
   // 停止大廳背景音樂
   audioSystem.stopLobbyMusic();
 }
@@ -4647,6 +4665,9 @@ function updateLobbyAudioButtons() {
 async function initGame() {
   console.log("開始初始化遊戲...");
 
+    // 初始化音效系統
+  await audioSystem.init();
+
   // 確保載入管理器已初始化
   if (window.loadingManager && !window.loadingManager.isInitialized) {
     window.loadingManager.init();
@@ -4657,8 +4678,7 @@ async function initGame() {
     window.loadingManager.updateProgress(5, "初始化遊戲系統...");
   }
 
-  // 初始化音效系統
-  await audioSystem.init();
+
 
   // 更新載入進度
   if (window.loadingManager) {
@@ -5185,15 +5205,15 @@ function checkItemCollection() {
         const oldHp = player.hp;
         player.hp = Math.min(player.maxHp, player.hp + healAmount);
         const actualHeal = player.hp - oldHp;
-        
+
         if (actualHeal > 0) {
           console.log(`綠能結晶回覆了 ${actualHeal} 點HP！當前血量：${player.hp}/${player.maxHp}`);
-          
+
           // 播放專用的治療音效
           audioSystem.playHeal();
         } else {
           console.log("血量已滿，無法回覆HP");
-          
+
           // 血量已滿時播放按鈕音效作為提示
           audioSystem.playButtonClick();
         }
@@ -5375,7 +5395,6 @@ function resetItems() {
   console.log("道具系統已重置，道具數量:", items.length);
 }
 
-
 //虛擬搖桿操作
 
 (function () {
@@ -5394,35 +5413,39 @@ function resetItems() {
     return null;
   }
 
-  base.addEventListener("touchstart", e => {
+  base.addEventListener("touchstart", (e) => {
     const rect = base.getBoundingClientRect();
     center = {
       x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2
+      y: rect.top + rect.height / 2,
     };
     dragging = true;
   });
 
-  base.addEventListener("touchmove", e => {
-    if (!dragging) return;
-    const touch = e.touches[0];
-    let dx = touch.clientX - center.x;
-    let dy = touch.clientY - center.y;
-    const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
-    const angle = Math.atan2(dy, dx);
+  base.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!dragging) return;
+      const touch = e.touches[0];
+      let dx = touch.clientX - center.x;
+      let dy = touch.clientY - center.y;
+      const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+      const angle = Math.atan2(dy, dx);
 
-    dx = Math.cos(angle) * dist;
-    dy = Math.sin(angle) * dist;
+      dx = Math.cos(angle) * dist;
+      dy = Math.sin(angle) * dist;
 
-    stick.style.left = `${dx + 30}px`;
-    stick.style.top = `${dy + 30}px`;
+      stick.style.left = `${dx + 30}px`;
+      stick.style.top = `${dy + 30}px`;
 
-    const direction = getDirection(dx, dy);
-    // 這裡觸發方向行為，如呼叫控制邏輯
-    if (window.handleJoystickMove) {
-      window.handleJoystickMove(direction);
-    }
-  }, { passive: false });
+      const direction = getDirection(dx, dy);
+      // 這裡觸發方向行為，如呼叫控制邏輯
+      if (window.handleJoystickMove) {
+        window.handleJoystickMove(direction);
+      }
+    },
+    { passive: false }
+  );
 
   base.addEventListener("touchend", () => {
     dragging = false;

@@ -9,7 +9,13 @@ $white: #ffffff;
   font-family: "JasonHW-Round";
   src: url("assets/fonts/JasonHandwriting1.ttf") format("truetype");
 }
-
+@media (max-width: 768px) {
+  * {
+    user-select: none;
+    -webkit-user-select: none; // for Safari
+    -ms-user-select: none;     // for IE10+
+  }
+}
 //scrollbar
 ::-webkit-scrollbar {
   width: 10px;
@@ -176,19 +182,21 @@ body {
 .instructions {
   color: #637441;
   font-size: 16px;
-  max-width: 320px;
+  max-width: 100%;
   line-height: 1.6;
   text-align: left;
   padding: 9px 18px;
+  background-color: rgba(#000, 0.9);
   border-top: 1px solid #637441;
   border-bottom: 1px solid #637441;
   margin: 0 auto;
 
   strong {
-    color: #637441;
-
+    margin-top: 5px;
+    color: #9e4747;
+    text-align: center;
     /* 與遊戲中的黃色標題一致 */
-    font-size: 16px;
+    font-size: 20px;
   }
 
   ul {
