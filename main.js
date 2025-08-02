@@ -5527,3 +5527,10 @@ if (escapeBtn) {
     keys.Escape = false;
   });
 }
+
+
+// ✅ 等載入資源完成後再進入遊戲
+window.onAllAssetsLoaded = () => {
+  console.log("所有資源已載入完成，開始初始化遊戲");
+  initGame();
+};

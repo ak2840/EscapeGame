@@ -217,7 +217,12 @@ class LoadingManager {
       }
 
       // 延遲 0.5 秒再隱藏，讓用戶看到 100% 的完成狀態
-      setTimeout(() => this.hide(), 500);
+      etTimeout(() => {
+        this.hide();
+        if (typeof window.onAllAssetsLoaded === "function") {
+          window.onAllAssetsLoaded(); // ✅ 通知 main.js 可以開始 initGame
+        }
+      }, 500);
     }
   }
 
@@ -379,8 +384,14 @@ class LoadingManager {
     if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       this.totalAssets += 2;
       this.setTotalAssets(this.totalAssets);
-      this.trackVideoLoad("assets/story/story_1_after_m.mp4").catch(() => {});
-      this.trackVideoLoad("assets/story/story_4_after_m.mp4").catch(() => {});
+
+      Promise.all([this.trackVideoLoad("assets/story/story_1_after_m.mp4"), this.trackVideoLoad("assets/story/story_4_after_m.mp4")])
+        .then(() => {
+          console.log("手機影片資源載入完成");
+        })
+        .catch((err) => {
+          console.warn("影片載入出現錯誤", err);
+        });
     }
 
     console.log("載入管理器已初始化");
