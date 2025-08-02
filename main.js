@@ -874,7 +874,7 @@ const storySystem = {
           outroImg.onload = resolve;
           outroImg.onerror = () => {
             console.warn(`關卡${level}結束劇情圖片載入失敗，使用預設圖片`);
-            reject();
+            resolve();
           };
         });
         this.outroImages[level] = outroImg;
