@@ -853,7 +853,7 @@ const storySystem = {
             outroVideo.addEventListener("loadeddata", resolve);
             outroVideo.addEventListener("error", () => {
               console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
-              reject();
+              resolve();
             });
           });
 
@@ -874,7 +874,7 @@ const storySystem = {
           outroImg.onload = resolve;
           outroImg.onerror = () => {
             console.warn(`關卡${level}結束劇情圖片載入失敗，使用預設圖片`);
-            resolve();
+            reject();
           };
         });
         this.outroImages[level] = outroImg;
