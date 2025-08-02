@@ -841,7 +841,7 @@ const storySystem = {
     // 載入關卡結束劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
       // 只在非手機設備上載入影片
-      if (!isMobile) {
+      if (!isMobile || level === 1 || level === 4) {
         try {
           const outroVideo = document.createElement("video");
           outroVideo.src = `assets/story/story_${level}_after.mp4`;
@@ -887,6 +887,9 @@ const storySystem = {
     }
 
     console.log("劇情影片和圖片載入完成");
+
+
+
   },
 
   // 創建預設的關卡開始劇情圖片
