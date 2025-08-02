@@ -271,7 +271,31 @@ class LoadingManager {
       audio.load();
     });
   }
+  // 真正的影片載入追蹤
+  trackVideoLoad(videoPath) {
+    return new Promise((resolve, reject) => {
+      console.log(`開始載入影片: ${videoPath}`);
 
+      const video = document.createElement("video");
+      video.preload = "metadata";
+
+      video.onloadeddata = () => {
+        this.loadedAssets++;
+        this.updateProgress(this.loadedAssets, `載入影片: ${videoPath.split("/").pop()}`);
+        console.log(`影片載入完成: ${videoPath}`);
+        resolve(video);
+      };
+
+      video.onerror = () => {
+        console.error(`影片載入失敗: ${videoPath}`);
+        this.loadedAssets++;
+        this.updateProgress(this.loadedAssets, `載入失敗: ${videoPath.split("/").pop()}`);
+        reject(new Error(`影片載入失敗: ${videoPath}`));
+      };
+
+      video.src = videoPath;
+    });
+  }
 
   // 開始動畫
   startAnimation() {
