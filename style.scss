@@ -766,7 +766,7 @@ body {
 .about-content {
   padding: 30px;
   overflow-y: auto;
-  height: 100vh;
+  max-height: calc(100vh - 30vh);
 }
 
 .section-title {
@@ -804,6 +804,7 @@ body {
 
 .gallery-section {
   margin-top: 30px;
+  height: 100%;
 }
 
 .gallery-grid {
@@ -825,7 +826,7 @@ body {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  //aspect-ratio: 16/9;
+  aspect-ratio: 4/3;
 
   &:hover {
     border-color: #ffd700;
