@@ -939,7 +939,7 @@ const storySystem = {
     // 提示文字
     ctx.fillStyle = "#fed456";
     ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
-    ctx.fillText("按任意鍵繼續", 400, 560);
+    ctx.fillText("按[SPACE]繼續", 400, 560);
 
     // 轉換為圖片
     const img = new Image();
@@ -990,7 +990,7 @@ const storySystem = {
     // 提示文字
     ctx.fillStyle = "#456d1d";
     ctx.font = "bold 24px  'JasonHW-Round', 'Orbitron', sans-serif";
-    ctx.fillText("按任意鍵繼續", 400, 560);
+    ctx.fillText("按[SPACE]繼續", 400, 560);
 
     // 轉換為圖片
     const img = new Image();
@@ -1168,7 +1168,7 @@ const storySystem = {
     ctx.fillStyle = "#fed456";
     ctx.font = "bold 20px 'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("按任意鍵繼續", ctx.canvas.width / 2, overlayY + 35);
+    ctx.fillText("按[SPACE]繼續", ctx.canvas.width / 2, overlayY + 90);
   },
 
   // 停止當前影片播放
