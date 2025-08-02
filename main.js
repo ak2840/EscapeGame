@@ -882,8 +882,6 @@ const storySystem = {
       }
     }
 
-    console.log("劇情影片和圖片載入完成");
-
     if (isMobile) {
       for (let level of [1, 4]) {
         try {
@@ -909,6 +907,10 @@ const storySystem = {
         }
       }
     }
+
+    console.log("劇情影片和圖片載入完成");
+
+    
   },
 
   // 創建預設的關卡開始劇情圖片
