@@ -119,20 +119,16 @@ const audioSystem = {
   updateButtonStates() {
     // 不再需要更新HTML按鈕狀態，因為使用遊戲內按鈕
     // 遊戲內按鈕會根據 audioSystem.bgmEnabled 和 audioSystem.sfxEnabled 自動更新
-      const bgmIcon = document.getElementById("bgmIcon");
-  const sfxIcon = document.getElementById("sfxIcon");
+    const bgmIcon = document.getElementById("bgmIcon");
+    const sfxIcon = document.getElementById("sfxIcon");
 
-  if (bgmIcon) {
-    bgmIcon.src = this.bgmEnabled
-      ? "assets/ui/volume-on.svg"
-      : "assets/ui/volume-off.svg";
-  }
+    if (bgmIcon) {
+      bgmIcon.src = this.bgmEnabled ? "assets/ui/volume-on.svg" : "assets/ui/volume-off.svg";
+    }
 
-  if (sfxIcon) {
-    sfxIcon.src = this.sfxEnabled
-      ? "assets/ui/sound-on.svg"
-      : "assets/ui/sound-off.svg";
-  }
+    if (sfxIcon) {
+      sfxIcon.src = this.sfxEnabled ? "assets/ui/sound-on.svg" : "assets/ui/sound-off.svg";
+    }
   },
 
   setVolume() {
@@ -885,11 +881,39 @@ const storySystem = {
         console.log(`關卡${level}使用預設結束劇情圖片`);
       }
     }
+    // ✅ 手機補載 story_1_after_m / story_4_after_m 影片
+    if (isMobile) {
+      for (let level of [1, 4]) {
+        try {
+          window.loadingManager.totalAssets++;
 
+          const outroVideo = document.createElement("video");
+          outroVideo.src = `assets/story/story_${level}_after_m.mp4`;
+          outroVideo.muted = false;
+          outroVideo.loop = false;
+          outroVideo.playsInline = true;
+          outroVideo.preload = "metadata";
+
+          await new Promise((resolve, reject) => {
+            outroVideo.addEventListener("loadeddata", () => {
+              window.loadingManager.loadedAssets++;
+              window.loadingManager.updateProgress(window.loadingManager.loadedAssets, `載入手機影片：story_${level}_after_m.mp4`);
+              resolve();
+            });
+            outroVideo.addEventListener("error", () => {
+              window.loadingManager.loadedAssets++;
+              window.loadingManager.updateProgress(window.loadingManager.loadedAssets, `載入失敗：story_${level}_after_m.mp4`);
+              reject();
+            });
+          });
+
+          this.outroVideos[level] = outroVideo;
+        } catch (error) {
+          console.warn(`手機結尾影片 story_${level}_after_m.mp4 載入失敗`);
+        }
+      }
+    }
     console.log("劇情影片和圖片載入完成");
-
-
-
   },
 
   // 創建預設的關卡開始劇情圖片
@@ -3306,12 +3330,9 @@ function drawExit(offsetX, offsetY) {
   ctx.fillStyle = "#FFFFFF";
   ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "center";
-  const exitText = canExit
-    ? GAME_CONFIG.gameInfo.uiText.exitReady
-    : GAME_CONFIG.gameInfo.uiText.exitRequirement;
+  const exitText = canExit ? GAME_CONFIG.gameInfo.uiText.exitReady : GAME_CONFIG.gameInfo.uiText.exitRequirement;
   ctx.fillText(exitText, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
 }
-
 
 function updateProjectiles() {
   for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -4431,10 +4452,9 @@ function updateEscapeButtonVisibility(inGame = false) {
   if (isMobile) {
     escapeBtn.style.display = inGame ? "block" : "none";
   } else {
-    escapeBtn.style.display = "none"; 
+    escapeBtn.style.display = "none";
   }
 }
-
 
 // 遊戲大廳管理函數
 function initLobby() {
@@ -4454,7 +4474,6 @@ function initLobby() {
 
     // ✅ 手機版隱藏右上角 ESC 離開按鈕
     updateEscapeButtonVisibility(false);
-
   } catch (error) {
     console.error("初始化大廳失敗:", error);
     // 即使失敗也要顯示大廳
@@ -4576,7 +4595,7 @@ function updateLobbyDisplay() {
 }
 
 async function startLevel(level) {
-   updateEscapeButtonVisibility(true); // ✅ 手機顯示離開鍵
+  updateEscapeButtonVisibility(true); // ✅ 手機顯示離開鍵
 
   currentLevel = level;
   loadLevel(); // 只載入進度，不更新配置
@@ -4674,7 +4693,7 @@ function updateLobbyAudioButtons() {
 async function initGame() {
   console.log("開始初始化遊戲...");
 
-    // 初始化音效系統
+  // 初始化音效系統
   await audioSystem.init();
 
   // 確保載入管理器已初始化
@@ -4686,8 +4705,6 @@ async function initGame() {
   if (window.loadingManager) {
     window.loadingManager.updateProgress(5, "初始化遊戲系統...");
   }
-
-
 
   // 更新載入進度
   if (window.loadingManager) {
