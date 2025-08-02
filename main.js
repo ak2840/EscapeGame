@@ -3282,45 +3282,33 @@ function showExitConditionHint() {
 }
 
 function drawExit(offsetX, offsetY) {
-  // 根據通關條件狀態決定是否顯示
   const canExit = checkExitConditions();
-
-  // 獲取當前關卡的出口圖片
   const exitImageKey = `level${currentLevel}`;
   const exitImage = exitImages[exitImageKey];
 
   if (exitImage && exitImage.complete) {
-    // 使用圖片繪製出口
     ctx.drawImage(exitImage, exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
-
-    // 如果條件未滿足，只顯示提示文字（不添加遮罩）
-    if (!canExit) {
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = "10px  'JasonHW-Round', 'Orbitron', sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
-    }
   } else {
-    // 如果圖片未載入完成，使用原來的顏色方塊作為備用
     const exitColor = canExit ? "#456d1d" : "#FF0000";
     ctx.fillStyle = exitColor;
     ctx.fillRect(exit.x - offsetX, exit.y - offsetY, exit.width, exit.height);
 
-    // 畫一個 "EXIT" 文字
     ctx.fillStyle = "#000000";
-    ctx.font = "12px  'JasonHW-Round', 'Orbitron', sans-serif";
+    ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("EXIT", exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height / 2 + 4);
-
-    // 如果條件未滿足，顯示提示文字
-    if (!canExit) {
-      ctx.fillStyle = "#FFFFFF";
-      ctx.font = "10px  'JasonHW-Round', 'Orbitron', sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(GAME_CONFIG.gameInfo.uiText.exitRequirement, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
-    }
   }
+
+  // ✅ 無論能否通關都顯示提示文字
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
+  ctx.textAlign = "center";
+  const exitText = canExit
+    ? GAME_CONFIG.gameInfo.uiText.exitReady
+    : GAME_CONFIG.gameInfo.uiText.exitRequirement;
+  ctx.fillText(exitText, exit.x - offsetX + exit.width / 2, exit.y - offsetY + exit.height + 15);
 }
+
 
 function updateProjectiles() {
   for (let i = projectiles.length - 1; i >= 0; i--) {
@@ -5305,7 +5293,7 @@ function drawItems(offsetX, offsetY) {
 function drawItemStats() {
   const startX = 22; // 移到左側，與血量面板對齊
   const startY = 110; // 血量面板下方 (60 + 35 + 5)
-  const baseItemSize = 18;
+  const baseItemSize = 25;
   const spacing = 8;
 
   // 獲取當前關卡的通關條件
@@ -5321,16 +5309,16 @@ function drawItemStats() {
 
   // 繪製半透明背景，帶有圓角和邊框
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-  ctx.fillRect(startX - 8, startY - 8, 180, backgroundHeight);
+  ctx.fillRect(startX - 8, startY - 8, 210, backgroundHeight);
 
   // 繪製邊框
   ctx.strokeStyle = "#fed456";
   ctx.lineWidth = 1;
-  ctx.strokeRect(startX - 8, startY - 8, 180, backgroundHeight);
+  ctx.strokeRect(startX - 8, startY - 8, 210, backgroundHeight);
 
   // 標題
   ctx.fillStyle = "#fed456";
-  ctx.font = "bold 15px 'JasonHW-Round', 'Orbitron', sans-serif";
+  ctx.font = "bold 16px 'JasonHW-Round', 'Orbitron', sans-serif";
   ctx.textAlign = "left";
   ctx.fillText(GAME_CONFIG.gameInfo.uiText.passItem, startX, startY + 10);
 
@@ -5376,13 +5364,13 @@ function drawItemStats() {
 
       // 道具名稱
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "14px  'JasonHW-Round', 'Orbitron', sans-serif";
+      ctx.font = "16px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(itemConfig.name, textX, textY);
 
       // 數量（帶顏色）
       const countText = `${count}/${requiredCount}`;
       const countWidth = ctx.measureText(countText).width;
-      const countX = startX + 160 - countWidth; // 右對齊（調整為新的面板寬度）
+      const countX = startX + 190 - countWidth; // 右對齊（調整為新的面板寬度）
 
       if (count >= requiredCount) {
         ctx.fillStyle = "#456d1d"; // 綠色表示已達到要求
@@ -5390,7 +5378,7 @@ function drawItemStats() {
         ctx.fillStyle = "#b13434"; // 較柔和的紅色表示未達到要求
       }
 
-      ctx.font = "bold 14px  'JasonHW-Round', 'Orbitron', sans-serif";
+      ctx.font = "bold 16px  'JasonHW-Round', 'Orbitron', sans-serif";
       ctx.fillText(countText, countX, textY);
 
       y += 22;

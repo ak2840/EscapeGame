@@ -33,13 +33,16 @@ class LoadingManager {
             font-family: "JasonHW-Round", "Orbitron", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
         `;
 
-    const title = document.createElement("h1");
-    title.textContent = "焦土中的信號 Signal";
+    const title = document.createElement("img");
+    title.src = "assets/ui/lobby-background.png";
+    title.alt = "焦土中的信號 Signal";
     title.style.cssText = `
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        `;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  margin-bottom: 20px;
+  image-rendering: auto;
+`;
 
     const subtitle = document.createElement("div");
     subtitle.textContent = "正在載入遊戲資源...";
