@@ -837,7 +837,8 @@ const storySystem = {
     // 載入關卡結束劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
       // 只在非手機設備上載入影片
-      if (!isMobile) {
+      // ✅ 修改這行條件：不只桌機，手機第 1 與 4 關也要載入影片
+      if (!isMobile || [1, 4].includes(level)) {
         try {
           const outroVideo = document.createElement("video");
           outroVideo.src = `assets/story/story_${level}_after.mp4`;
@@ -853,7 +854,7 @@ const storySystem = {
             });
           });
 
-          this.outroVideos[level] = outroVideo;
+          this.storyVideos[`${level}_after`] = outroVideo;
           console.log(`關卡${level}結束劇情影片載入成功`);
         } catch (error) {
           console.log(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
@@ -882,47 +883,7 @@ const storySystem = {
       }
     }
 
-if (isMobile) {
-  for (let level of [1, 4]) {
-    try {
-      // ✅ 告訴 loading 管理器：「我多載入一個資源」
-      window.loadingManager.totalAssets++;
-
-      const outroVideo = document.createElement("video");
-      outroVideo.src = `assets/story/story_${level}_after_m.mp4`;
-      outroVideo.muted = false;
-      outroVideo.loop = false;
-      outroVideo.playsInline = true; // iOS 強制行內播放
-      outroVideo.preload = "metadata";
-
-      await new Promise((resolve, reject) => {
-        outroVideo.addEventListener("loadeddata", () => {
-          // ✅ 成功後要告訴 loading：我這筆影片載入完了
-          window.loadingManager.loadedAssets++;
-          window.loadingManager.updateProgress(window.loadingManager.loadedAssets, `載入影片：story_${level}_after_m.mp4`);
-          resolve();
-        });
-        outroVideo.addEventListener("error", () => {
-          // ✅ 失敗也要計入載入數，避免 loading 卡住
-          window.loadingManager.loadedAssets++;
-          window.loadingManager.updateProgress(window.loadingManager.loadedAssets, `載入失敗：story_${level}_after_m.mp4`);
-          console.warn(`手機補載：關卡${level}結束影片 story_${level}_after_m.mp4 失敗`);
-          reject();
-        });
-      });
-
-      this.outroVideos[level] = outroVideo;
-      console.log(`手機補載：關卡${level}結束影片 story_${level}_after_m.mp4 載入成功`);
-    } catch (error) {
-      console.log(`手機補載：關卡${level}結束影片 story_${level}_after_m.mp4 載入失敗，仍用圖片`);
-    }
-  }
-}
-
-
     console.log("劇情影片和圖片載入完成");
-
-    
   },
 
   // 創建預設的關卡開始劇情圖片
