@@ -841,7 +841,7 @@ const storySystem = {
     // 載入關卡結束劇情影片和圖片
     for (let level = 1; level <= MAX_LEVEL; level++) {
       // 只在非手機設備上載入影片
-      if (!isMobile || level === 1 || level === 4) {
+      if (!isMobile) {
         try {
           const outroVideo = document.createElement("video");
           outroVideo.src = `assets/story/story_${level}_after.mp4`;
@@ -853,7 +853,7 @@ const storySystem = {
             outroVideo.addEventListener("loadeddata", resolve);
             outroVideo.addEventListener("error", () => {
               console.warn(`關卡${level}結束劇情影片載入失敗，將使用圖片`);
-              resolve();
+              reject();
             });
           });
 
