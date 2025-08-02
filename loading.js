@@ -375,14 +375,6 @@ class LoadingManager {
     // 立即開始顯示進度
     this.updateProgress(0, "初始化載入管理器...");
 
-    // ✅ 如果是手機裝置，載入第1與第4關的劇情影片
-    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      this.totalAssets += 2;
-      this.setTotalAssets(this.totalAssets);
-      this.trackVideoLoad("assets/story/story_1_after_m.mp4").catch(() => {});
-      this.trackVideoLoad("assets/story/story_4_after_m.mp4").catch(() => {});
-    }
-
     console.log("載入管理器已初始化");
   }
 
