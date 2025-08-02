@@ -933,8 +933,8 @@ const storySystem = {
     }
 
     // 提示文字背景
-    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-    ctx.fillRect(0, 520, 800, 80);
+    // ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    // ctx.fillRect(0, 520, 800, 80);
 
     // 提示文字
     ctx.fillStyle = "#fed456";
@@ -1161,8 +1161,8 @@ const storySystem = {
     const overlayY = ctx.canvas.height - buttonAreaHeight - overlayHeight;
 
     // 半透明背景
-    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-    ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
+    // ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    // ctx.fillRect(0, overlayY, ctx.canvas.width, overlayHeight);
 
     // 提示文字
     ctx.fillStyle = "#fed456";
