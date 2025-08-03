@@ -15,7 +15,7 @@ const GAME_CONFIG = {
       killCount: "擊殺數",
       exitRequirement: "前往收集必要資源",
       noItemRequirement: "無道具要求",
-      passItem: "指定物品搜尋",
+      passItem: "擊敗敵人或搜尋物品",
       exitReady: "[SPACE]啟動出口", 
       exitConditionNotMet: "通關條件未滿足！",
       prepareAdventure: "準備開始冒險...",
@@ -26,7 +26,7 @@ const GAME_CONFIG = {
       timeUp: "時間到！遊戲結束！",
       exitRequirement: "需要收集道具",
       noItemRequirement: "無道具要求",
-      passItem: "指定物品搜尋",
+      passItem: "擊敗敵人或搜尋物品",
       exitConditionNotMet: "通關條件未滿足！",
     },
     storyText: {
