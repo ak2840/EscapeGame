@@ -1,56 +1,50 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>焦土中的信號 Signal - 末日永續生存遊戲大廳</title>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- SEO 基本資訊 -->
+    <title>焦土中的信號 Signal - 末日永續生存遊戲</title>
+    <meta name="description" content="與歐皮一同踏入霧霾世界，修復信號塔、釋放共感，展開你的永續生存行動。融合 RE100、ESG 概念的末日敘事遊戲體驗。" />
+    <meta name="keywords" content="焦土中的信號, Signal 遊戲, 台灣大哥大, Opee, ESG 遊戲, 永續遊戲, RE100, EV100, 生存遊戲, 瀕危文明, 通訊塔, 行動遊戲" />
 
-  <!-- SEO 基本資訊 -->
-  <meta name="description" content="《焦土中的信號 Signal》是一款以 RE100、EV100、ESG 為靈感的末日生存遊戲。在霧霾與數位孤島的世界中，與輔助機器人歐皮一同修復電信塔、解開通訊之謎，尋找人性的最後信號。" />
-  <meta name="keywords" content="焦土中的信號, Signal 遊戲, 永續生存遊戲, RE100 遊戲, ESG 遊戲, 末日遊戲, 台灣大哥大, TWM, Opee, 歐皮, 數位轉型遊戲, RE100, EV100, ESG" />
-  <meta name="author" content="TWM 未來之晨遊戲開發團隊" />
+    <!-- Open Graph（LINE / Facebook）-->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ak2840.github.io/EscapeGame/" />
+    <meta property="og:title" content="焦土中的信號 Signal - 永續生存冒險遊戲" />
+    <meta property="og:description" content="你是最後的信號修復者。在霧霾與智能孤島中與歐皮一同喚醒文明希望。" />
+    <meta property="og:image" content="https://ak2840.github.io/EscapeGame/assets/ui/1200x628.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="焦土中的信號 Signal" />
 
-  <!-- Open Graph for Facebook/LINE -->
-  <meta property="og:title" content="焦土中的信號 Signal - 修復共感的末日生存遊戲" />
-  <meta property="og:description" content="數位風暴後的廢墟之中，你與歐皮將喚醒沉睡的通訊核心，踏上重建世界的旅程。" />
-  <meta property="og:image" content="assets/ui/1200x628.jpg" />
-  <meta property="og:url" content="https://ak2840.github.io/EscapeGame/" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="焦土中的信號 Signal" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="焦土中的信號 Signal - 永續生存冒險遊戲" />
+    <meta name="twitter:description" content="踏上修復通訊與釋放共感的末日旅程，與歐皮攜手對抗霧霾與數位崩壞。" />
+    <meta name="twitter:image" content="https://ak2840.github.io/EscapeGame/assets/ui/1200x628.jpg" />
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="焦土中的信號 Signal - 永續生存冒險遊戲" />
-  <meta name="twitter:description" content="踏入霧霾廢墟、對抗智能孤島，釋放最後的共感訊號。" />
-  <meta name="twitter:image" content="assets/ui/1200x628.jpg" />
+    <!-- 關鍵資源預載入 -->
+    <link rel="preload" href="assets/ui/lobby-background.png" as="image" />
+    <link rel="preload" href="main.js" as="script" />
+    <link rel="preload" href="gameConfig.js" as="script" />
 
-  <!-- 歐皮頭像 favicon（新版） -->
-<link rel="icon" type="image/x-icon" href="assets/ui/favicon.ico" />
-<link rel="icon" type="image/png" sizes="32x32" href="assets/ui/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="assets/ui/favicon-16x16.png" />
-<link rel="apple-touch-icon" href="assets/ui/favicon-180x180.png" />
+    <!-- DNS 預解析 -->
+    <link rel="dns-prefetch" href="//github.com" />
+    <link rel="dns-prefetch" href="//raw.githubusercontent.com" />
 
-  <!-- 關鍵資源預載入 -->
-  <link rel="preload" href="assets/ui/lobby-background.png" as="image" />
-  <link rel="preload" href="main.js" as="script" />
-  <link rel="preload" href="gameConfig.js" as="script" />
+    <!-- 資源提示 -->
+    <link rel="preconnect" href="//github.com" />
+    <link rel="preconnect" href="//raw.githubusercontent.com" />
 
-  <!-- DNS 預解析與預連線 -->
-  <link rel="dns-prefetch" href="//github.com" />
-  <link rel="dns-prefetch" href="//raw.githubusercontent.com" />
-  <link rel="preconnect" href="//github.com" />
-  <link rel="preconnect" href="//raw.githubusercontent.com" />
+    <!-- CSS/字型 -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
 
-  <!-- 字體與樣式 -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-</head>
-
-
+    <link rel="stylesheet" href="style.css" />
+  </head>
   <body>
     <div id="gameLobby">
       <div class="lobby-container">
-       <h1><img class="game-title" id="gameTitle" src="assets/ui/lobby-background.png" alt="焦土中的信號 Signal" /></h1>
+        <h1><img class="game-title" id="gameTitle" src="assets/ui/lobby-background.png" alt="焦土中的信號 Signal" /></h1>
         <!-- <h1 class="game-title" id="gameTitle">焦土中的信號 Signal</h1> -->
         <p class="subtitle" id="gameSubtitle">在廢墟中尋找希望的生存冒險</p>
 
@@ -126,7 +120,7 @@
     </div>
 
     <div id="gameContainer" class="hidden">
-      <canvas id="gameCanvas"  tabindex="0"></canvas>
+      <canvas id="gameCanvas" tabindex="0"></canvas>
     </div>
 
     <!-- 手機操作按鈕 -->
