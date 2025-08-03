@@ -63,7 +63,7 @@ body {
 
 .lobby-container {
   border-radius: 10px;
-  padding: 20px 40px;
+  padding: 15px 40px;
   text-align: center;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
   border: 1px solid #1d1403;
@@ -87,7 +87,7 @@ body {
 /* 為了確保文字在背景圖片上清晰可見，添加一個半透明遮罩 */
 .game-title {
   width: 100%;
-  max-width: 700px;
+  max-width: 500px;
   height: auto;
   display: block;
   margin: 0 auto;
